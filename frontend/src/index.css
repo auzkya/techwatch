@@ -1,0 +1,68 @@
+:root{
+    --background: #0F0F0F;
+    --background_secondary: #272727;
+    --text: #F1F1F1;
+    --text2: #C3C3C3;
+    --text3: #B3B3B3;
+    --primary: #B20300;
+    --primary2: #FF0000;
+    --secondary: #689700;
+}
+body{
+    margin: 0;
+    background-color: var(--background);
+    color: var(--text);
+    font-family: "Inter", sans-serif;
+}
+
+button{
+    transition: 0.15s ease-in-out;
+    cursor: pointer;
+}
+
+button:hover{
+    opacity: 0.85;
+}
+
+/*Title Page Bold*/
+h1{
+    font-size: 48px;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+}
+/*Subtitle*/
+h2{
+    font-size: 32px;
+    font-weight: 300;
+}
+/*Subheading*/
+h3{
+    font-size: 20px;
+}
+/*Body Base*/
+.body_base{
+    font-size: 16px;
+}
+/*Strong*/
+.strong{
+    font-weight: 700;
+}
+/*Body Small*/
+p{
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.4;
+}
+/*Body Smallest*/
+.body_smallest{
+    font-size: 12px;
+}
+
+p a{
+    color: var(--primary2);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/*APP*/

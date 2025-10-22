@@ -1,0 +1,239 @@
+header {
+    display: block;
+    width: calc(100%-120px);
+    height: 35px;
+    padding: 12px 60px 12px;
+    background: var(--background);
+    position: sticky;
+    z-index: 1000;
+}
+
+header .left {
+    width: 50%;
+    float: left;
+    height: 100%;
+}
+
+.header_logo {
+    height: 100%;
+    cursor: pointer;
+}
+
+header .right {
+    width: 50%;
+    float: right;
+    height: 100%;
+    text-align: right;
+}
+
+.button-add_item {
+    border: none;
+    border-radius: 15px;
+    padding: 8px 16px;
+    color: var(--text);
+    font-weight: 600;
+    margin: 0 10px;
+    vertical-align: middle;
+
+    background-color: var(--primary);
+}
+
+.button-search_job {
+    border: none;
+    border-radius: 15px;
+    padding: 8px 16px;
+    color: var(--text);
+    font-weight: 600;
+    margin: 0 35px 0 15px;
+    vertical-align: middle;
+
+    background-color: var(--background_secondary);
+}
+
+.button-icon {
+    background-color: transparent;
+    border: none;
+    color: var(--text);
+    margin: 0 5px;
+}
+
+.header_icon {
+    font-size: 20px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.profile {
+    font-size: 30px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+/*NOTIFICATIONS*/
+.header_messages {
+    position: fixed;
+    float: right;
+    right: 50px;
+    /*margin-top: 55px;*/
+    margin-top: 0;
+
+    background-color: var(--background);
+    color: var(--text);
+
+    border: solid;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 0 10px 10px;
+
+    max-width: 300px;
+    overflow: hidden;
+    max-height: 70vh;
+    overflow-y: scroll;
+    padding-bottom: 0;
+
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+
+    padding-top: 0;
+    z-index: 1000;
+}
+
+.dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    z-index: 9998;
+    /* zajisti, že zachytí kliknutí */
+    pointer-events: auto;
+    z-index: 900;
+}
+
+.header_messages ::-webkit-scrollbar {
+    display: none;
+}
+
+.header_messages_heading {
+    position: fixed;
+    background-color: var(--background);
+    width: 300px;
+    padding: 5px 0 5px 0px;
+    display: flex;
+    vertical-align: middle;
+    justify-content: space-between;
+    /*margin: 5px 10px 5px 5px;*/
+}
+
+.header_messages_heading p {
+    margin: 0 0 0 5px;
+}
+
+.header_messages_heading button {
+    justify-content: center;
+    vertical-align: middle;
+    line-height: 100%;
+    background-color: transparent;
+    border: none;
+}
+
+.header_messages_heading button p {
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--text);
+}
+
+.header_messages_heading .icon {
+    color: var(--primary2);
+    vertical-align: middle;
+}
+
+/*PROFILE DROPDOWN*/
+#profile_popover {
+    max-width: 120px;
+}
+
+.profile_dropdown_button {
+    background-color: transparent;
+    color: var(--text);
+    width: 120px;
+    border: none;
+}
+
+.profile_dropdown_button p {
+    margin: 0;
+    padding: 5px 0;
+    text-align: left;
+}
+
+.profile_dropdown_button:nth-of-type(4) {
+    border: solid;
+    padding-bottom: 4px;
+    border-width: 0 0 2px 0;
+}
+
+.profile_dropdown_button:nth-of-type(5) {
+    padding-top: 4px;
+}
+
+/*TOGGLE SWITCH HLEDÁM PRÁCI*/
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 16px;
+    margin-right: 10px;
+    pointer-events: none
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--text);
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 1px;
+    background-color: var(--background_secondary);
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.slider:before {
+    background-color: var(--primary2);
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(12px);
+    -ms-transform: translateX(12px);
+    transform: translateX(12px);
+}
+
+/* Rounded sliders */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}

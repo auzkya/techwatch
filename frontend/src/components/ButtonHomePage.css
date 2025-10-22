@@ -1,0 +1,18 @@
+.button-homepage{
+    width: 240px;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: var(--primary);
+
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text);
+
+    padding: 15px 0;
+    border: none;
+    border-radius: 15px;
+}
+
+.button-homepage span{
+    margin: 0 5px;
+}

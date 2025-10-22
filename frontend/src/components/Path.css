@@ -1,0 +1,24 @@
+.all-path{
+  width: 100%;
+  text-align: center; /* vycentruje .path */
+}
+
+.path{
+  display: inline-flex; /* nebo inline-block */
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto; /* vycentruje v rámci rodiče */
+  gap: 5px; /* mezera mezi prvky */
+}
+
+.path p{
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.path-a{
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    text-transform: uppercase;
+}

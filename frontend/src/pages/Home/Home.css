@@ -1,0 +1,22 @@
+.home_nav {
+    display: block;
+    margin: 0 auto;
+    width: 60%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -70%);
+}
+
+.home_logo {
+    width: 400px;
+    display: block;
+    margin: 0 auto 30px auto;
+}
+
+.home_buttons{
+    display: flex;
+    justify-content: space-between;
+    width: 520px;
+    margin: 0 auto;
+}

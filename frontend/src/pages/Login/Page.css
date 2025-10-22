@@ -1,0 +1,31 @@
+.login_page{
+    display: block;
+    margin: 0 auto;
+
+    max-width: 400px;
+}
+
+.login_logo{
+    max-width: 100%;
+}
+
+.login_section{
+    max-width: 80%;
+}
+
+.login_section h2{
+    text-align: center;
+}
+
+.form-submit{
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary2);
+    color: var(--text);
+}
+
+.form-submit p{
+    margin: 0;
+}
