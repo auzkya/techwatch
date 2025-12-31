@@ -1,0 +1,99 @@
+.profile_picture {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+
+.profile_picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: 0.2s;
+}
+
+.profile_picture:hover img {
+    opacity: 0.5;
+}
+
+.avatar_overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-size: 36px;
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.profile_picture:hover .avatar_overlay {
+    opacity: 1;
+}
+
+/* crop modal */
+.crop_modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.crop_container {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+        margin: 0 auto;
+    overflow: hidden;
+}
+
+.crop_actions {
+    position: relative;
+    z-index: 1000;
+    margin: 24px auto 0 auto;
+    display: flex;
+}
+
+.crop_actions_cancel{
+    margin: 0 5px;
+        padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    background-color: transparent;
+    color: var(--text);
+    text-decoration: underline;
+}
+
+.crop_actions_save{
+        padding: 12px 20px;
+        margin: 0 5px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--primary);
+    color: var(--text);
+}
+
+.crop_actions p{
+    margin: 0 !important;
+}
+
+/*.reactEasyCrop_Container{
+    width: 60vh !important;
+    height: 60vh !important;
+        position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+.reactEasyCrop_CropArea{
+    color: transparent !important;
+}*/

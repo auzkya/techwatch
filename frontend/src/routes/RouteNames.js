@@ -7,6 +7,7 @@ export const ROUTES = {
   WORKERS_CATEGORY: "/workers/:subcategory",
 
   //TECH: "/tech",
+  ADD_TECH: "/add-tech",
   TECH_CATEGORY: "/tech/:subcategory",
   TECH_DETAIL: "/tech/:slug-:id",
 
@@ -16,7 +17,7 @@ export const ROUTES = {
 
   FAVOURITES: "/favourites/:type?",
 
-  NOT_FOUND: "*",
+  //NOT_FOUND: "*",
 };
 
 // Pomocné funkce pro generování cest

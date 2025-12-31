@@ -11,9 +11,12 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('title', 255);
-            $table->text('description')->nullable();
-            $table->string('location', 100)->nullable();
+            $table->text('category');
+            $table->text('description');
+            $table->string('location', 100);
             $table->enum('purpose', ['rental', 'sell']);
+            $table->json('images')->nullable();
+            $table->integer('quantity');
             $table->integer('price')->nullable();
             $table->boolean('active_item')->default(true);
             $table->float('review_value')->nullable();

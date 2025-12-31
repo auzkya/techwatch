@@ -1,0 +1,27 @@
+.form_textarea {
+    width: 100%;
+    margin: 10px 0;
+    display: block;
+    text-decoration: none;
+    background-color: var(--background3);
+
+    font-size: 16px;
+    line-height: 1.2;
+    /*body base*/
+    font-weight: 400;
+    color: var(--text3);
+
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+
+    resize: none;
+    font-family: "Inter", sans-serif;
+    transition: 0.1s ease-in-out;
+}
+
+.form_textarea:focus {
+    color: var(--text);
+        background-color: var(--background2);
+    outline: none;
+}

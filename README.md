@@ -1,3 +1,15 @@
+Spuštění backend
+    zapnout XAMPP Apache a mySQL
+    "E:\xampp\htdocs\techwatch-all\techwatch> php artisan serve --host=127.0.0.1 --port=8000"
+
+Spuštění frontend
+    "E:\xampp\htdocs\techwatch-all\techwatch> cd /frontend"
+    "E:\xampp\htdocs\techwatch-all\techwatch\frontend> npm start"
+
+Spuštění tunelu přeš ngrok
+    "ngrok http --host-header=rewrite 8000"
+
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">

@@ -22,8 +22,7 @@ export default function NotificationPopup({
     useEffect(() => {
         if (!open) return;
 
-        // Zavře všechny nativní popovery, pokud nějaké jsou otevřené
-        // (bezpečně - jen pokud API existuje)
+        // zavře všechny nativní popovery, pokud nějaké jsou otevřené
         try {
             document.querySelectorAll('[popover]').forEach((p) => {
                 try {

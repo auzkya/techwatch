@@ -2,6 +2,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
 
+import axiosInstance from "../api/axiosInstance";
+import { useAuth } from "../context/AuthContext";
+
 import "./Header.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMessage as faMessageRegular, faBell as faBellRegular, faHeart as faHeartRegular, faCircleUser } from '@fortawesome/free-regular-svg-icons';
@@ -10,22 +13,70 @@ import { faMessage as faMessageSolid, faBell as faBellSolid, faCheckDouble, faHe
 import NotificationMessage from "./NotificationMessage";
 import NotificationPopup from "./NotificationPopup";
 
+const handleLogout = async () => {
+    try {
+        // volitelně zavolat backend logout endpoint, pokud máš token-based revoke
+        await axiosInstance.post("/api/logout"); // pokud máš endpoint, který token maže/ruší
+    } catch (err) {
+        console.error(err);
+    } finally {
+        localStorage.clear();
+        window.location.href = "/login";
+    }
+};
+
 const Header = () => {
     const navigate = useNavigate();
+    const { user, loading } = useAuth();
     const location = useLocation();
 
     const addButtonHandler = () => {
-        console.log('přesměruj na přidání nabídky')
+        console.log('přesměruj na přidání nabídky');
+        navigate(buildRoute(ROUTES.ADD_TECH));
     }
 
     const [lookingForJob, setLookingForJob] = useState(false);
-    const searchButtonHandler = () => {
+    /*const searchButtonHandler = () => {
         if (lookingForJob === false) {
             console.log("zapni mód HLEDÁM PRÁCI");
             setLookingForJob(true);
         } else {
             console.log("vypni mód HLEDÁM PRÁCI");
             setLookingForJob(false);
+        }
+    };*/
+    const searchButtonHandler = async () => {
+        try {
+            // 1️⃣ Zkontrolovat profil a specializace přes API
+            const res = await fetch(`/api/user/${user.id}/profile-check`);
+            const data = await res.json();
+
+            if (!data.profileComplete) {
+                alert("Nejdříve vyplňte všechny požadované údaje v profilu.");
+                return;
+            }
+
+            if (!data.hasSpecializations) {
+                alert("Nejdříve přidejte alespoň jednu specializaci.");
+                return;
+            }
+
+            // 2️⃣ Toggle lookingForJob
+            const newLookingForJob = !lookingForJob;
+            setLookingForJob(newLookingForJob);
+
+            // 3️⃣ Pošleme stav do backendu
+            await fetch(`/api/user/${user.id}/looking-for-job-toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lookingForJob: newLookingForJob })
+            });
+
+            console.log(newLookingForJob ? "Zapnuto HLEDÁM PRÁCI" : "Vypnuto HLEDÁM PRÁCI");
+
+        } catch (err) {
+            console.error("Chyba při toggle módu:", err);
+            alert("Došlo k chybě, zkuste to prosím znovu.");
         }
     };
 
@@ -82,7 +133,7 @@ const Header = () => {
                     <button className="button-icon" onClick={() => { setOpenMessages((prev) => !prev); closeAll(); toggleDropdown("messages"); }}><FontAwesomeIcon icon={openMessages ? faMessageSolid : faMessageRegular} className="header_icon" /></button>
                     <button className="button-icon" onClick={() => { setOpenNotifications((prev) => !prev); closeAll(); toggleDropdown("notifications") }}><FontAwesomeIcon icon={openNotifications ? faBellSolid : faBellRegular} className="header_icon" /></button>
                     <button className="button-icon" onClick={() => { closeAll(); navigate(buildRoute(ROUTES.FAVOURITES, { type: "" })); console.log(isFavouritesActive); }}><FontAwesomeIcon icon={isFavouritesActive ? faHeartSolid : faHeartRegular} className="header_icon" /></button>
-                    <button className="button-icon" onClick={() => { setOpenMore((prev) => !prev); closeAll(); toggleDropdown("more")}}><FontAwesomeIcon icon={faCircleUser} className="profile" /></button>
+                    <button className="button-icon" onClick={() => { setOpenMore((prev) => !prev); closeAll(); toggleDropdown("more") }}><FontAwesomeIcon icon={faCircleUser} className="profile" /></button>
                 </div>
             </header>
 
@@ -456,7 +507,9 @@ const Header = () => {
                         <button className="profile_dropdown_button" onClick={() => { navigate(buildRoute(ROUTES.SETTINGS)); closeAll(); }}>
                             <p>Nastavení</p>
                         </button>
-                        <button className="profile_dropdown_button">
+                        <button
+                            className="profile_dropdown_button"
+                            onClick={handleLogout}>
                             <p>Odhlásit se</p>
                         </button>
                     </div>

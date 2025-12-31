@@ -1,20 +1,23 @@
 const workers = [
     {
         id: 384,
-        image: "https://scontent.fprg4-1.fna.fbcdn.net/v/t39.30808-6/308590270_1786497991698627_8732913396874154056_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=3wWTcF0_x-0Q7kNvwGxz62_&_nc_oc=AdlExOVJCod6LPPNTu6rHTYTGrwy5FjgGPT4qx9L0m4GkTdN4itZnkl2Dte5u8ohGS4&_nc_zt=23&_nc_ht=scontent.fprg4-1.fna&_nc_gid=zlAnk3icRO5ZDuigOogwdA&oh=00_AfcHMSOfmymZiQs2VauToX4nrblWwBfDH_E_vUPLL9s12A&oe=68EC791A",
+        image: "http://127.0.0.1:8000/storage/avatars/5x6FvKueB0n1k5FOuZvjUgmPTYgR6vmylCzmZe0h.jpg",
+        rating: 3.3,
         name: "Adam Auzký",
         role: "Stagehands"
     },
     {
         id: 190,
-        image: "https://tyhle.cz/images/og/un.jpg",
+        image: "http://127.0.0.1:8000/storage/avatars/5x6FvKueB0n1k5FOuZvjUgmPTYgR6vmylCzmZe0h.jpg",
         name: "Štěpán Hejzlar",
+        rating: 4.5,
         role: "Osvětlovač"
     },
     {
         id: 948,
-        image: "https://static.goout.cloud/studiohrdinucz/2019/09/3394605d-sh_portrety_4x5_web015-819x1024.jpg",
+        image: "http://127.0.0.1:8000/storage/avatars/5x6FvKueB0n1k5FOuZvjUgmPTYgR6vmylCzmZe0h.jpg",
         name: "Václav Hruška",
+        rating: 3,
         role: "Osvětlovač;Rigger"
     },
 

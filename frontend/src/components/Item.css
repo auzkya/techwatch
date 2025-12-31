@@ -1,26 +1,59 @@
-.item{
-    width: 265px;
-    height: 326px;
-    margin: 20px;
+.item {
+    width: 220px;
+    height: auto;
+    margin: 5px;
     display: inline-block;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 10px;
+    transition: 0.2s ease-in-out;
+}
+
+.item:hover {
     background-color: rgba(255, 255, 255, 0.041);
 }
-.item p{
-    margin: 4px 0 2px 0;
+
+.item p {
+    margin: 0px 0 0px 0;
 }
-.profile_img{
+
+.item_profile_img {
     display: block;
-    width: 220px;
-    height: 220px;
+    width: 100%;
+    height: auto;
     margin: 0 auto;
     object-fit: cover;
+    border-radius: 12px;
 }
-.stars_img{
+
+.item_specs{
+    width: 97%;
+    display: block;
+    margin: 5px auto 0 auto;
+}
+
+.stars {
     display: inline-block;
+    vertical-align: middle;
+    font-size: 12px;
 }
-.stars_number{
+
+.stars_number {
     display: inline-block;
+    vertical-align: middle;
 }
-.role{
+
+.name{
+    padding-top: 5px;
+}
+
+.heart{
+    float: right;
+    color: var(--primary2);
+    font-size: 16px;
+    margin-top: 2px;
+}
+
+.role {
     color: var(--text2);
 }

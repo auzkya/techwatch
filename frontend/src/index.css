@@ -1,6 +1,7 @@
-:root{
+:root {
     --background: #0F0F0F;
-    --background_secondary: #272727;
+    --background2: #272727;
+    --background3: #1d1d1d;
     --text: #F1F1F1;
     --text2: #C3C3C3;
     --text3: #B3B3B3;
@@ -8,61 +9,257 @@
     --primary2: #FF0000;
     --secondary: #689700;
 }
-body{
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
     margin: 0;
     background-color: var(--background);
     color: var(--text);
     font-family: "Inter", sans-serif;
 }
 
-button{
+/* Chrome, Edge and Safari */
+*::-webkit-scrollbar {
+    height: 5px;
+    width: 5px;
+}
+
+*::-webkit-scrollbar-track {
+    border-radius: 20px;
+    background-color: transparent;
+}
+
+*::-webkit-scrollbar-track:hover {
+    background-color: transparent;
+}
+
+*::-webkit-scrollbar-track:active {
+    background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: var(--primary);
+}
+
+button {
     transition: 0.15s ease-in-out;
     cursor: pointer;
 }
 
-button:hover{
+button:hover {
     opacity: 0.85;
 }
 
+.button_disabled {
+    cursor: default !important;
+    opacity: 0.6 !important;
+}
+
 /*Title Page Bold*/
-h1{
+h1 {
     font-size: 48px;
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
 }
+
 /*Subtitle*/
-h2{
+h2 {
     font-size: 32px;
     font-weight: 300;
 }
+
 /*Subheading*/
-h3{
+h3 {
     font-size: 20px;
 }
+
 /*Body Base*/
-.body_base{
+.body_base {
     font-size: 16px;
 }
+
 /*Strong*/
-.strong{
+.strong {
     font-weight: 700;
 }
+
 /*Body Small*/
-p{
+p {
     font-size: 14px;
     font-weight: 300;
     line-height: 1.4;
 }
+
 /*Body Smallest*/
-.body_smallest{
+.body_smallest {
     font-size: 12px;
 }
 
-p a{
+p a {
     color: var(--primary2);
     text-decoration: none;
     font-weight: 600;
 }
 
-/*APP*/
+input:focus, input:active{
+        border: none !important;
+        outline: none !important;
+}
+
+/*Loader*/
+.loader_container {
+    position: absolute;
+    z-index: 1000;
+    background-color: #000000b2;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    position: absolute;
+    top: 40%;
+    margin: 0 auto;
+    display: block;
+    width: 50px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(farthest-side, var(--primary) 94%, #0000) top/4px 4px no-repeat,
+        conic-gradient(#0000 30%, var(--primary));
+    -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
+    animation: l13 1s infinite linear;
+}
+
+/*ALERT*/
+.alert_container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    z-index: 1500;
+    max-width: 300px;
+}
+
+.alert {
+    padding: 16px 18px 16px 14px;
+    margin-bottom: 10px;
+    right: 20px;
+    background-color: var(--background);
+    border: solid 1px;
+    border-radius: 12px;
+    box-shadow: 0 2px 2px;
+    gap: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.alert-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 22px;
+}
+
+.alert-title p {
+    margin: 0;
+}
+
+.alert-close {
+    display: inline-block;
+    font-weight: 1000;
+    font-size: 14px;
+    background: transparent;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    margin-top: -8px;
+    padding: 4px;
+}
+
+.alert-message {
+    margin: 0 0 0 34px;
+    display: block;
+    max-width: calc(50%-34px);
+    color: var(--text2) !important;
+}
+
+/*POPUP*/
+.popup_container {
+    position: absolute;
+    z-index: 1000;
+    background-color: #000000b2;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup {
+    background-color: var(--background);
+    border: solid 1px var(--primary);
+    border-radius: 12px;
+    padding: 32px 0px;
+    box-shadow: 0 2px 2px var(--primary);
+    position: absolute;
+    display: grid;
+    width: 600px;
+    z-index: 1100;
+        top: 30%;
+}
+
+.popup h2 {
+    text-align: center;
+    margin: 0 0 0px 0;
+}
+
+.popup p {
+    display: block;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.popup .cropped {
+    width: 50%;
+    margin: 0 auto;
+}
+
+.cropped-send_again{
+    margin: 6px auto 0 auto;
+    display: block;
+    position: relative;
+    width: auto;
+    padding: 4px 12px;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    cursor: default;
+}
+
+.cropped-send_again p{
+    display: inline;
+    cursor: pointer;
+}

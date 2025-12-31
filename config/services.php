@@ -35,4 +35,27 @@ return [
         ],
     ],
 
+    // Propojení s oAuth
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT'),
+    ],
+    'facebook' => [
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect' => env('FACEBOOK_REDIRECT'),
+        'guzzle' => [
+            'verify' => false, // vypne SSL certifikáty jen pro vývoj
+        ],
+    ],
+
+    // Twilio pro autentizaci telefonu
+    'twilio' => [
+        'sid' => env('TWILIO_SID'),
+        'token' => env('TWILIO_AUTH_TOKEN'),
+        'verify_service' => env('TWILIO_VERIFY_SERVICE'),
+        'from' => env('TWILIO_PHONE_NUMBER'),
+    ],
+
 ];

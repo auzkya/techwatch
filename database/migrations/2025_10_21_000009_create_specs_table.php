@@ -7,15 +7,17 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('categories_users', function (Blueprint $table) {
+        // tabulka s názvy specializací uživatelů
+        Schema::create('specs', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
+            $table->string('slug', 120)->unique();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('categories_users');
+        Schema::dropIfExists('specs');
     }
 };

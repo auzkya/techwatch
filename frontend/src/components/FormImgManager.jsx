@@ -1,0 +1,215 @@
+import React, { useState, useRef, useEffect } from "react";
+import {
+    DndContext,
+    closestCenter,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,
+    DragOverlay,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    useSortable,
+    rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faXmark, faPlus } from "@fortawesome/free-solid-svg-icons";
+import "./FormImgManager.css";
+
+// --------------------------------------------------------
+// SORTABLE THUMBNAIL COMPONENT
+// --------------------------------------------------------
+function SortableThumb({ id, url, onDelete, setShowFull }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition: isDragging ? 'none' : transition,
+        dropAnimation: null,
+    };
+
+    return (
+        <div className="img_item" ref={setNodeRef} style={style} {...attributes} {...listeners}>
+            {url ? (
+                <img src={url} alt="" draggable="false" onClick={() => setShowFull(url)} />
+            ) : (
+                <div className="img_placeholder">No image</div>
+            )}
+            <button className="delete_btn" onClick={() => onDelete(id)}>
+                <FontAwesomeIcon icon={faXmark} />
+            </button>
+        </div>
+    );
+}
+
+// --------------------------------------------------------
+// MAIN COMPONENT
+// --------------------------------------------------------
+export default function FormImgManager({ images, setImages }) {
+    const [internalImages, setInternalImages] = useState(() =>
+        images.map((img, i) => ({ id: "img-" + i, url: img }))
+    );
+
+    const [activeId, setActiveId] = useState(null);
+    const fileInputRef = useRef(null);
+    const addIndexRef = useRef(null);
+    const [showFull, setShowFull] = useState(false);
+
+    // Touch-friendly drag sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 50, tolerance: 5 } })
+    );
+
+    // Sync external images
+    useEffect(() => {
+        const newInternalImages = images.map((img, i) => ({
+            id: "img-" + i,
+            url: img instanceof File ? URL.createObjectURL(img) : img.url || "", // pokud je File, udělej preview
+            file: img instanceof File ? img : img.file || null
+        }));
+        setInternalImages(newInternalImages);
+    }, [images]);
+
+    //Vyčištění alokované paměti pro náhledy
+    useEffect(() => {
+        return () => {
+            internalImages.forEach(i => {
+                if (i.file instanceof File) {
+                    URL.revokeObjectURL(i.url);  // uvolníme paměť pro náhled
+                }
+            });
+        };
+    }, [internalImages]);
+
+    // --------------------------------------------------------
+    // Add image button
+    // --------------------------------------------------------
+    const handleAddClick = (index) => {
+        addIndexRef.current = index;
+        fileInputRef.current.click();
+    };
+
+    // --------------------------------------------------------
+    // Upload selected file(s)
+    // --------------------------------------------------------
+    const handleFilesSelected = async (event) => {
+        const files = Array.from(event.target.files);
+        if (!files.length) return;
+
+        const uploads = await Promise.all(
+            files.map(async (file) => ({
+                id: "img-" + crypto.randomUUID(),
+                url: URL.createObjectURL(file),
+                file
+            }))
+        );
+
+        const idx = addIndexRef.current ?? internalImages.length;
+
+        const newList = [
+            ...internalImages.slice(0, idx),
+            ...uploads,
+            ...internalImages.slice(idx),
+        ];
+
+        setInternalImages(newList);
+        setImages(newList.map((i) => i.file));
+    };
+
+    // --------------------------------------------------------
+    // Delete one image
+    // --------------------------------------------------------
+    const handleDelete = (id) => {
+        const filtered = internalImages.filter((img) => img.id !== id);
+        setInternalImages(filtered);
+        setImages(filtered.map((i) => i.file));
+    };
+
+    // --------------------------------------------------------
+    // Drag handlers
+    // --------------------------------------------------------
+    const handleDragStart = (event) => {
+        setActiveId(event.active.id);
+    };
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+
+        setActiveId(null); // nejdříve zavři overlay
+
+        if (!over || active.id === over.id) return;
+
+        const oldIndex = internalImages.findIndex((i) => i.id === active.id);
+        const newIndex = internalImages.findIndex((i) => i.id === over.id);
+
+        const reordered = arrayMove(internalImages, oldIndex, newIndex);
+
+        // okamžitě aktualizuj seznam
+        setInternalImages(reordered);
+        setImages(reordered.map((i) => i.file));
+
+        // volitelně: zde můžeš volat saveOrderToBackend(reordered)
+    };
+
+    const handleDragCancel = () => setActiveId(null);
+
+    // For overlay preview
+    let activeItem = internalImages.find((i) => i.id === activeId);
+
+    return (
+        <>
+            <div className="form_images">
+                {/* hidden file input */}
+                <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    ref={fileInputRef}
+                    onChange={handleFilesSelected}
+                />
+
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={handleDragCancel}
+                >
+                    <SortableContext items={internalImages.map((i) => i.id)} strategy={rectSortingStrategy}>
+                        {internalImages.map((img, index) => (
+                            <div className="img_wrapper" key={img.id}>
+                                <SortableThumb id={img.id} url={img.url} onDelete={handleDelete} setShowFull={setShowFull} />
+                            </div>
+                        ))}
+
+                        {/* + button */}
+                        <div className="img_add" onClick={() => handleAddClick(internalImages.length)}>
+                            <FontAwesomeIcon icon={faPlus} />
+                        </div>
+                    </SortableContext>
+
+                    <DragOverlay>
+                        {activeItem ? (
+                            <div className="img_item img_dragging">
+                                <img src={activeItem.url} alt="" />
+                            </div>
+                        ) : null}
+                    </DragOverlay>
+                </DndContext>
+            </div>
+            {/* FULLSCREEN MODAL */} {showFull && (<div className="loader_container" onClick={() => setShowFull(false)} > <img src={showFull} alt="" className="form_img_full" /> </div>)}
+        </>
+    );
+}

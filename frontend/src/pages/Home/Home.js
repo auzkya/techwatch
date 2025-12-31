@@ -5,6 +5,7 @@ import { ROUTES, buildRoute } from "../../routes/RouteNames";
 
 import Header from "../../components/Header"
 import ButtonHomePage from "../../components/ButtonHomePage"
+import { useAuth } from "../../context/AuthContext";
 
 import "./Home.css"
 
@@ -13,24 +14,18 @@ import { faMessage } from '@fortawesome/free-regular-svg-icons';
 
 const Home = () => {
     const navigate = useNavigate();
+    const { user, loading } = useAuth();
 
-    //Zkouším backend
-    const [message, setMessage] = useState("");
-
-    useEffect(() => {
-        fetch("http://localhost/techwatch-backend/api/hello.php")
-            .then(res => res.json())
-            .then(data => setMessage(data.message))
-            .catch(err => console.error(err));
-    }, []);
+    if (loading) return <div className="loader_container"><div className="loader"></div></div>;
 
     return (
         <>
             <Header />
-            <div>
-                <h1>React + PHP backend</h1>
-                <p>{message}</p>
-            </div>
+            {user ? (
+                <p>Vítej, <strong>{user.first_name} {user.last_name}</strong> ({user.email}) 👋</p>
+            ) : (
+                <p>Nejste přihlášený.</p>
+            )}
             <div className="home_nav">
                 <img className="home_logo" alt="logo" src={require("../../assets/img_not_compressed/techwatch_logo_1.png")} />
                 <div className="home_buttons">

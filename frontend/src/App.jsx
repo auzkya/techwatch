@@ -1,15 +1,19 @@
-import React from "react";
 import AppRoutes from "./routes/AppRoutes";
+import { AlertProvider } from "./context/AlertContext";
+import { AuthProvider } from "./context/AuthContext";
 
 const App = () => {
-  return (
-    <>
-      <main>
-        {/* Výpis všech cest */}
-        <AppRoutes />
-      </main>
-    </>
-  );
+    return (
+        <>
+            <AlertProvider>
+                <AuthProvider>
+                    <main>
+                        <AppRoutes />
+                    </main>
+                </AuthProvider>
+            </AlertProvider>
+        </>
+    );
 };
 
 export default App;
