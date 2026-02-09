@@ -7,8 +7,12 @@ import FormRegister from "../../components/FormRegister"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle, faFacebookF } from '@fortawesome/free-brands-svg-icons';
 
+import { ASSETS } from "../../config/assets";
+import { useScrollLock } from "../../hooks/useScrollLock"
+
 const Register = () => {
     const [loading, setLoading] = useState(false);
+    useScrollLock(loading);
     const [success, setSuccess] = useState("");
     const [titleText, setTitleText] = useState("REGISTRACE"); // dynamický titul
     const [infoText, setInfoText] = useState("");
@@ -16,10 +20,9 @@ const Register = () => {
 
     return (
         <>
-            {loading && <div className="loader_container"><div className="loader"></div></div>}
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={require("../../assets/img_not_compressed/techwatch_logo_1.png")} />
+                    <img className="login_logo" alt="logo" src={ASSETS.logo_top} />
                     <div className="login_section">
                         <h2 className="strong">{titleText}</h2>
                         {infoText && (<p className="login_section_info body_base" dangerouslySetInnerHTML={{ __html: infoText }} />)}

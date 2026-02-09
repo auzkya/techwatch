@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.3);
-  z-index: 950;
+  z-index: 9000;
   /* zajisti, že zachytí kliknutí */
   pointer-events: auto;
 }
@@ -17,27 +17,20 @@
   border-radius: 20px;
   padding: 30px 40px;
   color: var(--text);
-  z-index: 9999;               /* nad backdropem */
+  z-index: 1100;           /* nad backdropem */
   max-width: 90vw;
   max-height: 90vh;
   overflow: auto;
 }
 
-.notification-popup .left{
-    width: 70%;
-    display: inline-block;
-    vertical-align: top;
+.notification-popup .left-right-container{
+    width: 100%;
+    display: flex;
+    column-gap: 50px;
 }
 
 .notification-popup .left.full{
     width: 100%;
-}
-
-.notification-popup .right{
-    width: 30%;
-    display: inline-block;
-    text-align: center;
-    vertical-align: top;
 }
 
 .notification-popup .date{
@@ -51,6 +44,7 @@
 
 .notification-popup .profile{
     margin-left: -5px;
+    cursor: pointer;
 }
 
 .notification-popup .profile_img{
@@ -80,12 +74,16 @@
 
 .notification-popup .left .body_base{
     margin-top: 15px;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .notification-popup .right img{
     width: 200px;
     height: 200px;
-    border-radius: 25%;
+    border-radius: 20%;
+    cursor: pointer;
+    object-fit: cover;
 }
 
 .notification-popup .contact{
@@ -94,6 +92,7 @@
 
 .notification-popup .contact p{
     text-align: center;
+    margin-bottom: 8px;
 }
 
 .notification-popup .contact_info{
@@ -113,4 +112,5 @@
 .notification-popup .contact_info p{
     display: inline;
     vertical-align: top;
+    margin-left: 4px;
 }

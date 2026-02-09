@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { ROUTES, buildRoute } from "../routes/RouteNames";
 
 import InputLogin from "./InputLogin";
 
@@ -61,7 +62,7 @@ const ResetPasswordForm = ({ setLoading, setSuccess, setError, setErrorTop }) =>
             await axiosInstance.post("/api/password-reset", data);
 
             // Úspěch
-            navigate("/login", {
+            navigate(buildRoute(ROUTES.LOGIN), {
                 state: {
                     success: "Heslo bylo úspěšně změněno. Nyní se můžeš přihlásit."
                 }

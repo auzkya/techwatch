@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useAlert } from "../context/AlertContext";
+import { ROUTES, buildRoute } from "../routes/RouteNames";
 
 const OAuthCallback = () => {
     const navigate = useNavigate();
@@ -18,7 +19,7 @@ const OAuthCallback = () => {
 
         if (!token) {
             showAlert("error", "Nepodařilo se přihlásit přes OAuth.");
-            navigate("/login", { replace: true });
+            navigate(buildRoute(ROUTES.LOGIN), { replace: true });
             return;
         }
 
@@ -29,7 +30,7 @@ const OAuthCallback = () => {
                 navigate("/", { replace: true });
             } catch (e) {
                 showAlert("error", "Nepodařilo se přihlásit přes OAuth.");
-                navigate("/login", { replace: true });
+                navigate(buildRoute(ROUTES.LOGIN), { replace: true });
             }
         })();
     }, [loginUser, navigate, showAlert]);

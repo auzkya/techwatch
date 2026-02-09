@@ -5,9 +5,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProfileController;
 
-Route::get('/verify/{id}/{token}', [AuthController::class, 'verify'])
-    ->name('email.verify');
+Route::get('/verify/{token}', [AuthController::class, 'verify']);
+
+// ⚠️ NOVÁ ROUTE pro prodloužení active_worker (HLEDÁM PRÁCI)
+Route::get('/extend-active-worker', [ProfileController::class, 'extendActiveWorker'])
+    ->name('extend-active-worker')
+    ->middleware('signed'); // ⚠️ DŮLEŽITÉ: pouze signed URLs
 
 // ------------------------------------
 // OAuth Routes

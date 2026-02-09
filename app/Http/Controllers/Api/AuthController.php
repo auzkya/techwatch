@@ -100,7 +100,7 @@ class AuthController extends Controller
         // Zkontroluj expiraci
         if ($pat->expires_at && $pat->expires_at->isPast()) {
             $pat->delete();
-            return response()->json(['message' => 'Refresh token expired'], 401);
+            return response()->json(['message' => 'Expired refresh token'], 401);
         }
 
         $user = $pat->tokenable;
@@ -126,14 +126,27 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Zkontroluj, jestli je uživatel přihlášený
         $user = $request->user();
-        $user->tokens()
-            ->where('name', 'refresh')
-            ->delete();
+        if ($user) {
+            // Smaž všechny tokeny uživatele
+            $user->tokens()->delete();
+        }
 
+        // Vždy smaž cookie, i když user není přihlášený
         return response()
             ->json(['message' => 'Odhlášeno'])
-            ->cookie('refresh_token', '', -1); // smaž cookie
+            ->cookie(
+                'refresh_token',
+                '',
+                -1,
+                '/',
+                null,
+                false,
+                true,
+                false,
+                'Lax'
+            );
     }
 
     public function registration(Request $request)
@@ -159,7 +172,7 @@ class AuthController extends Controller
             'email_verification_sent_at' => now(),
         ]);
 
-        $verificationLink = url("/verify/{$user->id}/{$user->email_verification_token}");
+        $verificationLink = url("/verify/{$user->email_verification_token}");
 
         Mail::send('emails.verify-email', [
             'link' => $verificationLink
@@ -192,7 +205,7 @@ class AuthController extends Controller
             'email_verification_sent_at' => now(),
         ]);
 
-        $verificationLink = url("/verify/{$user->id}/{$user->email_verification_token}");
+        $verificationLink = url("/verify/{$user->email_verification_token}");
 
         Mail::send('emails.verify-email', [
             'link' => $verificationLink
@@ -219,64 +232,23 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verify($id, $token)
+    public function verify($token)  // ⚠️ POUZE TOKEN, bez ID
     {
-        $user = User::find($id);
+        $user = User::where('email_verification_token', $token)
+            ->where('is_active', false)  // jen neověřené účty
+            ->first();
 
         if (!$user) {
             return redirect(config('app.frontend_url') . '/login?error=invalid');
         }
 
-        // EXPIROVANÝ → SMAZAT
-        if (
-            !$user->is_active &&
-            $user->email_verification_sent_at &&
-            $user->email_verification_sent_at->addHour()->isPast()
-        ) {
+        // Kontrola expirace (např. 24 hodin)
+        if ($user->email_verification_sent_at->addHours(24)->isPast()) {
             $user->delete();
             return redirect(config('app.frontend_url') . '/login?error=expired');
         }
 
-        // UŽ OVĚŘENÝ
-        if ($user->is_active) {
-            // Vytvoř tokeny a přihlaš
-            $user->tokens()
-                ->where('name', 'refresh')
-                ->delete();
-
-            $accessToken = $user->createToken(
-                'access',
-                ['*'],
-                now()->addMinutes(30)
-            )->plainTextToken;
-
-            $refreshToken = $user->createToken(
-                'refresh',
-                ['refresh'],
-                now()->addDays(14)
-            )->plainTextToken;
-
-            // ⚠️ OPRAVA: Vrať i refresh token v cookie!
-            return redirect(config('app.frontend_url') . "/verify-success?token=$accessToken")
-                ->cookie(
-                    'refresh_token',
-                    $refreshToken,
-                    60 * 24 * 14, // 14 dní v minutách
-                    '/',
-                    null,
-                    false, // secure pouze v produkci
-                    true,   // httpOnly - MUSÍ být true!
-                    false,  // raw
-                    'Lax'   // SameSite
-                );
-        }
-
-        // TOKEN NESOUHLASÍ
-        if ($user->email_verification_token !== $token) {
-            return redirect(config('app.frontend_url') . '/login?error=invalid');
-        }
-
-        // OVĚŘENÍ
+        // Ověření
         $user->update([
             'is_active' => true,
             'email_verification_token' => null,
@@ -285,30 +257,10 @@ class AuthController extends Controller
         ]);
 
         // Vytvoř tokeny
-        $accessToken = $user->createToken(
-            'access',
-            ['*'],
-            now()->addMinutes(30)
-        )->plainTextToken;
+        $accessToken = $user->createToken('access', ['*'], now()->addMinutes(30))->plainTextToken;
+        $refreshToken = $user->createToken('refresh', ['refresh'], now()->addDays(14))->plainTextToken;
 
-        $refreshToken = $user->createToken(
-            'refresh',
-            ['refresh'],
-            now()->addDays(14)
-        )->plainTextToken;
-
-        // ⚠️ KRITICKÉ: Vrať refresh token v cookie!
         return redirect(config('app.frontend_url') . "/verify-success?token=$accessToken")
-            ->cookie(
-                'refresh_token',
-                $refreshToken,
-                60 * 24 * 14,
-                '/',
-                null,
-                false,
-                true,
-                false,
-                'Lax'
-            );
+            ->cookie('refresh_token', $refreshToken, 60 * 24 * 14, '/', null, false, true, false, 'Lax');
     }
 }

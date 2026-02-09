@@ -1,522 +1,421 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import { ROUTES, buildRoute } from "../routes/RouteNames";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { buildRoute, ROUTES } from "../routes/RouteNames";
+
+import { format, isSameYear, isToday, isYesterday } from 'date-fns';
+import { cs } from 'date-fns/locale';
 
 import axiosInstance from "../api/axiosInstance";
+import { useAlert } from "../context/AlertContext";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationContext";
+import { cache, CACHE_KEYS } from "../utils/cacheManager";
 
-import "./Header.css"
+import { faBell as faBellRegular, faHeart as faHeartRegular, faMessage as faMessageRegular } from '@fortawesome/free-regular-svg-icons';
+import { faBell as faBellSolid, faCheckDouble, faHeart as faHeartSolid, faMessage as faMessageSolid, faStar } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMessage as faMessageRegular, faBell as faBellRegular, faHeart as faHeartRegular, faCircleUser } from '@fortawesome/free-regular-svg-icons';
-import { faMessage as faMessageSolid, faBell as faBellSolid, faCheckDouble, faHeart as faHeartSolid } from '@fortawesome/free-solid-svg-icons';
+import "./Header.css";
 
+import { ASSETS } from "../config/assets";
+import makeSlug from "../utils/makeSlug";
 import NotificationMessage from "./NotificationMessage";
 import NotificationPopup from "./NotificationPopup";
 
-const handleLogout = async () => {
-    try {
-        // volitelně zavolat backend logout endpoint, pokud máš token-based revoke
-        await axiosInstance.post("/api/logout"); // pokud máš endpoint, který token maže/ruší
-    } catch (err) {
-        console.error(err);
-    } finally {
-        localStorage.clear();
-        window.location.href = "/login";
-    }
-};
-
 const Header = () => {
     const navigate = useNavigate();
-    const { user, loading } = useAuth();
     const location = useLocation();
+    const { user, setUser, accessToken } = useAuth();
+    const { showAlert } = useAlert();
 
-    const addButtonHandler = () => {
-        console.log('přesměruj na přidání nabídky');
-        navigate(buildRoute(ROUTES.ADD_TECH));
-    }
+    // ✅ Centrální data z NotificationContext
+    const { notifications, unreadMessagesCount, unreadNotifsCount, markAsRead } = useNotifications();
 
-    const [lookingForJob, setLookingForJob] = useState(false);
-    /*const searchButtonHandler = () => {
-        if (lookingForJob === false) {
-            console.log("zapni mód HLEDÁM PRÁCI");
-            setLookingForJob(true);
-        } else {
-            console.log("vypni mód HLEDÁM PRÁCI");
-            setLookingForJob(false);
-        }
-    };*/
-    const searchButtonHandler = async () => {
-        try {
-            // 1️⃣ Zkontrolovat profil a specializace přes API
-            const res = await fetch(`/api/user/${user.id}/profile-check`);
-            const data = await res.json();
-
-            if (!data.profileComplete) {
-                alert("Nejdříve vyplňte všechny požadované údaje v profilu.");
-                return;
-            }
-
-            if (!data.hasSpecializations) {
-                alert("Nejdříve přidejte alespoň jednu specializaci.");
-                return;
-            }
-
-            // 2️⃣ Toggle lookingForJob
-            const newLookingForJob = !lookingForJob;
-            setLookingForJob(newLookingForJob);
-
-            // 3️⃣ Pošleme stav do backendu
-            await fetch(`/api/user/${user.id}/looking-for-job-toggle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lookingForJob: newLookingForJob })
-            });
-
-            console.log(newLookingForJob ? "Zapnuto HLEDÁM PRÁCI" : "Vypnuto HLEDÁM PRÁCI");
-
-        } catch (err) {
-            console.error("Chyba při toggle módu:", err);
-            alert("Došlo k chybě, zkuste to prosím znovu.");
-        }
-    };
-
+    // UI Stavy pro animace a dropdowny
+    const [isAnimatingMessage, setIsAnimatingMessage] = useState(false);
+    const [isAnimatingBell, setIsAnimatingBell] = useState(false);
     const [openMessages, setOpenMessages] = useState(false);
     const [openNotifications, setOpenNotifications] = useState(false);
     const [openMore, setOpenMore] = useState(false);
 
-    // State pro otevření dropdown popoveru
-    const [, setopenDropdownId] = useState(null);
+    const messagesRef = useRef(null);
+    const notificationsRef = useRef(null);
+    const moreRef = useRef(null);
+    const prevMessagesCount = useRef(unreadMessagesCount);
+    const prevNotifsCount = useRef(unreadNotifsCount);
 
-    const toggleDropdown = (id) => {
-        setopenDropdownId(prev => (prev === id ? null : id));
+    // Zobrazení notifikace v popupu
+    const [selectedNotification, setSelectedNotification] = useState(null);
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    const handleNotificationClick = (notification) => {
+        // 1. Označíme jako přečtené
+        if (!notification.is_read) {
+            markAsRead(notification.id);
+        }
+        console.log("Kliknutá notifikace:", notification);
+        console.log(notification.type, notification.target_id, notification.target_sub_id);
+        const slug = notification.target_slug || 'u';
+        // 2. Logika navigace podle typu
+        if (notification.type === 'review_item') {
+            // Navigujeme na detail předmětu a přidáme hash s ID recenze
+            navigate(`/tech/item/${notification.target_id}#review-${notification.target_sub_id}`);
+        } else if (notification.type === 'review_user') {
+            navigate(`/user/${notification.target_id}/${slug}#review-${notification.target_sub_id}`);
+        } else if (notification.type === 'direct_message') {
+            setSelectedNotification(notification);
+            setIsPopupOpen(true);
+        }
+
+        setOpenNotifications(false);
     };
 
-    // State pro otevření popoveru s detailem zprávy
-    const [openPopupId, setopenPopupId] = useState(false);
+    // --- LOGIKA: "HLEDÁM PRÁCI" & AVATAR ---
+    // 1. STAV ODVOZENÝ PŘÍMO Z DAT (žádný extra useState)
+    const isLookingForJob = user?.active_worker_till
+        ? new Date(user.active_worker_till) > new Date()
+        : false;
 
+    const searchButtonHandler = async () => {
+        if (!user) return;
 
-    const closeAll = () => {
-        if (openMessages === true) {
-            setOpenMessages(false);
+        const isTurningOn = !isLookingForJob;
+        const previousDate = user.active_worker_till;
+
+        // 1. KONTROLA PŘEDEM (z Cache) - Pokud už víme, že profil je nekompletní, ani nezkoušíme API
+        const eligibility = cache.getProfileEligible();
+        if (isTurningOn && eligibility && (
+            eligibility.profileComplete === false ||
+            eligibility.hasSpecializations === false ||
+            eligibility.hasAvatar === false
+        )) {
+            showIncompleteProfileAlert(eligibility);
+            return;
         }
-        if (openNotifications === true) {
+
+        // 2. OPTIMISTICKÝ UPDATE - Přepneme UI okamžitě
+        // Nastavíme datum na +14 dní (při zapnutí) nebo null (při vypnutí)
+        const optimisticDate = isTurningOn
+            ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+            : null;
+
+        setUser({ ...user, active_worker_till: optimisticDate });
+
+        try {
+            const res = await axiosInstance.post(`/api/user/${user.id}/looking-for-job-toggle`);
+            const { active_worker_till } = res.data;
+
+            // 3. SYNCHRONIZACE S REALITOU (Backend potvrdil úspěch)
+            setUser({ ...user, active_worker_till });
+            cache.setActiveWorkerTill(active_worker_till);
+
+            // Pokud to prošlo, můžeme smazat informaci o nekompletním profilu, protože teď už je asi ok
+            cache.remove(CACHE_KEYS.PROFILE_ELIGIBLE);
+
+        } catch (err) {
+            // 4. ROLLBACK - Pokud se něco nepovedlo, vrátíme stav zpět
+            setUser({ ...user, active_worker_till: previousDate });
+
+            if (err.response?.data?.error === 'incomplete_profile') {
+                const errorData = err.response.data;
+                cache.setProfileEligible(errorData); // Uložíme do cache, aby příště neproběhl ani ten optimistický update
+                showIncompleteProfileAlert(errorData);
+            } else {
+                showAlert("error", "Nepodařilo se změnit stav.");
+            }
+        }
+    };
+
+    // To samé pro avatar - nenechávej tam default a pak useEffect, dej to rovnou:
+    const avatarPreview = user?.profile_image_url || ASSETS.default_avatar;
+
+    // --- LOGIKA: ANIMACE BADGE PŘI ZVÝŠENÍ POČTU ---
+    useEffect(() => {
+        if (unreadMessagesCount > prevMessagesCount.current) {
+            setIsAnimatingMessage(true);
+            setTimeout(() => setIsAnimatingMessage(false), 1000);
+        }
+        prevMessagesCount.current = unreadMessagesCount;
+    }, [unreadMessagesCount]);
+
+    useEffect(() => {
+        if (unreadNotifsCount > prevNotifsCount.current) {
+            setIsAnimatingBell(true);
+            setTimeout(() => setIsAnimatingBell(false), 1000);
+        }
+        prevNotifsCount.current = unreadNotifsCount;
+    }, [unreadNotifsCount]);
+
+    // --- LOGIKA: DROPDOWN MANAGEMENT ---
+    const toggleDropdown = (type) => {
+        if (type === 'messages') {
+            setOpenMessages(!openMessages);
+            setOpenNotifications(false);
+            setOpenMore(false);
+        } else if (type === 'notifications') {
+            setOpenNotifications(!openNotifications);
+            setOpenMessages(false);
+            setOpenMore(false);
+        } else if (type === 'more') {
+            setOpenMore(!openMore);
+            setOpenMessages(false);
             setOpenNotifications(false);
         }
-        if (openMore === true) {
-            setOpenMore(false);
-        }
-        setopenDropdownId(null);
-        setopenPopupId(false);
     };
 
-    // Kontrola, zda jsme na stránce Favourites
-    const isFavouritesActive =
-        location.pathname === "/favourites" ||
-        location.pathname.startsWith("/favourites/");
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (openMessages && !messagesRef.current?.contains(event.target) && !event.target.closest('.button-icon')) {
+                setOpenMessages(false);
+            }
+            if (openNotifications && !notificationsRef.current?.contains(event.target) && !event.target.closest('.button-icon')) {
+                setOpenNotifications(false);
+            }
+            if (openMore && !moreRef.current?.contains(event.target) && !event.target.closest('.button-icon-profile')) {
+                setOpenMore(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [openMessages, openNotifications, openMore]);
+
+    const handleLogout = async () => {
+        try { await axiosInstance.post("/api/logout"); }
+        catch (err) { console.error(err); }
+        finally {
+            cache.clear();
+            window.location.href = buildRoute(ROUTES.LOGIN);
+        }
+    };
+
+    const isFavouritesActive = location.pathname.startsWith(buildRoute(ROUTES.FAVOURITES));
+
+    // Pomocná funkce pro Alert HLEDÁM PRÁCI
+    const showIncompleteProfileAlert = (data) => {
+        if (!data.profileComplete) showAlert("error", <>Vyplňte profil <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</>);
+        else if (!data.hasSpecializations) showAlert("error", <>Přidejte specializace <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</>);
+        else if (!data.hasAvatar) showAlert("error", <>Nastavte avatar <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</>);
+    };
+
+    // Pokud  uživatel není přihlášen, nic nevykresluj
+    if (!user) return null;
+
+    const renderMessagesWithDates = () => {
+        const directMessages = notifications.filter(n => n.type === 'direct_message');
+        const groups = {};
+
+        directMessages.forEach(msg => {
+            const date = new Date(msg.created_at);
+            let dateLabel;
+
+            if (isToday(date)) dateLabel = "Dnes";
+            else if (isYesterday(date)) dateLabel = "Včera";
+            else {
+                // Formát: Čt 5. 2. (nebo s rokem, pokud je starší)
+                dateLabel = format(date, isSameYear(date, new Date()) ? 'eeee d. M.' : 'd. M. yyyy', { locale: cs });
+                // První písmeno velké (čt -> Čt)
+                dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
+            }
+
+            if (!groups[dateLabel]) groups[dateLabel] = [];
+            groups[dateLabel].push(msg);
+        });
+
+        return Object.entries(groups).map(([label, msgs]) => (
+            <div key={label} className="notification-group">
+                <p className="notification-date-separator strong">{label}</p>
+                {msgs.map(msg => (
+                    <NotificationMessage
+                        key={msg.id}
+                        id={msg.id}
+                        // 3) OPRAVA UNDEFINED: Používáme msg.sender (díky .with() v Laravelu)
+                        image={msg.sender?.profile_image_url || ASSETS.default_avatar}
+                        name={msg.title}
+                        // 1) KONKRÉTNÍ ČAS HH:MM pro dnešní/včerejší, jinak datum
+                        date={format(new Date(msg.created_at), 'HH:mm')}
+                        user={`${msg.sender?.first_name} ${msg.sender?.last_name}:`}
+                        text={renderNotificationDescription(msg.description)}
+                        read={msg.is_read}
+                        onClick={() => handleNotificationClick(msg)}
+                    />
+                ))}
+            </div>
+        ));
+    };
+
+    const renderNotificationsWithDates = () => {
+        // Vše kromě direct_message
+        const otherNotifs = notifications.filter(n => n.type !== 'direct_message');
+        const groups = {};
+
+        otherNotifs.forEach(notif => {
+            const date = new Date(notif.created_at);
+            let dateLabel;
+
+            if (isToday(date)) dateLabel = "Dnes";
+            else if (isYesterday(date)) dateLabel = "Včera";
+            else {
+                dateLabel = format(date, isSameYear(date, new Date()) ? 'eeee d. M.' : 'd. M. yyyy', { locale: cs });
+                dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
+            }
+
+            if (!groups[dateLabel]) groups[dateLabel] = [];
+            groups[dateLabel].push(notif);
+        });
+
+        return Object.entries(groups).map(([label, items]) => (
+            <div key={label} className="notification-group">
+                <p className="notification-date-separator strong">{label}</p>
+                {items.map(notif => (
+                    <NotificationMessage
+                        key={notif.id}
+                        id={notif.id}
+                        // Ikona podle typu (srdíčko pro oblíbené, zvonek pro ostatní)
+                        icon={<FontAwesomeIcon icon={(notif.type === 'review_item' || notif.type === 'review_user') ? faStar : faBellSolid} />}
+                        name={notif.title}
+                        // Stejná logika času jako u zpráv
+                        date={format(new Date(notif.created_at), 'HH:mm')}
+                        text={renderNotificationDescription(notif.description)}
+                        read={notif.is_read}
+                        onClick={() => handleNotificationClick(notif)}
+                    />
+                ))}
+            </div>
+        ));
+    };
+
+    // Pomocná funkce pro formátování popisu notifikace s HTML značkami
+    const renderNotificationDescription = (text) => {
+        // Rozdělíme text podle "značek", které jsme si poslali z PHP
+        const parts = text.split(/(<[^>]*>.*?<\/[^>]*>)/g);
+
+        return parts.map((part, index) => {
+            if (part.includes('strong')) {
+                return <span key={index} className="strong">{part.replace(/<[^>]*>/g, '')}</span>;
+            }
+            /*if (part.includes('red-text')) {
+                return <span key={index} className="text-red strong">{part.replace(/<[^>]*>/g, '')}</span>;
+            }*/
+            return part;
+        });
+    };
 
     return (
         <>
             <header>
                 <div className="left">
-                    <img className="header_logo" alt="logo" src={require("../assets/img_not_compressed/techwatch_logo_2.png")} onClick={() => navigate(buildRoute(ROUTES.HOME))} />
+                    <img className="header_logo" alt="logo" src={ASSETS.logo_side} onClick={() => navigate("/")} />
                 </div>
+
                 <div className="right">
-                    <button type="button" className="button-add_item" onClick={addButtonHandler}>
-                        PŘIDAT NABÍDKU
+                    <button type="button" className="button-add_item" onClick={() => navigate(buildRoute(ROUTES.ADD_TECH))}>
+                        <span>PŘIDAT NABÍDKU</span>
                     </button>
+
                     <button type="button" className="button-search_job" onClick={searchButtonHandler}>
                         <label className="switch">
-                            <input type="checkbox" checked={lookingForJob} readOnly />
+                            <input type="checkbox" checked={isLookingForJob} readOnly />
                             <span className="slider round"></span>
                         </label>HLEDÁM PRÁCI
                     </button>
-                    <button className="button-icon" onClick={() => { setOpenMessages((prev) => !prev); closeAll(); toggleDropdown("messages"); }}><FontAwesomeIcon icon={openMessages ? faMessageSolid : faMessageRegular} className="header_icon" /></button>
-                    <button className="button-icon" onClick={() => { setOpenNotifications((prev) => !prev); closeAll(); toggleDropdown("notifications") }}><FontAwesomeIcon icon={openNotifications ? faBellSolid : faBellRegular} className="header_icon" /></button>
-                    <button className="button-icon" onClick={() => { closeAll(); navigate(buildRoute(ROUTES.FAVOURITES, { type: "" })); console.log(isFavouritesActive); }}><FontAwesomeIcon icon={isFavouritesActive ? faHeartSolid : faHeartRegular} className="header_icon" /></button>
-                    <button className="button-icon" onClick={() => { setOpenMore((prev) => !prev); closeAll(); toggleDropdown("more") }}><FontAwesomeIcon icon={faCircleUser} className="profile" /></button>
+
+                    <button ref={messagesRef} className="button-icon" onClick={() => toggleDropdown("messages")}>
+                        <FontAwesomeIcon icon={openMessages ? faMessageSolid : faMessageRegular} className="header_icon" />
+                        {unreadMessagesCount > 0 && <span className={`notification-badge message-badge ${isAnimatingMessage ? 'animate-badge' : ''}`}></span>}
+                    </button>
+
+                    <button ref={notificationsRef} className="button-icon" onClick={() => toggleDropdown("notifications")}>
+                        <FontAwesomeIcon icon={openNotifications ? faBellSolid : faBellRegular} className="header_icon" />
+                        {unreadNotifsCount > 0 && <span className={`notification-badge notif-badge ${isAnimatingBell ? 'animate-badge' : ''}`}></span>}
+                    </button>
+
+                    <button className="button-icon" onClick={() => navigate(buildRoute(ROUTES.FAVOURITES, { type: "" }))}>
+                        <FontAwesomeIcon icon={isFavouritesActive ? faHeartSolid : faHeartRegular} className="header_icon" />
+                    </button>
+
+                    <button ref={moreRef} className="button-icon-profile" onClick={() => toggleDropdown("more")}>
+                        <img className="header_avatar" src={avatarPreview} alt="avatar" />
+                    </button>
                 </div>
             </header>
 
-            {/* Popovery pro jednotlivé zprávy */}
-            <NotificationPopup
-                id="message_1"
-                open={openPopupId === "message_1"}
-                onClose={() => setopenPopupId(false)}
-                title={
-                    <>
-                        Odpověď na{" "}
-                        <span className="strong">Beamz Revod 9</span>
-                    </>
-                }
-                date="21. června"
-                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiNbd0ztS3lDazPLM1H-rbz5Kq_ugknuPRJhNZrwpjrcjIjg1b6ztWBqjvepnFQoVNKww&usqp=CAU"
-                profile_name="Štěpán Hejzlar"
-                profile_job={"Osvětlovač | Jevištní technik | Šéf techniky"}
-                profile_picture="https://tyhle.cz/images/og/un.jpg"
-                text="Ahoj, potřeboval bych tohle světlo od 28. do 29. června, šlo by se domluvit?"
-                profile_phone="+420 123 456 789"
-                profile_email="stepan.hejzlar@vzlet.cz"
-            />
-            <NotificationPopup
-                id="message_2"
-                open={openPopupId === "message_2"}
-                onClose={() => setopenPopupId(false)}
-                title={
-                    <>
-                        Odpověď na{" "}
-                        <span className="strong">Reflektor ETC Source Four</span>
-                    </>
-                }
-                date="15. dubna"
-                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiNbd0ztS3lDazPLM1H-rbz5Kq_ugknuPRJhNZrwpjrcjIjg1b6ztWBqjvepnFQoVNKww&usqp=CAU"
-                profile_name="Štěpán Hejzlar"
-                profile_job={"Osvětlovač | Jevištní technik | Šéf techniky"}
-                profile_picture="https://tyhle.cz/images/og/un.jpg"
-                text="Ahoj, bylo by možné si půjčit tohle světlo na jednu akci 20. června? Děkuju moc za odpověď!"
-                profile_phone="+420 123 456 789"
-                profile_email="stepan.hejzlar@vzlet.cz"
-            />
-            <NotificationPopup
-                id="message_3"
-                open={openPopupId === "message_3"}
-                onClose={() => setopenPopupId(false)}
-                title={
-                    <>
-                        Odpověď na{" "}
-                        <span className="strong">Pracovní nabídku</span>
-                    </>
-                }
-                date="10. června"
-                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiNbd0ztS3lDazPLM1H-rbz5Kq_ugknuPRJhNZrwpjrcjIjg1b6ztWBqjvepnFQoVNKww&usqp=CAU"
-                profile_name="Štěpán Hejzlar"
-                profile_job={"Osvětlovač | Jevištní technik | Šéf techniky"}
-                profile_picture="https://tyhle.cz/images/og/un.jpg"
-                text="Ahoj, vypadl nám na zítřek technik, máš čas?"
-                profile_phone="+420 123 456 789"
-                profile_email="stepan.hejzlar@vzlet.cz"
-            />
-            <NotificationPopup
-                id="message_4"
-                open={openPopupId === "message_4"}
-                onClose={() => setopenPopupId(false)}
-                title={
-                    <>
-                        Odpověď na{" "}
-                        <span className="strong">Pracovní nabídku</span>
-                    </>
-                }
-                date="3. června"
-                image="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiNbd0ztS3lDazPLM1H-rbz5Kq_ugknuPRJhNZrwpjrcjIjg1b6ztWBqjvepnFQoVNKww&usqp=CAU"
-                profile_name="Václav Hruška"
-                profile_job={"Osvětlovač | Šéf techniky"}
-                profile_picture="https://static.goout.cloud/studiohrdinucz/2019/09/3394605d-sh_portrety_4x5_web015-819x1024.jpg"
-                text="Ahoj, vypadl nám na zítřek technik, máš čas?"
-                profile_phone="+420 420 420 420"
-                profile_email="vaslav.hruska@studiohrdinu.cz"
-            />
-
-            {/* Dropdowny pro zprávy, notifikace a profil */}
+            {/* DROPDOWN: ZPRÁVY */}
             {openMessages && (
-                <>
-                    <div className="dropdown-backdrop" onClick={() => setOpenMessages(false)} />
-                    <div className="header_messages" >
-                        <div className="header_messages_heading">
-                            <p className="body_base strong">
-                                Zprávy
-                            </p>
-                            <button>
-                                <FontAwesomeIcon icon={faCheckDouble} className="icon" />
-                                <p className="body_smallest">Označit vše jako přečtené</p>
-                            </button>
-                        </div>
-
-                        <NotificationMessage
-                            id="message_1"
-                            image="https://tyhle.cz/images/og/un.jpg"
-                            name="Beamz Revo 9"
-                            date="21. června"
-                            user={"Štěpán Hejzlar:"}
-                            text={
-                                <>
-                                    Ahoj, potřeboval bych tohle světlo od 28. do 29. června, šlo by se domluvit? Potřeboval bych tohle světlo od 28. do 29. června, šlo by se domluvit?
-                                </>
-                            }
-                            read={false}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_2"
-                            image="https://tyhle.cz/images/og/un.jpg"
-                            name="Reflektor ETC Source Four"
-                            date="15. dubna"
-                            user={"Štěpán Hejzlar:"}
-                            text={
-                                <>
-                                    Ahoj, bylo by možné si půjčit tohle světlo na jednu akci 20. června? Děkuju moc za odpověď!
-                                </>
-                            }
-                            read={true}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_3"
-                            image="https://tyhle.cz/images/og/un.jpg"
-                            name="Pracovní nabídka"
-                            date="10. června"
-                            user={"Štěpán Hejzlar:"}
-                            text={
-                                <>
-                                    Ahoj, vypadl nám na zítřek technik, máš čas?
-                                </>
-                            }
-                            read={true}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_4"
-                            image="https://static.goout.cloud/studiohrdinucz/2019/09/3394605d-sh_portrety_4x5_web015-819x1024.jpg"
-                            name="Pracovní nabídka"
-                            date="3. června"
-                            user={"Václav Hruška:"}
-                            text={
-                                <>
-                                    Ahoj, vypadl nám na zítřek technik, máš čas?
-                                </>
-                            }
-                            read={true}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_1"
-                            image="https://tyhle.cz/images/og/un.jpg"
-                            name="Beamz Revo 9"
-                            date="21. června"
-                            user={"Štěpán Hejzlar:"}
-                            text={
-                                <>
-                                    Ahoj, potřeboval bych tohle světlo od 28. do 29. června, šlo by se domluvit? Potřeboval bych tohle světlo od 28. do 29. června, šlo by se domluvit?
-                                </>
-                            }
-                            read={false}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_2"
-                            image="https://tyhle.cz/images/og/un.jpg"
-                            name="Reflektor ETC Source Four"
-                            date="15. dubna"
-                            user={"Štěpán Hejzlar:"}
-                            text={
-                                <>
-                                    Ahoj, bylo by možné si půjčit tohle světlo na jednu akci 20. června? Děkuju moc za odpověď!
-                                </>
-                            }
-                            read={true}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_3"
-                            image="https://tyhle.cz/images/og/un.jpg"
-                            name="Pracovní nabídka"
-                            date="10. června"
-                            user={"Štěpán Hejzlar:"}
-                            text={
-                                <>
-                                    Ahoj, vypadl nám na zítřek technik, máš čas?
-                                </>
-                            }
-                            read={true}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-                        <NotificationMessage
-                            id="message_4"
-                            image="https://static.goout.cloud/studiohrdinucz/2019/09/3394605d-sh_portrety_4x5_web015-819x1024.jpg"
-                            name="Pracovní nabídka"
-                            date="3. června"
-                            user={"Václav Hruška:"}
-                            text={
-                                <>
-                                    Ahoj, vypadl nám na zítřek technik, máš čas?
-                                </>
-                            }
-                            read={true}
-                            onClick={(id) => {
-                                setopenPopupId(id);
-                                console.log("Kliknul jsi na " + id);
-                            }}
-                        />
-
+                <div className="header_messages"
+                    ref={messagesRef}
+                    onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="header_messages_heading">
+                        <p className="body_base strong">Zprávy</p>
+                        <button onClick={() => markAsRead('all', 'messages')}>
+                            <FontAwesomeIcon icon={faCheckDouble} className="icon" />
+                            <p className="body_smallest">Přečíst vše</p>
+                        </button>
                     </div>
-                </>
+                    <div className="messages-scroll-area">
+                        {notifications.filter(n => n.type === 'direct_message').length > 0
+                            ? renderMessagesWithDates() // TADY voláme tu novou funkci se skupinami
+                            : <div className="empty-notifications"><p className="body_small strong">Žádné zprávy</p></div>
+                        }
+                    </div>
+                </div>
             )}
+
+            {/* DROPDOWN: OZNÁMENÍ */}
             {openNotifications && (
-                <>
-                    <div className="dropdown-backdrop" onClick={() => setOpenNotifications(false)} />
-                    <div className="header_messages">
-                        <div className="header_messages_heading">
-                            <p className="body_base strong">
-                                Oznámení
-                            </p>
-                            <button>
-                                <FontAwesomeIcon icon={faCheckDouble} className="icon" />
-                                <p className="body_smallest">Označit vše jako přečtené</p>
-                            </button>
-                        </div>
-
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Hodnocení"
-                            date="21. června"
-                            text={
-                                <>
-                                    Štěpán Hejzlar ohodnotil Vaši{" "}
-                                    <a href="/">nabídku</a>.
-                                </>
-                            }
-                            read={false}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
-                        <NotificationMessage
-                            icon={<FontAwesomeIcon icon={faMessageRegular} />}
-                            name="Oblíbené"
-                            date="15. dubna"
-                            text={
-                                <>
-                                    Václav Hruška si přidal Vaši nabídku do{" "}
-                                    <a href="/">oblíbených</a>.
-                                </>
-                            }
-                            read={true}
-                            onClick={() => console.log("Kliknul jsi na notifikaci")}
-                        />
+                <div className="header_messages"
+                    ref={notificationsRef}
+                    onMouseDown={(e) => e.stopPropagation()}>
+                    <div className="header_messages_heading">
+                        <p className="body_base strong">Oznámení</p>
+                        <button onClick={() => markAsRead('all', 'notifications')}>
+                            <FontAwesomeIcon icon={faCheckDouble} className="icon" />
+                            <p className="body_smallest">Přečíst vše</p>
+                        </button>
                     </div>
-                </>
+                    <div className="messages-scroll-area">
+                        {notifications.filter(n => n.type !== 'direct_message').length > 0
+                            ? renderNotificationsWithDates()
+                            : <div className="empty-notifications"><p className="body_small strong">Žádná oznámení</p></div>}
+                    </div>
+                </div>
             )}
-            {openMore && (
-                <>
-                    <div className="dropdown-backdrop" onClick={() => setOpenMore(false)} />
-                    <div className="header_messages" id="profile_popover">
-                        <button className="profile_dropdown_button" onClick={() => { navigate(buildRoute(ROUTES.PROFILE)); closeAll(); }}>
-                            <p>Profil</p>
-                        </button>
-                        <button className="profile_dropdown_button">
-                            <p>Moje nabídky</p>
-                        </button>
-                        <button className="profile_dropdown_button" >
-                            <p>Ověřit profil</p>
-                        </button>
-                        <button className="profile_dropdown_button" onClick={() => { navigate(buildRoute(ROUTES.SETTINGS)); closeAll(); }}>
-                            <p>Nastavení</p>
-                        </button>
-                        <button
-                            className="profile_dropdown_button"
-                            onClick={handleLogout}>
-                            <p>Odhlásit se</p>
-                        </button>
-                    </div>
-                </>
+
+            {/* DROPDOWN: PROFIL */}
+            {openMore && user && (
+                <div className="header_messages" id="profile_popover"
+                    ref={moreRef}
+                    onMouseDown={(e) => e.stopPropagation()}>
+                    <button className="profile_dropdown_button" onClick={() => {
+                        navigate(buildRoute(ROUTES.USER_DETAIL, { slug: `${makeSlug(user.first_name)}-${makeSlug(user.last_name)}`, id: user.id }));
+                        setOpenMore(false);
+                    }}>
+                        <p>Profil</p>
+                    </button>
+                    <button className="profile_dropdown_button" onClick={() => {
+                        navigate(buildRoute(ROUTES.USER_LISTINGS, { id: user.id }));
+                        setOpenMore(false);
+                    }}>
+                        <p>Moje nabídky</p>
+                    </button>
+                    <button className="profile_dropdown_button" onClick={handleLogout}>
+                        <p>Odhlásit se</p>
+                    </button>
+                </div>
+            )}
+
+            {/* POPUP: DETAIL NOTIFIKACE */}
+            {selectedNotification && (
+                <NotificationPopup
+                    open={isPopupOpen}
+                    onClose={() => {
+                        setIsPopupOpen(false);
+                        setSelectedNotification(null); // Vyčistíme stav po zavření
+                    }}
+                    notification={selectedNotification}
+                />
             )}
         </>
-    )
-}
+    );
+};
 
-export default Header
+export default Header;

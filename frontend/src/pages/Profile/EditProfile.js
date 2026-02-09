@@ -1,26 +1,26 @@
 //Pro edit profilu
 import { useState } from "react";
-import FormEditProfile from "../../components/FormEditProfile"
-import Header from "../../components/Header"
+import FormEditProfile from "../../components/FormEditProfile";
 import { useAuth } from "../../context/AuthContext";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 const EditProfile = () => {
     const [loading, setLoading] = useState(false);
+    useScrollLock(loading);
     const { loading: authLoading } = useAuth();
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
     return (
         <>
-            <Header />
             {(authLoading || loading) && (
-                <div className="loader_container">
+                <div className="loader_container_fullscreen">
                     <div className="loader" />
                 </div>
             )}
 
             <div
                 style={{
-                    display: authLoading || loading ? "none" : "block"
+                    display:(authLoading || loading) ? "none" : "block"
                 }}
             >
                 <div className="general_form">

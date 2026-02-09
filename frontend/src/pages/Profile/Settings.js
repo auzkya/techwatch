@@ -5,7 +5,6 @@ import "./Settings.css"
 const Settings = () => {
     return (
         <>
-            <Header />
             <div className="favourites_page">
                 <h1>Nastavení</h1>
                 <p className="coming_soon">Tato stránka je v přípravě...</p>

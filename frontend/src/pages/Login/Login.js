@@ -8,10 +8,14 @@ import { faGoogle, faFacebookF } from '@fortawesome/free-brands-svg-icons';
 import "./Page.css"
 
 import { useAlert } from "../../context/AlertContext";
+import { useScrollLock } from "../../hooks/useScrollLock";
 import LoginForm from "../../components/FormLogin"
+
+import { ASSETS } from "../../config/assets";
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
+    useScrollLock(loading);
     const [errorTop, setErrorTop] = useState("");
 
     const location = useLocation();
@@ -58,11 +62,9 @@ const Login = () => {
 
     return (
         <>
-            {loading && <div className="loader_container"><div className="loader"></div></div>}
-
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={require("../../assets/img_not_compressed/techwatch_logo_1.png")} />
+                    <img className="login_logo" alt="logo" src={ASSETS.logo_top} />
                     <div className="login_section">
                         <h2 className="strong">PŘIHLÁŠENÍ</h2>
                         {errorTop && <div className="error_all error_all_center"><FontAwesomeIcon icon={faCircleXmark} className="error_icon" /><p className="error_text strong" dangerouslySetInnerHTML={{ __html: errorTop }} /><FontAwesomeIcon icon={faCircleXmark} className="error_icon_right" /></div>}

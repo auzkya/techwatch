@@ -11,7 +11,9 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('reviewer_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('item_id')->constrained()->onDelete('cascade');
-            $table->integer('review_value');
+            $table->decimal('review_value', 2, 1);
+            $table->json('pros')->nullable();
+            $table->json('cons')->nullable();
             $table->text('review')->nullable();
             $table->timestamps();
             $table->index('item_id');

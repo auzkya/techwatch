@@ -9,16 +9,17 @@ return new class extends Migration {
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('title', 255);
-            $table->text('description')->nullable();
-            $table->string('category', 50)->nullable();
-            $table->foreignId('sender_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->boolean('read')->default(false);
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Příjemce
+            $table->foreignId('sender_id')->nullable()->constrained('users'); // Kdo akci vyvolal
+            $table->string('type'); // 'favourite', 'review', 'direct_message', 'admin_alert'
+            $table->string('title');
+            $table->text('description');
+            $table->json('data')->nullable(); // Extra info: ['email' => '...', 'reason' => '...']
+            $table->boolean('is_read')->default(false);
+            $table->unsignedBigInteger('target_id')->nullable(); // ID cíle (např. item_id, user_id)
+            $table->unsignedBigInteger('target_sub_id')->nullable(); // Podřízené ID (např. review_id pro scroll)
+            $table->string('target_slug')->nullable(); // Slug cílového uživatele (např. "jan-novak")
             $table->timestamps();
-            $table->index('user_id');
-            $table->index('read');
-            $table->index('created_at');
         });
     }
 

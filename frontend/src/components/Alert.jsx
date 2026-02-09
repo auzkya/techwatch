@@ -82,10 +82,8 @@ export default function Alert({
 
             <div className="alert-title">
                 <FontAwesomeIcon icon={icon} />
-                <p className="strong">{label}</p>
+                <p className="alert-message">{message}</p>
             </div>
-
-            <p className="alert-message">{message}</p>
         </div>
     );
 }

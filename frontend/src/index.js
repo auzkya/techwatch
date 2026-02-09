@@ -2,12 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
+import './echo-config.js';
+
 import { AuthProvider } from "./context/AuthContext";
 
 import './index.css';
 import App from './App';
 
 import axios from 'axios';
+import { LoadingProvider } from "./context/LoadingContext.jsx";
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = "http://localhost:8000";
 
@@ -17,9 +20,11 @@ const root = ReactDOM.createRoot(container);
 root.render(
     <React.StrictMode>
         <BrowserRouter>
-            <AuthProvider>
-                <App />
-            </AuthProvider>
+            <LoadingProvider>
+                <AuthProvider>
+                    <App />
+                </AuthProvider>
+            </LoadingProvider>
         </BrowserRouter>
     </React.StrictMode>
 );

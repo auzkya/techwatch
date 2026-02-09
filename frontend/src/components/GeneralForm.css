@@ -4,7 +4,7 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    margin-bottom: 60px;
+    padding-bottom: 50px;
 }
 
 .form_add_tech {
@@ -141,14 +141,51 @@
     color: var(--background3);
 }
 
-.input-selected-icon{
+.status-filter-container {
+    display: flex;
+    margin: 0 auto;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 20px;
+}
+
+.status-filter-container .checkbox {
+    position: relative;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+.status-filter-container .checkbox input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.status-filter-container .checkbox span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    background: #1e1e1e;
+    color: var(--text3);
+    transition: all 0.2s ease;
+}
+
+.status-filter-container .checkbox input:checked+span {
+    background: var(--text);
+    font-weight: 500;
+    color: var(--background3);
+}
+
+.input-selected-icon {
     margin-left: auto;
     font-size: 18px;
     color: var(--background3) !important;
 }
 
-.input_error{
-cursor: pointer;
+.input_error {
+    cursor: pointer;
     margin: 18px 0;
     display: inline-block;
     position: absolute;
@@ -159,23 +196,23 @@ cursor: pointer;
 }
 
 /*Phone input*/
-.iti__search-input{
-        background-color: var(--background2) !important;
-        font-size: 16px !important;
-        line-height: 2 !important;
-        color: var(--text) !important;
-        font-weight: 500 !important;
-        border: none !important;
+.iti__search-input {
+    background-color: var(--background2) !important;
+    font-size: 16px !important;
+    line-height: 2 !important;
+    color: var(--text) !important;
+    font-weight: 500 !important;
+    border: none !important;
 }
 
-.iti__dropdown-content{
+.iti__dropdown-content {
     background-color: var(--background2) !important;
     border-radius: 10px !important;
     border: none !important;
     margin-top: 0px !important;
 }
 
-.iti__country-container{
+.iti__country-container {
     left: 8px !important;
 }
 
@@ -188,12 +225,12 @@ cursor: pointer;
     transition: background-color 5000s ease-in-out 0s;
 }
 
-#phone1{
+#phone1 {
     margin: 10px 0 !important;
-        padding-left: 100px !important;
+    padding-left: 100px !important;
 }
 
-#phone2{
+#phone2 {
     margin: 15px 0 !important;
     padding-left: 100px !important;
 }

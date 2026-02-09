@@ -7,9 +7,13 @@ import "./Page.css"
 
 import FormConfirmName from "../../components/FormConfirmName";
 
+import { ASSETS } from "../../config/assets";
+import { useScrollLock } from "../../hooks/useScrollLock";
+
 const ConfirmName = () => {
 
     const [loading, setLoading] = useState(false);
+    useScrollLock(loading);
     const [error, setError] = useState("");
 
     const hideMessage = () => {
@@ -36,7 +40,7 @@ const ConfirmName = () => {
 
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={require("../../assets/img_not_compressed/techwatch_logo_1.png")} />
+                    <img className="login_logo" alt="logo" src={ASSETS.logo_top} />
                     <div className="login_section">
                         <h2 className="strong">POTVRZENÍ JMÉNA</h2>
                         <p className="login_section_info body_base" >Doplňte své jméno a příjmení</p>

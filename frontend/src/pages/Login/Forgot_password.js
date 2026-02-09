@@ -8,10 +8,14 @@ import "./Page.css"
 
 import ForgotPasswordForm from "../../components/FormForgotPassword"
 
+import { ASSETS } from "../../config/assets";
+import { useScrollLock } from "../../hooks/useScrollLock";
+
 const ForgotPassword = () => {
     const [infoText, setInfoText] = useState("Zadejte e-mailovou adresu svého účtu");
 
     const [loading, setLoading] = useState(false);
+    useScrollLock(loading);
     const [errorTop, setErrorTop] = useState("");
 
     const showMessage = loading;
@@ -32,7 +36,7 @@ const ForgotPassword = () => {
 
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={require("../../assets/img_not_compressed/techwatch_logo_1.png")} />
+                    <img className="login_logo" alt="logo" src={ASSETS.logo} />
                     <div className="login_section">
                         <h2 className="strong">ZAPOMENUTÉ HESLO</h2>
                         <p className="login_section_info body_base" dangerouslySetInnerHTML={{ __html: infoText }} />

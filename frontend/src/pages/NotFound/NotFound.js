@@ -4,9 +4,9 @@ import "./NotFound.css"
 const NotFound = () => {
     return (
         <>
-            <div className="favourites_page">
-                <h1>Stránka nenalezena [ERROR 404]</h1>
-                <p className="coming_soon">Tato stránka je v přípravě...</p>
+            <div className="not_found_page">
+                <h1>404</h1>
+                <h2 className="coming_soon">STRÁNKA NENALEZENA</h2>
             </div>
         </>
     )

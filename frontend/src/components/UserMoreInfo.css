@@ -1,0 +1,136 @@
+.user_more_info {
+    position: relative;
+}
+
+/*.user_more_info .stars_container {
+    margin-top: 20px;
+}*/
+
+.user_more_info .stars {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 20px;
+    margin: 0px;
+}
+
+.user_more_info .review_count {
+    color: var(--text);
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
+    font-size: 14px;
+}
+
+.user_more_info .name {
+    margin: 0 0 0 -4px;
+    text-align: left;
+    text-transform: none;
+}
+
+.user_more_info .since {
+    color: var(--text3);
+    font-weight: 700;
+    margin: 0px;
+}
+
+.category-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 6px 0px 0 -6px;
+}
+
+.category-container .checkbox {
+    position: relative;
+    margin: 6px;
+}
+
+.category-container .checkbox input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.category-container .checkbox span {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--text);
+    color: var(--background3);
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.user_more_info .description {
+    color: var(--text);
+    margin: 26px 0 30px 0;
+    white-space: pre-line;
+}
+
+.user_more_info_images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(125px, 0.8fr));
+    gap: 16px;
+    margin: 10px 0;
+    width: 100%;
+}
+
+.user_more_info .options {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: auto;
+    border-radius: 0;
+    max-height: none;
+    box-shadow: none;
+    background: transparent;
+    text-align: right;
+}
+
+.options_span {
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.options_span_tech_label {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.options_span_tech {
+    vertical-align: middle;
+    float: right;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.options_span_tech:hover {
+    opacity: 0.8;
+}
+
+.options_span:hover {
+    opacity: 0.8;
+}
+
+.user_more_info .options_icon {
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--primary);
+    font-size: 17px;
+}
+
+.user_more_info .options_text {
+    display: inline-block;
+    margin: 4px 0 4px 4px;
+    vertical-align: middle;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.price_location_header_light_weight{
+    font-weight: 300;
+    margin: 0 4px;
+}

@@ -1,23 +1,28 @@
 .button-notification_message {
     display: flex;
+    gap: 15px;
     background-color: transparent;
     color: var(--text);
-    border: solid;
-    border-width: 0 0 2px 0;
     padding: 10px 15px 10px 10px;
+    border-radius: 16px;
+    margin: 10px auto;
+    border: none;
+    width: 100%;
+    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 24px -20px #1f1f1f;
+    overflow: hidden;
+}
+
+.button-notification_message:hover {
+    background-color: #131313;
+    opacity: 1;
 }
 
 .button-notification_message:first-of-type {
-    margin-top: 25px;
+    margin-top: 5px;
 }
 
 .button-notification_message:last-of-type {
     border: none;
-}
-
-.button-notification_message .left {
-    display: inline-block;
-    margin-right: 15px;
 }
 
 .button-notification_message .left .icon_wrapper {
@@ -43,7 +48,7 @@
 }
 
 .button-notification_message .right {
-    display: inline-block;
+    width: 80%;
 }
 
 .button-notification_message .right p {
@@ -79,4 +84,19 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
+.notification-date-separator {
+    text-align: center;
+    margin: 12px 0 8px 0;
+    color: var(--text2);
+}
+
+.empty-notifications p{
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text2);
 }

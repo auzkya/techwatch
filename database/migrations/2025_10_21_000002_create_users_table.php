@@ -25,8 +25,10 @@ return new class extends Migration {
             $table->timestamp('phone_verified_at')->nullable();
             $table->boolean('phone_visible')->default(false);
             $table->timestamp('active_worker_till')->nullable();
+            $table->timestamp('active_worker_reminder_sent_at')->nullable();
             $table->boolean('state_verified')->default(false);
             $table->float('review_value')->nullable();
+            $table->enum('role', ['user', 'admin', 'moderator'])->default('user');
             $table->index('created_at');
             $table->index('updated_at');
             $table->timestamp('last_login')->nullable();

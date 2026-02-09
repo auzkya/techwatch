@@ -16,7 +16,9 @@
 
 .home_buttons{
     display: flex;
-    justify-content: space-between;
-    width: 520px;
-    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 20px;
 }

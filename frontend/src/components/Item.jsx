@@ -1,48 +1,135 @@
+import React, { useState, useRef, useEffect, forwardRef, memo } from "react";
 import "./Item.css";
+import { useFavourites } from '../hooks/useFavourites';
+import { useAlert } from "../context/AlertContext";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart as faHeartEmpty } from '@fortawesome/free-regular-svg-icons';
-import { faStar as faStarFull, faStarHalfStroke } from '@fortawesome/free-solid-svg-icons';
-import { faStar as faStarEmpty } from '@fortawesome/free-regular-svg-icons';
+import { faHeart as faHeartEmpty, faStar as faStarEmpty, faTrashCan } from '@fortawesome/free-regular-svg-icons';
+import {
+    faStar as faStarFull,
+    faStarHalfStroke,
+    faHeart as faHeartFull,
+    faPenToSquare,
+    faEyeSlash,
+    faEye,
+    faShareFromSquare
+} from '@fortawesome/free-solid-svg-icons';
 
-const Stars = ({ rating, max = 5 }) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating - fullStars >= 0.5;
-    const emptyStars = max - fullStars - (halfStar ? 1 : 0);
+// Memoizujeme hvězdičky, aby se nepřekreslovaly zbytečně
+export const Stars = memo(({ rating = 0, max = 5 }) => {
+    const safeRating = Math.min(Math.max(Number(rating) || 0, 0), max);
+    const fullStars = Math.floor(safeRating);
+    const halfStar = (safeRating - fullStars) >= 0.5;
+    const emptyStars = Math.max(0, max - fullStars - (halfStar ? 1 : 0));
 
     return (
-        <div style={{ display: "flex", alignItems: "center" }}>
-            {/* Plné hvězdy */}
-            {Array(fullStars).fill(0).map((_, i) => (
-                <FontAwesomeIcon key={"full" + i} icon={faStarFull} style={{ marginRight: 2 }} />
+        <div className="stars_container">
+            {[...Array(fullStars)].map((_, i) => (
+                <FontAwesomeIcon key={"f" + i} icon={faStarFull} style={{ marginRight: 2 }} />
             ))}
-            {/* Půl hvězdy */}
-            {halfStar && (
-                <FontAwesomeIcon
-                    key="half"
-                    icon={faStarHalfStroke}
-                />
-            )}
-            {/* Prázdné hvězdy */}
-            {Array(emptyStars).fill(0).map((_, i) => (
-                <FontAwesomeIcon key={"empty" + i} icon={faStarEmpty} style={{ marginRight: 2 }} />
+            {halfStar && <FontAwesomeIcon key="h" icon={faStarHalfStroke} style={{ marginRight: 2 }} />}
+            {[...Array(emptyStars)].map((_, i) => (
+                <FontAwesomeIcon key={"e" + i} icon={faStarEmpty} style={{ marginRight: 2 }} />
             ))}
         </div>
     );
-};
+});
 
-const Item = ({ profile_picture, name, rating, role, onClick }) => {
+// Definujeme hlavní tělo komponenty
+const ItemBase = forwardRef((props, ref) => {
+    const {
+        id, profile_picture, name, rating, role, onClick,
+        isFavouriteInitially, price, purpose,
+        isOwner, activeItem, onEdit, onDelete, onStatusChange, onShare
+    } = props;
+
+    const { showAlert } = useAlert();
+    const { toggleFavourite } = useFavourites();
+    const [isFav, setIsFav] = useState(isFavouriteInitially);
+    const isTech = purpose !== undefined && purpose !== null;
+
+    useEffect(() => {
+        setIsFav(isFavouriteInitially);
+    }, [isFavouriteInitially]);
+
+    const handleFavClick = async (e) => {
+        e.stopPropagation();
+        const previousState = isFav;
+        setIsFav(!previousState);
+        try {
+            await toggleFavourite(isTech ? 'item' : 'user', id);
+        } catch (error) {
+            setIsFav(previousState);
+            showAlert("error", "Nepodařilo se uložit do oblíbených.");
+        }
+    };
+
+    const renderTechInfo = () => {
+        const typeText = purpose === 'sell' ? 'Prodej' : 'Rentál';
+        if (!price || price === 0) return `${typeText} dohodou`;
+        const formattedPrice = new Intl.NumberFormat('cs-CZ').format(price);
+        const unit = purpose === 'rental' ? ' / den' : '';
+        return <>{typeText} <span className="light-weight-text">za</span> {formattedPrice} Kč{unit}</>;
+    };
+
     return (
-        <div className="item" onClick={onClick}>
-            <img className="item_profile_img" alt="profile_img" src={profile_picture} />
+        <div
+            className={`item ${!activeItem && isOwner ? "item-inactive" : ""}`}
+            onClick={onClick}
+            ref={ref}
+        >
+            <div className="item_image_container">
+                <img className="item_profile_img" alt={name} src={profile_picture} loading="lazy" />
+                {!activeItem && isOwner && (
+                    <div className="item_hidden_overlay">
+                        <FontAwesomeIcon icon={faEyeSlash} />
+                    </div>
+                )}
+            </div>
+
             <div className="item_specs">
-                <p className="stars"><Stars rating={rating} /></p>
-                <p className="stars_number">{rating}</p>
-                <FontAwesomeIcon icon={faHeartEmpty} className="heart" />
+                {!isOwner && (
+                    <FontAwesomeIcon
+                        icon={isFav ? faHeartFull : faHeartEmpty}
+                        className={`heart ${isFav ? 'fav-active' : ''}`}
+                        onClick={handleFavClick}
+                    />
+                )}
+
+                <div className="rating_row">
+                    {rating && rating > 0 ? (
+                        <>
+                            <div className="stars"><Stars rating={rating} /></div>
+                            <p className="stars_number">{rating}</p>
+                        </>
+                    ) : (
+                        <p className="no_rating">Nehodnoceno</p>
+                    )}
+                </div>
+
                 <p className="name body_base strong">{name}</p>
                 <p className="role">{role?.replace(/;/g, " | ")}</p>
+
+                {isTech && <p className="role">{renderTechInfo()}</p>}
+
+                {isOwner && (
+                    <div className="item-edit-menu">
+                        <FontAwesomeIcon icon={activeItem ? faEyeSlash : faEye} className="icon" onClick={(e) => { e.stopPropagation(); onStatusChange(id, !activeItem); }} />
+                        <FontAwesomeIcon icon={faPenToSquare} className="icon" onClick={(e) => { e.stopPropagation(); onEdit(id); }} />
+                        <FontAwesomeIcon icon={faShareFromSquare} className="icon" onClick={(e) => { e.stopPropagation(); onShare(id); }} />
+                        <FontAwesomeIcon icon={faTrashCan} className="icon" onClick={(e) => { e.stopPropagation(); onDelete(id); }} />
+                    </div>
+                )}
             </div>
         </div>
     );
-};
+});
 
-export default Item;
+// Exportujeme jako memoizovanou komponentu
+export default memo(ItemBase, (prev, next) => {
+    return (
+        prev.id === next.id &&
+        prev.isFavouriteInitially === next.isFavouriteInitially &&
+        prev.activeItem === next.activeItem &&
+        prev.rating === next.rating
+    );
+});

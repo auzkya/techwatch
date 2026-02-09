@@ -24,6 +24,7 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-easy-crop": "^5.5.6",
+    "react-quick-pinch-zoom": "^5.1.1",
     "react-rating-stars-component": "^2.2.0",
     "react-router-dom": "^7.9.4",
     "react-scripts": "5.0.1",

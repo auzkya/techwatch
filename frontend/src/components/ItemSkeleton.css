@@ -1,0 +1,104 @@
+.listing_skeleton {
+    width: 240px;
+    height: auto;
+    margin: 5px;
+    display: inline-block;
+    border-radius: 12px;
+    padding: 10px;
+    transition: 0.2s ease-in-out;
+}
+
+.listing_skeleton_profile_img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+    object-fit: cover;
+    border-radius: 12px;
+    background-color: var(--text3);
+}
+
+.listing_skeleton_specs {
+    width: 97%;
+    display: block;
+    margin: 5px auto 0 auto;
+}
+
+.item_specs .stars_container{
+    display: flex;
+    align-items: center;
+}
+
+.listing_skeleton_specs .stars_container {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 12px;
+    animation: pulse 1.5s infinite linear;
+    color: var(--text3);
+}
+
+.listing_skeleton_name {
+    background-color: var(--text3);
+    border-radius: 10px;
+    opacity: 0.7;
+    margin-top: 7px;
+    margin-bottom: 10px !important;
+    height: 20px;
+}
+
+.listing_skeleton_role {
+    background-color: var(--text3);
+    border-radius: 10px;
+    width: 70%;
+    opacity: 0.7;
+    height: 16px;
+}
+
+.listing_skeleton p{
+    margin: 0;
+}
+
+/* Pulzující animace */
+.listing_skeleton {
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Společná třída pro animované části */
+.listing_skeleton_profile_img,
+.listing_skeleton_name,
+.listing_skeleton_role {
+    background: linear-gradient(
+        90deg,
+        var(--text3) 25%,
+        rgba(255, 255, 255, 0.3) 50%,
+        var(--text3) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 10px;
+}
+
+/* Definice animace shimmeru */
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+/* Definice animace pulse */
+@keyframes pulse {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}

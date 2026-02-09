@@ -18,6 +18,7 @@ use App\Mail\VerifyEmail;
 
 class OAuthController extends Controller
 {
+
     public function oauthLogin(Request $request)
     {
         $request->validate([
@@ -35,9 +36,9 @@ class OAuthController extends Controller
         }
 
         // smaž staré refresh tokeny
-            $user->tokens()
-                ->where('name', 'refresh')
-                ->delete();
+        $user->tokens()
+            ->where('name', 'refresh')
+            ->delete();
 
         $accessToken = $user->createToken(
             'access',
@@ -92,7 +93,6 @@ class OAuthController extends Controller
             'last_login' => now(),
         ]);
 
-
         $accessToken = $user->createToken(
             'access',
             ['*'],
@@ -105,19 +105,16 @@ class OAuthController extends Controller
             now()->addDays(14)
         )->plainTextToken;
 
-        return response()
-            ->json([
-                'access_token' => $accessToken,
-                'user' => $user
-            ])
+        // ✅ Redirect s cookie
+        return redirect(config('app.frontend_url') . "/oauth-callback?token=$accessToken")
             ->cookie(
                 'refresh_token',
                 $refreshToken,
-                60 * 24 * 14, // 14 dní
+                60 * 24 * 14,
                 '/',
                 null,
-                false, // secure
-                true,  // httpOnly
+                false,
+                true,
                 false,
                 'Lax'
             );

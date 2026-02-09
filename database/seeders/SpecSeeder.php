@@ -2,31 +2,28 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Spec;
-use Illuminate\Support\Str;
 
 class SpecSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // Definujeme pole dvojic: Název -> Tvůj React Slug
         $categories = [
-            'Osvětlovač',
-            'Zvukař',
-            'AV technik',
-            'Rigger',
-            'Stagehands',
+            'Osvětlovač' => 'light_technician',
+            'Zvukař'     => 'sound_technician',
+            'AV technik'  => 'av_technician',
+            'Rigger'     => 'rigger',
+            'Stagehands' => 'stagehands',
         ];
 
-        foreach ($categories as $name) {
-            Spec::create([
-                'name' => $name,
-                'slug' => Str::slug($name),
-            ]);
+        foreach ($categories as $name => $slug) {
+            // updateOrCreate zajistí, že pokud kategorie existuje, jen se aktualizuje slug
+            Spec::updateOrCreate(
+                ['name' => $name], // Podle čeho hledáme
+                ['slug' => $slug]  // Co aktualizujeme
+            );
         }
     }
 }

@@ -1,36 +1,62 @@
 // Kolekce konstant pro opakované použití cest
+// a.k.a zdroj pravdy pro cesty
 
 export const ROUTES = {
-  HOME: "/",
+    // Domovská stránka
+    HOME: "/",
 
-  //WORKERS: "/workers",
-  WORKERS_CATEGORY: "/workers/:subcategory",
+    // Přihlašovací stránky
+    LOGIN: "/login",
+    VERIFY_SUCCESS: "/verify-success",
 
-  //TECH: "/tech",
-  ADD_TECH: "/add-tech",
-  TECH_CATEGORY: "/tech/:subcategory",
-  TECH_DETAIL: "/tech/:slug-:id",
+    // Zapomenuté heslo
+    FORGOT_PASSWORD: "/forgot-password",
+    RESET_PASSWORD: "/reset-password/:token",
 
-  USER_DETAIL: "/user/:slug-:id", // univerzální veřejný profil
-  PROFILE: "/profile",             // osobní profil přihlášeného uživatele
-  SETTINGS: "/profile/settings",
+    // Registrace
+    REGISTER: "/register",
 
-  FAVOURITES: "/favourites/:type?",
+    // OAuth
+    OAUTH_CALLBACK: "/oauth-callback",
+    OAUTH_REGISTRATION: "/oauth-registration",
 
-  //NOT_FOUND: "*",
+    // Pracovníci (detail pracovníka je USER_DETAIL)
+    WORKERS: "/workers",
+    WORKERS_CATEGORY: "/workers/category/:subcategory",
+
+    // Technika
+    ADD_TECH: "/add-tech",
+    EDIT_TECH: "/tech/edit/:id",
+    TECH: "/tech",
+    TECH_CATEGORY: "/tech/category/:subcategory",
+    TECH_DETAIL: "/tech/item/:id",
+    USER_LISTINGS: "/user/:id/listings",
+
+    // Profil uživatele
+    USER_DETAIL: "/user/:id/:slug?",
+    EDIT_PROFILE: "/edit-profile",
+
+    // Nastavení profilu
+    SETTINGS: "/profile/settings",
+
+    // Oblíbené položky
+    FAVOURITES: "/favourites",
+    FAVOURITES_CATEGORY: "/favourites/category/:subcategory",
+
+    // 404 stránka
+    NOT_FOUND: "*",
 };
 
 // Pomocné funkce pro generování cest
 export const buildRoute = (route, params = {}) => {
-  let path = route;
+    let path = route;
 
-  // Nahrazení všech :param
-  Object.entries(params).forEach(([key, value]) => {
-    path = path.replace(`:${key}`, value);
-  });
+    Object.entries(params).forEach(([key, value]) => {
+        // Pokud je hodnota null/undefined pro nepovinný parametr, vymažeme ho
+        const val = value || "";
+        path = path.replace(`:${key}`, val);
+    });
 
-  // Odstranění nepovinných parametrů typu :subcategory?
-  path = path.replace(/\/:.*\?/g, "");
-
-  return path;
+    // Vyčištění dvojitých lomítek na konci, pokud slug chybí
+    return path.replace(/\/+$/, "").replace(/\/+(?=\/)/g, "");
 };

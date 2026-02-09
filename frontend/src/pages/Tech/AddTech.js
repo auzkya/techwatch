@@ -1,21 +1,22 @@
 //Pro přidávání a edit nabídky zařízení
 import { useState } from "react";
-import FormAddTech from "../../components/FormAddTech"
-import Header from "../../components/Header"
+import FormAddTech from "../../components/FormAddTech";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
-const AddTech = () => {
+const AddTech = ({ isEdit }) => {
         const [loading, setLoading] = useState(false);
+        useScrollLock(loading);
         const [success, setSuccess] = useState("");
         const [error, setError] = useState("");
     return (
         <>
-            <Header />
             {loading && <div className="loader_container"><div className="loader"></div></div>}
             <div className="general_form">
-                <h1>Nabídka techniky</h1>
+                <h1>{isEdit ? "Úprava nabídky techniky" : "Nabídka techniky"}</h1>
                 <FormAddTech setLoading={setLoading}
                             setSuccess={setSuccess}
-                            setError={setError}/>
+                            setError={setError}
+                            isEdit={isEdit}/>
             </div>
 
         </>

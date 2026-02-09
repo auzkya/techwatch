@@ -1,22 +1,38 @@
-.button-subcategory{
-    width: 230px;
+/* Původní styl tlačítka zůstává téměř beze změny */
+.button-subcategory {
+    width: 260px;
     text-decoration: none;
     cursor: pointer;
     background-color: var(--primary);
-
     color: var(--text);
-
-    padding: 12px 12px;
+    padding: 12px 16px;
     border: none;
     border-radius: 15px;
     text-align: left;
 }
 
-.button-subcategory h3{
-    text-transform: uppercase;
-    display: inline;
+/* NOVINKA: Zarovnání obsahu do jedné linky na střed */
+.button-content {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.button-subcategory span{
-    margin: 0 5px;
+/* Úprava h3 aby nezalamovalo řádek a nemělo zbytečné okraje */
+.button-subcategory h3 {
+    text-transform: uppercase;
+    display: inline;
+    margin: 0;
+    line-height: 1;
+}
+
+/* Sjednocení velikosti ikony (FontAwesome i SVG) */
+.subcategory_icon-wrapper svg,
+.subcategory_icon-wrapper i,
+.subcategory_icon-wrapper span {
+    display: flex;
+    align-items: center;
+    font-size: 22px;   /* Stejné jako vaše h3 v index.css */
+    max-height: 26px;
+    margin: 0 4px 0 0;
 }

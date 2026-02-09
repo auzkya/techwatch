@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Twilio\Rest\Client;
 use App\Models\User;
+use App\Models\PhoneVerification;
 
 class PhoneController extends Controller
 {
@@ -81,19 +82,24 @@ class PhoneController extends Controller
                 ], 422);
             }
 
-            // ✅ ULOŽIT OVĚŘENÍ UŽIVATELI
-            $user = $request->user();
-
-            $user->phone = $request->phone;          // E.164
-            $user->phone_verified_at = now();        // 🔑 KLÍČOVÉ
-            $user->save();
+            // ⚠️ NOVÉ: Ulož do phone_verifications tabulky
+            PhoneVerification::updateOrCreate(
+                [
+                    'user_id' => $request->user()->id,
+                    'phone' => $request->phone,
+                ],
+                [
+                    'verified_at' => now(),
+                    'expires_at' => now()->addMinutes(10), // Vyprší za 10 minut
+                ]
+            );
 
             return response()->json([
-                'success' => true
+                'success' => true,
+                'verified_phone' => $request->phone,
             ]);
 
         } catch (\Throwable $e) {
-
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()
@@ -182,7 +188,7 @@ class PhoneController extends Controller
 
         // existuje stejné číslo u tohoto uživatele?
         $exists = User::where('phone', $phone)
-            ->where('id', '=', $user->id)
+            ->where('id', '!=', $user->id)
             ->exists();
 
         return response()->json([

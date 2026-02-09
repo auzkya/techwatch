@@ -1,20 +1,21 @@
+/*import { ROUTES } from "./RouteNames";
+
+import OAuthCallback from "../components/OAuthCallback";
+import Favourites from "../pages/Favourites/Favourites";
 import Home from "../pages/Home/Home";
-import Login from "../pages/Login/Login";
+import ConfirmName from "../pages/Login/Confirm_Name";
 import ForgotPassword from "../pages/Login/Forgot_password";
+import Login from "../pages/Login/Login";
+import Register from "../pages/Login/Register";
 import ResetPassword from "../pages/Login/Reset_password";
 import VerifySuccess from "../pages/Login/VerifySuccess";
-import Register from "../pages/Login/Register"
-import OAuthCallback from "../components/OAuthCallback";
-import ConfirmName from "../pages/Login/Confirm_Name";
-import Workers from "../pages/Workers/Workers";
+import EditProfile from "../pages/Profile/EditProfile";
+import Settings from "../pages/Profile/Settings";
 import Tech from "../pages/Tech/Tech";
 import TechDetail from "../pages/Tech/TechDetail";
-import TechAdd from "../pages/Tech/AddTech";
+import UserListings from "../pages/Tech/UserListings";
 import UserDetail from "../pages/User/UserDetail";
-import Profile from "../pages/Profile/Profile";
-import EditProfile from "../pages/Profile/EditProfile";
-import Favourites from "../pages/Favourites/Favourites";
-import Settings from "../pages/Profile/Settings";
+import Workers from "../pages/Workers/Workers";
 
 import NotFound from "../pages/NotFound/NotFound";
 
@@ -24,136 +25,139 @@ import AddTech from "../pages/Tech/AddTech";
 export const routes = [
     // Domovská stránka
     {
-        path: "/",
+        path: ROUTES.HOME,
         element: <ProtectedRoute><Home /></ProtectedRoute>,
         label: "Domů",
     },
 
     // Přihlášení stránka
     {
-        path: "/login",
+        path: ROUTES.LOGIN,
         element: <Login />,
         label: "Přihlášení",
     },
 
     // Přihlášení stránka
     {
-        path: "/verify-success",
+        path: ROUTES.VERIFY_SUCCESS,
         element: <VerifySuccess />,
         label: "Přihlašování",
     },
 
     // Zapomenuté heslo stránka
     {
-        path: "/forgot-password",
+        path: ROUTES.FORGOT_PASSWORD,
         element: <ForgotPassword />,
         label: "Zapomenuté heslo",
     },
 
     // Resetování hesla stránka
     {
-        path: "/reset-password/:token",
+        path: ROUTES.RESET_PASSWORD,
         element: <ResetPassword />,
         label: "Resetování hesla",
     },
 
     // Registrace stránka
     {
-        path: "/register",
+        path: ROUTES.REGISTER,
         element: <Register />,
         label: "Registrace",
     },
 
-    // OAuth callback asi vyměněno za OAuth success
+    // OAuth callback
     {
-        path: "/oauth-callback",
+        path: ROUTES.OAUTH_CALLBACK,
         element: <OAuthCallback />,
         label: null,
     },
 
-    /*// OAuth success
-        {
-        path: "/oauth-success",
-        element: <OAuthSuccess />,
-        label: null,
-    },*/
-
     // Potvrzení jména
     {
-        path: "/oauth-registration",
+        path: ROUTES.OAUTH_REGISTRATION,
         element: <ConfirmName />,
         label: "Potvrzení jména",
     },
 
     // Pracovníci
     {
-        path: "/workers",
+        path: ROUTES.WORKERS,
         element: <ProtectedRoute><Workers /></ProtectedRoute>,
         label: "Pracovníci",
     },
     {
-        path: "/workers/:subcategory",
+        path: ROUTES.WORKERS_CATEGORY,
         element: <ProtectedRoute><Workers /></ProtectedRoute>,
         label: "Kategorie pracovníků",
     },
 
     // Technika
     {
-        path: "/add-tech",
-        element: <ProtectedRoute><AddTech /></ProtectedRoute>,
+        path: ROUTES.ADD_TECH,
+        element: <ProtectedRoute><AddTech isEdit={false} /></ProtectedRoute>,
         label: "Nabídka techniky",
     },
     {
-        path: "/tech",
+        path: ROUTES.EDIT_TECH,
+        element: <ProtectedRoute><AddTech isEdit={true} /></ProtectedRoute>,
+        label: "Úprava nabídky techniky",
+    },
+    {
+        path: ROUTES.TECH,
         element: <ProtectedRoute><Tech /></ProtectedRoute>,
         label: "Technika",
     },
     {
-        path: "/tech/:subcategory",
+        path: ROUTES.TECH_CATEGORY,
         element: <ProtectedRoute><Tech /></ProtectedRoute>,
         label: "Kategorie techniky",
     },
     {
-        path: "/tech/:slug",
+        path: ROUTES.TECH_DETAIL,
         element: <ProtectedRoute><TechDetail /></ProtectedRoute>,
+        label: "Detail techniky",
+    },
+        {
+        path: ROUTES.USER_LISTINGS,
+        element: <ProtectedRoute><UserListings /></ProtectedRoute>,
         label: "Detail techniky",
     },
 
     // Profil uživatele
     {
-        path: "/user/:slug",
+        path: ROUTES.USER_DETAIL,
         element: <ProtectedRoute><UserDetail /></ProtectedRoute>,
-        label: "Profil uživatele",
     },
     {
-        path: "/profile",
-        element: <ProtectedRoute><Profile /></ProtectedRoute>,
-        label: "Můj profil",
-    },
-    {
-        path: "/edit-profile",
+        path: ROUTES.EDIT_PROFILE,
         element: <ProtectedRoute><EditProfile /></ProtectedRoute>,
         label: "Úprava profilu",
     },
 
     // Oblíbené
     {
-        path: "/favourites/:type?",
+        path: ROUTES.FAVOURITES,
         element: <ProtectedRoute><Favourites /></ProtectedRoute>,
-        label: "Oblíbené",
+        label: "Uložené",
+    },
+    {
+        path: ROUTES.FAVOURITES_CATEGORY,
+        element: <ProtectedRoute><Favourites /></ProtectedRoute>,
+        label: "Kategorie oblíbených",
     },
 
     // Nastavení
     {
-        path: "/profile/settings",
+        path: ROUTES.SETTINGS,
         element: <ProtectedRoute><Settings /></ProtectedRoute>,
         label: "Nastavení",
     },
 
     // 404
-    /*{
-        path: "*",
+    {
+        path: ROUTES.NOT_FOUND,
         element: <NotFound />,
         label: "404",
-    },*/
+    },
 ];
+*/

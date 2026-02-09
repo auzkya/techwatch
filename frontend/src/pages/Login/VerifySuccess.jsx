@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { buildRoute, ROUTES } from "../../routes/RouteNames";
 
 const VerifySuccess = () => {
     const navigate = useNavigate();
@@ -10,7 +11,7 @@ const VerifySuccess = () => {
         const token = new URLSearchParams(window.location.search).get("token");
 
         if (!token) {
-            navigate("/login", { replace: true });
+            navigate(buildRoute(ROUTES.LOGIN), { replace: true });
             return;
         }
 

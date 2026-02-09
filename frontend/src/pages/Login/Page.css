@@ -138,40 +138,50 @@ input[type="checkbox" i] {
 }
 
 .custom-checkbox {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     cursor: pointer;
-    border: 2px solid var(--text);
-    /* černý rámeček */
     border-radius: 4px;
-    outline: none;
     background-color: transparent;
-    /* bez výplně */
     appearance: none;
-    /* vypne defaultní vzhled */
     -webkit-appearance: none;
-    -moz-appearance: none;
     display: inline-block;
     vertical-align: middle;
     position: relative;
+    /* FIX: Definujeme border pevnou šířkou a typem, měníme jen barvu */
+    border: 2px solid var(--text) !important;
+    outline: none;
+    box-shadow: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Stav po kliknutí, kdy prvek stále drží focus */
+.custom-checkbox:focus {
+    outline: none;
+    border: 2px solid var(--text) !important;
 }
 
 .custom-checkbox:checked {
     background-color: var(--primary2);
-    /* barva když je zaškrtnutý */
-    border-color: var(--primary2);
+    /* Tady změníme barvu borderu na barvu pozadí, aby to vypadalo jako jeden celek */
+    border: 2px solid var(--primary2) !important;
+}
+
+/* Aby i focus u checked stavu zůstal primary */
+.custom-checkbox:checked:focus {
+    border: 2px solid var(--primary2) !important;
 }
 
 .custom-checkbox:checked::after {
     content: '';
     position: absolute;
-    left: 2.2px;
-    top: 0px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -60%) rotate(45deg);
     width: 4px;
-    height: 7px;
-    border: solid white;
+    height: 8px;
+    border: solid var(--text);
     border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
 }
 
 .checkbox-text {

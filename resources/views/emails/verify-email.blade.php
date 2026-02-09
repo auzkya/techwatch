@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dokončení registrace</title>
 </head>
 
 <body style="margin:0;padding:0;background-color:#0F0F0F;font-family:'Inter', sans-serif;color:#F1F1F1;text-align:center;">

@@ -1,24 +1,35 @@
-.all-path{
-  width: 100%;
-  text-align: center; /* vycentruje .path */
+.all-path {
+    width: 100%;
+    text-align: center;
+    /* vycentruje .path */
 }
 
-.path{
-  display: inline-flex; /* nebo inline-block */
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto; /* vycentruje v rámci rodiče */
-  gap: 5px; /* mezera mezi prvky */
+.path {
+    cursor: default;
+    display: inline-flex;
+    /* nebo inline-block */
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    /* vycentruje v rámci rodiče */
+    gap: 5px;
+    /* mezera mezi prvky */
 }
 
-.path p{
+.path p {
     display: inline-block;
     margin: 0 5px;
 }
 
-.path-a{
+.path-a {
     color: var(--text);
     text-decoration: none;
     font-weight: 500;
     text-transform: uppercase;
+        cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.path-a:hover {
+    opacity: 0.7;
 }

@@ -1,27 +1,16 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useParams, useNavigate } from "react-router-dom";
-import api from "../api"; // cesta podle umístění souboru
-
-import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 import InputLogin from "./InputLogin";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
-
-
 const FormConfirmName = ({ setLoading, setError }) => {
-    const navigate = useNavigate();
-    const { loginUser } = useAuth();
-    const { refreshAccessToken } = useAuth();
     const [fname, setFname] = useState("");
     const [lname, setLname] = useState("");
     const [email, setEmail] = useState("");
     const [provider, setProvider] = useState("");
     const [providerId, setProviderId] = useState("");
 
-    const apiUrl = process.env.REACT_APP_API_URL;
+    const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -32,28 +21,38 @@ const FormConfirmName = ({ setLoading, setError }) => {
         setProviderId(params.get("provider_id") || "");
     }, []);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
 
-        try {
-            await api.post("/api/oauth-registration", {
-                email,
-                fname,
-                lname,
-                provider,
-                provider_id: providerId
-            });
+        // ⚠️ KLÍČOVÁ ZMĚNA: Vytvoř normální HTML form a submitni ho
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `${apiUrl}/api/oauth-registration`;
 
-            // 🔑 backend už nastavil refresh_token cookie
-            await refreshAccessToken();
-            navigate("/");
-        } catch (err) {
-            console.error(err);
-            setError("Chyba serveru");
-        } finally {
-            setLoading(false);
-        }
+        // Přidej všechna data jako hidden inputy
+        const fields = {
+            email,
+            fname,
+            lname,
+            provider,
+            provider_id: providerId
+        };
+
+        Object.entries(fields).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value || '';
+            form.appendChild(input);
+        });
+
+        // Přidej form do stránky a submitni
+        document.body.appendChild(form);
+        form.submit();
+
+        // Form submit přesměruje na jinou stránku,
+        // takže setLoading(false) už nikdy neproběhne
     };
 
     return (

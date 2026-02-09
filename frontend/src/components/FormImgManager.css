@@ -26,6 +26,12 @@ height: 100%;
 cursor: grab;
 }
 
+.img_item_undrag {
+width: 100%;
+height: 100%;
+cursor: pointer;
+}
+
 .img_dragging {
 transform: scale(1.02);
 cursor: grabbing;
@@ -37,6 +43,22 @@ width: 100%;
 height: 100%;
 object-fit: cover;
 border-radius: 12px;
+}
+
+.img_item_undrag img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+border-radius: 12px;
+}
+
+.unselectable {
+  user-drag: none;
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
 }
 
 .delete_btn {
@@ -96,17 +118,37 @@ inset: 0;
 cursor: grab;
 }
 
-
 .drag_overlay {
 width: 140px;
 height: 140px;
 pointer-events: none;
 }
 
+/* Pozadí modalu */
+/*.loader_container.full_modal_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}*/
+
 .form_img_full {
-    max-width: 80%;
-    max-height: 80%;
+    max-width: 90vw;
+    max-height: 75vh;
+    cursor: grab;
+    object-fit: contain;
     border-radius: 12px;
+}
+
+.form_img_full:active {
+    cursor: grabbing;
 }
 
 /*
@@ -199,3 +241,50 @@ pointer-events: none;
     width: 80%;
 }
 */
+
+/* posouvání v galerii*/
+.gallery_overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Společný styl pro šipky */
+.gallery_nav {
+    position: absolute;
+    bottom: 40px;
+    background: var(--text2);
+    border: none;
+    color: var(--background);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    z-index: 10000; /* Musí být nad QuickPinchZoom */
+    border-radius: 50%;
+}
+
+/* Přesné umístění vlevo a vpravo */
+.gallery_nav.prev {
+    margin-right: 60px;
+}
+
+.gallery_nav.next {
+    margin-left: 60px;
+}
+
+/* Stav, kdy už není kam listovat */
+.gallery_nav.disabled {
+    opacity: 0.15;            /* Tlačítko bude jen velmi slabě vidět */
+    cursor:default;
+}

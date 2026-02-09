@@ -1,19 +1,17 @@
 <?php
 
-// Model reprezentující uživatele v databázi, bez ktrého Laravel neví jak pracovat s tabulkou users
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable; // pro autentizaci
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    // Tato pole lze hromadně naplnit při User::create()
     protected $fillable = [
         'first_name',
         'last_name',
@@ -25,38 +23,70 @@ class User extends Authenticatable
         'phone_visible',
         'profile_image',
         'is_active',
-        'email_verification_token',
-        'email_verification_sent_at',
         'google_id',
         'facebook_id',
+        'active_worker_till',
+        'review_value'
     ];
 
-    // Skrytá pole při serializaci do JSON (např. password)
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
         'phone_visible' => 'boolean',
         'is_active' => 'boolean',
-        'last_login' => 'datetime',
-        'email_verification_sent_at' => 'datetime',
-        'phone_verified_at' => 'datetime',
+        'active_worker_till' => 'datetime',
+        'review_value' => 'float',
     ];
 
-    protected $appends = ['profile_image_url'];
+    protected $appends = ['profile_image_url', 'reviews_count'];
 
+    // Vztahy
     public function specs()
     {
         return $this->belongsToMany(Spec::class);
     }
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
+    public function riders()
+    {
+        return $this->hasMany(UserRider::class, 'user_id');
+    }
+
+    // Vztah k recenzím, které uživatel DOSTAL
+    public function reviewsReceived()
+    {
+        return $this->hasMany(ReviewUser::class, 'reviewed_user_id');
+    }
+
+    // Accessor pro počet recenzí
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviewsReceived()->count();
+    }
 
     public function getProfileImageUrlAttribute()
     {
-        return $this->profile_image
-            ? config('app.url') . '/storage/' . $this->profile_image
-            : null;
+        if (!$this->profile_image)
+            return null;
+        if (filter_var($this->profile_image, FILTER_VALIDATE_URL))
+            return $this->profile_image;
+        return Storage::disk('r2')->url($this->profile_image);
     }
 
+    public function favouritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favourites_users', 'favourite_user_id', 'user_id');
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isModerator(): bool
+    {
+        return $this->role === 'moderator' || $this->role === 'admin';
+    }
 }

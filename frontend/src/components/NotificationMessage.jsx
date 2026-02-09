@@ -5,7 +5,7 @@ const NotificationMessage = ({ id, icon, image, name, date, user, text, read, on
     return (
         <button
             onClick={() => onClick(id)}
-            className="button-notification_message"
+            className="button-notification_message smaller_scale"
             popoverTarget={id}
         >
 
