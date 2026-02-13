@@ -246,3 +246,19 @@
     cursor: pointer;
     font-size: 24px;
 }
+
+/* Animace pro načítání položek */
+.all-items > div, .all-items-full > div {
+    animation: fadeInTech 0.4s ease-out forwards;
+}
+
+@keyframes fadeInTech {
+    from {
+        opacity: 0;
+        margin-top: 8px;
+    }
+    to {
+        opacity: 1;
+        margin-top: 0;
+    }
+}

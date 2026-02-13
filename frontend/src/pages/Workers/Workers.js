@@ -53,7 +53,6 @@ const Workers = () => {
     const fetchWorkers = useCallback(async (pageNumber, isInitial = false) => {
         if (isFetching.current && !isInitial) return;
         isFetching.current = true;
-        setLoading(true);
 
         try {
             const response = await axiosInstance.get('/api/workers-listings', {
@@ -85,6 +84,11 @@ const Workers = () => {
     useEffect(() => {
         setPage(1);
         setHasMore(true);
+
+        // KLÍČOVÁ ZMĚNA: Okamžitě vymažeme staré výsledky, aby neproblikávaly se skeletony
+        setWorkers([]);
+        setLoading(true);
+
         const timeoutId = setTimeout(() => fetchWorkers(1, true), 300);
         return () => clearTimeout(timeoutId);
     }, [fetchWorkers]);
@@ -107,12 +111,30 @@ const Workers = () => {
         if (node) observer.current.observe(node);
     }, [loading, hasMore]);
 
+    useEffect(() => {
+        const performReset = () => {
+            setSearchTerm("");
+            setSelectedLocation({ value: "", label: "Celá ČR" });
+            setMinRating(false);
+            setPage(1);
+            // fetchWorkers se spustí automaticky díky závislosti na searchTerm
+        };
+
+        window.addEventListener("reset-filters", performReset);
+        return () => window.removeEventListener("reset-filters", performReset);
+    }, []);
+
     // MEMOIZACE SEZNAMU (šetří výkon)
     // 1. OPRAVA: handleItemClick už máš v useCallback, to je super.
     const handleItemClick = useCallback((id, firstName, lastName) => {
         const slug = makeSlug(`${firstName}-${lastName}`);
+        const fullName = `${firstName} ${lastName}`; // Vytvoříme jméno
         navigate(`/user/${id}/${slug}`, {
-            state: { fromCategory: subcategory, fromMode: "workers" }
+            state: {
+                fromCategory: subcategory,
+                fromMode: "workers",
+                userName: fullName
+            }
         });
     }, [navigate, subcategory]);
 
@@ -295,7 +317,7 @@ const Workers = () => {
                     {/* Prázdný stav */}
                     {!loading && workers.length === 0 && (
                         <div className="no-results_listing-container">
-                            <h2 className="no-results_listing">Nebyli nalezeni žádní pracovníci </h2>
+                            <h2 className="no-results_listing">Nebyli nalezeni žádní pracovníci.</h2>
                         </div>
                     )}
                 </div>

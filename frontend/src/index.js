@@ -6,10 +6,11 @@ import './echo-config.js';
 
 import { AuthProvider } from "./context/AuthContext";
 
-import './index.css';
 import App from './App';
+import './index.css';
 
 import axios from 'axios';
+import { AlertProvider } from "./context/AlertContext";
 import { LoadingProvider } from "./context/LoadingContext.jsx";
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = "http://localhost:8000";
@@ -21,9 +22,11 @@ root.render(
     <React.StrictMode>
         <BrowserRouter>
             <LoadingProvider>
-                <AuthProvider>
-                    <App />
-                </AuthProvider>
+                <AlertProvider>
+                    <AuthProvider>
+                        <App />
+                    </AuthProvider>
+                </AlertProvider>
             </LoadingProvider>
         </BrowserRouter>
     </React.StrictMode>

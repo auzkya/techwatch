@@ -1,14 +1,16 @@
 import { useState } from "react";
 
-import "./Page.css"
+import "./Page.css";
 
-import FormRegister from "../../components/FormRegister"
+import FormRegister from "../../components/FormRegister";
 
+import { faFacebookF, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGoogle, faFacebookF } from '@fortawesome/free-brands-svg-icons';
 
+import { Link } from "react-router-dom";
 import { ASSETS } from "../../config/assets";
-import { useScrollLock } from "../../hooks/useScrollLock"
+import { useScrollLock } from "../../hooks/useScrollLock";
+import { ROUTES } from "../../routes/RouteNames";
 
 const Register = () => {
     const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ const Register = () => {
                     </div>
                 </div>
                 <p className="login_link">Už máš účet?
-                    <a href="./Login" className="login_a strong"> Přihlas se!</a>
+                    <Link to={ROUTES.LOGIN} className="login_a strong"> Přihlas se!</Link>
                 </p>
 
             </div>

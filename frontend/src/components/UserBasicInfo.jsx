@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAt, faPhone } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
-import { ROUTES, buildRoute } from "../routes/RouteNames";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { categoryMap } from "../config/CategoryMap";
+import { ROUTES, buildRoute } from "../routes/RouteNames";
 import makeSlug from "../utils/makeSlug";
 import PopupSendMessage from "./PopupSendMessage";
 
-import "./UserBasicInfo.css";
 import { ASSETS } from "../config/assets";
+import "./UserBasicInfo.css";
 
 const UserBasicInfo = ({
     currentUser,    // info o tom, zda jsem majitel profilu/inzerátu
@@ -26,6 +26,7 @@ const UserBasicInfo = ({
     techId
 }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isMessagePopupOpen, setIsMessagePopupOpen] = useState(false);
 
     // Sestavení specializací: "Osvětlovač | Stagehands"
@@ -35,17 +36,29 @@ const UserBasicInfo = ({
 
     const handleProfileClick = () => {
         if (userId && firstName && lastName) {
-            // Vytvoříme slug ze jména a příjmení
             const fullName = `${firstName}-${lastName}`;
-            // Pokud tvůj makeSlug dělá podtržítka, tady je přepíšeme na pomlčky
             const slug = makeSlug(fullName).replace(/_/g, "-");
 
-            // Navigujeme na /user/ID/jmeno-prijmeni
-            navigate(`/user/${userId}/${slug}`);
+            navigate(`/user/${userId}/${slug}`, {
+                state: {
+                    ...location.state, // Zachová, zda jsi přišel z PRACOVNÍCI > OSVĚTLOVAČ
+                    userName: `${firstName} ${lastName}` // Předá jméno pro Path
+                }
+            });
         } else if (userId) {
-            // Fallback pro jistotu
-            navigate(buildRoute(ROUTES.USER_DETAIL, { id: userId }));
+            navigate(buildRoute(ROUTES.USER_DETAIL, { id: userId }), {
+                state: { ...location.state }
+            });
         }
+    };
+
+    const handleShowListings = () => {
+        navigate(buildRoute(ROUTES.USER_LISTINGS, { id: userId }), {
+            state: {
+                ...location.state,
+                userName: `${firstName} ${lastName}` // Aby breadcrumb věděl, čí nabídky to jsou
+            }
+        });
     };
 
     // Logika pro kliknutí na "Ozvat se" - pokud je to tech detail, otevře se popup pro kontaktování ohledně inzerátu
@@ -98,7 +111,7 @@ const UserBasicInfo = ({
                     </button>
 
                     {/* 5) Druhé tlačítko */}
-                    <button className="secondary_button extra_space" onClick={() => navigate(buildRoute(ROUTES.USER_LISTINGS, { id: userId }))}>
+                    <button className="secondary_button extra_space" onClick={handleShowListings}>
                         <p className="oauth_text strong">
                             {isTechDetail ? "Zobrazit všechny nabídky" : "Zobrazit nabídky techniky"}
                         </p>

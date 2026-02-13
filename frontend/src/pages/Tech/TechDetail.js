@@ -1,22 +1,22 @@
-import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
-import { useAlert } from "../../context/AlertContext";
-import { useScrollLock } from "../../hooks/useScrollLock";
 import { ASSETS } from "../../config/assets";
+import { useAlert } from "../../context/AlertContext";
+import { useAuth } from "../../context/AuthContext";
+import { useScrollLock } from "../../hooks/useScrollLock";
 
 import Path from "../../components/Path";
-import TechPhoto from "../../components/TechPhoto";
-import UserMoreInfo from "../../components/UserMoreInfo";
-import UserBasicInfo from "../../components/UserBasicInfo";
-import Review from "../../components/Reviews";
 import PopupReview from "../../components/PopupReview";
-import {useScrollToHash} from "../../hooks/useScrollToHash";
+import Review from "../../components/Reviews";
+import TechPhoto from "../../components/TechPhoto";
+import UserBasicInfo from "../../components/UserBasicInfo";
+import UserMoreInfo from "../../components/UserMoreInfo";
+import { useScrollToHash } from "../../hooks/useScrollToHash";
 
-import "./TechDetail.css"
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import "./TechDetail.css";
 
 const TechDetail = () => {
     const { id } = useParams();
@@ -151,7 +151,7 @@ const TechDetail = () => {
     useScrollToHash([reviews]); // Spustí se i po načtení recenzí, což je důležité pro scroll na recenzi z notifikace
 
     if (loading) return <div className="loader_container"><div className="loader"></div></div>;
-    if (!item) return <div className="no-results_tech-container"><h2 className="no-results_tech">Toto zařízení neexistuje nebo bylo smazáno.</h2></div>;
+    if (!item) return <div className="no-results_tech-container"><h2 className="no-results_tech">Toto zařízení neexistuje nebo bylo smazáno</h2></div>;
 
     return (
         <>
@@ -242,8 +242,8 @@ const TechDetail = () => {
                 />
             </div>
 
-            <div className="reviews_container">
-                <h2 className="strong" id="reviews_href">Recenze zařízení ({reviews.length})</h2>
+            <div className="reviews_container" id="reviews_href">
+                <h2 className="strong">Recenze zařízení ({reviews.length})</h2>
                 {canWriteReview && (
                     <button type="button" className="write-review" onClick={() => setIsReviewPopupOpen(true)}>
                         <FontAwesomeIcon icon={faPencil} className="options_icon" />
@@ -267,7 +267,7 @@ const TechDetail = () => {
                         ))
                     ) : (
                         <div className="no-results_listing-container-reviews">
-                            <h3 className="no-results_listing">Toto zařízení zatím nemá žádné recenze</h3>
+                            <h3 className="no-results_listing">Toto zařízení zatím nemá žádné recenze.</h3>
                         </div>
                     )}
                 </div>

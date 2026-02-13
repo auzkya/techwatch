@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Item;
 use App\Events\NotificationSent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\NewMessageMail;
 
 class NotificationController extends Controller
 {
@@ -42,8 +44,25 @@ class NotificationController extends Controller
             ]
         ]);
 
-        // Odeslání přes websocket
+        // 1. Okamžité odeslání přes websocket
         broadcast(new NotificationSent($notification))->toOthers();
+
+        // 2. Email s odkladem (např. 5 minut)
+        // Pokud si uživatel zprávu přečte dřív v Reactu,
+        // v Jobu můžeme zkontrolovat 'is_read' a email neposlat.
+        $recipient = User::find($request->recipient_id);
+
+        if ($recipient && $recipient->email) {
+            // Použijeme closure pro delayed job
+            dispatch(function () use ($notification, $recipient) {
+                $currentNotification = Notification::find($notification->id);
+
+                // Kontrola: Poslat jen pokud je stále nepřečtená
+                if ($currentNotification && !$currentNotification->is_read) {
+                    Mail::to($recipient->email)->send(new NewMessageMail($currentNotification));
+                }
+            });//->delay(now()->addMinutes(1));
+        }
 
         return response()->json(['success' => true]);
     }

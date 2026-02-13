@@ -76,7 +76,6 @@ const Tech = () => {
     const fetchItems = useCallback(async (pageNumber, isInitial = false) => {
         if (isFetching.current && !isInitial) return;
         isFetching.current = true;
-        setLoading(true);
 
         try {
             const response = await axiosInstance.get('/api/tech-listings', {
@@ -115,10 +114,14 @@ const Tech = () => {
     useEffect(() => {
         setPage(1);
         setHasMore(true);
+
+        // OKAMŽITÁ AKCE: Vymazat staré položky a zapnout loading
+        setItems([]);
+        setLoading(true);
+
         const timeoutId = setTimeout(() => fetchItems(1, true), 300);
         return () => clearTimeout(timeoutId);
     }, [fetchItems]);
-
     // Načtení další stránky
     useEffect(() => {
         if (page > 1) fetchItems(page, false);
@@ -156,6 +159,25 @@ const Tech = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen, isOpen2, isOpen3]);
+
+    // Event bus pro reset filtrů z komponenty Path
+    useEffect(() => {
+        const performReset = () => {
+            setSearchTerm("");
+            setSelectedLocation({ value: "", label: "Celá ČR" });
+            setSelectedPurpose({ value: "all", label: "Vše" });
+            setSelectedSorting({ value: "created_at", label: "Data přidání" });
+            setMinRating(false);
+            setFilters({
+                onAgreement: false,
+                quantity: 1,
+            });
+            setPage(1);
+        };
+
+        window.addEventListener("reset-filters", performReset);
+        return () => window.removeEventListener("reset-filters", performReset);
+    }, []);
 
     // STABILNÍ ONCLICK (Prevence překreslování Itemu)
     const handleTechClick = useCallback((id) => {
@@ -426,7 +448,7 @@ const Tech = () => {
                     {/* Prázdný stav - zobrazí se jen když není loading a seznam je prázdný */}
                     {!loading && items.length === 0 && (
                         <div className="no-results_listing-container">
-                            <h2 className="no-results_listing">Nebyla nalezena žádná technika</h2>
+                            <h2 className="no-results_listing">Nebyla nalezena žádná technika.</h2>
                         </div>
                     )}
                 </div>

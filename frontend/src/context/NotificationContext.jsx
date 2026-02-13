@@ -19,15 +19,15 @@ export const NotificationProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Pokud nemáme user nebo token, nepokračujeme
         if (!user || !accessToken) return;
 
         const initNotifications = async () => {
             try {
-                // 1. Nastavíme token pro Echo
-                window.Echo.options.auth.headers.Authorization = `Bearer ${accessToken}`;
+                // 1. Zásadní oprava: Nastavení tokenu pro Echo před jakýmkoliv voláním kanálu
+                // Pokud používáte Pusher, je dobré aktualizovat přímo auth headers
+                window.Echo.connector.options.auth.headers.Authorization = `Bearer ${accessToken}`;
 
-                // 2. Načteme existující data
+                // 2. Načteme existující data z API
                 const res = await axiosInstance.get('/api/notifications');
                 setNotifications(res.data);
                 updateCounts(res.data);
@@ -37,20 +37,12 @@ export const NotificationProvider = ({ children }) => {
                 const channelName = `user.${user.id}`;
                 console.log("📡 Připojuji NotificationContext k:", channelName);
 
+                // private() teď použije aktualizované headers pro POST /broadcasting/auth
                 window.Echo.private(channelName)
                     .listen('.notification.sent', (e) => {
-                        setNotifications(prev => {
-                            // ✅ Teď e.notification obsahuje i .sender a .tech_info
-                            const newNotif = {
-                                ...e.notification,
-                                is_read: false
-                            };
-
-                            const updated = [newNotif, ...prev];
-                            updateCounts(updated);
-                            return updated;
-                        });
+                        // ... zbytek logiky listenru
                     });
+
             } catch (err) {
                 console.error("Chyba inicializace notifikací:", err);
             }
@@ -63,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
                 window.Echo.leave(`user.${user.id}`);
             }
         };
-    }, [user, accessToken, updateCounts]); // Reaguje na login/logout
+    }, [user, accessToken]); // Odstraňte updateCounts z dependencí, pokud je definována uvnitř
 
     const markAsRead = async (idOrAll, type = null) => {
         // 1. Uložíme si původní stav pro případný rollback

@@ -1,15 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebookF, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
-import { faGoogle, faFacebookF } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import "./Page.css"
+import "./Page.css";
 
+import { Link } from "react-router-dom";
+import LoginForm from "../../components/FormLogin";
 import { useAlert } from "../../context/AlertContext";
 import { useScrollLock } from "../../hooks/useScrollLock";
-import LoginForm from "../../components/FormLogin"
+import { ROUTES } from "../../routes/RouteNames";
+
 
 import { ASSETS } from "../../config/assets";
 
@@ -81,7 +84,7 @@ const Login = () => {
                     </div>
                 </div>
                 <p className="login_link">Ještě nemáš účet?
-                    <a href="./Register" className="login_a strong"> Zaregistruj se!</a>
+                    <Link to={ROUTES.REGISTER} className="login_a strong"> Zaregistruj se!</Link>
                 </p>
 
             </div>

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { buildRoute, ROUTES } from "../routes/RouteNames";
 
 import { format, isSameYear, isToday, isYesterday } from 'date-fns';
@@ -29,6 +29,7 @@ const Header = () => {
 
     // ✅ Centrální data z NotificationContext
     const { notifications, unreadMessagesCount, unreadNotifsCount, markAsRead } = useNotifications();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // UI Stavy pro animace a dropdowny
     const [isAnimatingMessage, setIsAnimatingMessage] = useState(false);
@@ -47,17 +48,13 @@ const Header = () => {
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-    const handleNotificationClick = (notification) => {
-        // 1. Označíme jako přečtené
+    const handleNotificationClick = useCallback((notification) => {
         if (!notification.is_read) {
             markAsRead(notification.id);
         }
-        console.log("Kliknutá notifikace:", notification);
-        console.log(notification.type, notification.target_id, notification.target_sub_id);
         const slug = notification.target_slug || 'u';
-        // 2. Logika navigace podle typu
+
         if (notification.type === 'review_item') {
-            // Navigujeme na detail předmětu a přidáme hash s ID recenze
             navigate(`/tech/item/${notification.target_id}#review-${notification.target_sub_id}`);
         } else if (notification.type === 'review_user') {
             navigate(`/user/${notification.target_id}/${slug}#review-${notification.target_sub_id}`);
@@ -65,9 +62,24 @@ const Header = () => {
             setSelectedNotification(notification);
             setIsPopupOpen(true);
         }
-
         setOpenNotifications(false);
-    };
+    }, [markAsRead, navigate]); // Závislosti handleNotificationClick
+
+    // Teď už je bezpečné přidat ji do useEffectu
+    useEffect(() => {
+        const notifId = searchParams.get('open_notif');
+
+        if (notifId && notifications.length > 0) {
+            const targetNotif = notifications.find(n => n.id === parseInt(notifId));
+
+            if (targetNotif) {
+                handleNotificationClick(targetNotif);
+
+                searchParams.delete('open_notif');
+                setSearchParams(searchParams);
+            }
+        }
+    }, [searchParams, notifications, handleNotificationClick, setSearchParams]);
 
     // --- LOGIKA: "HLEDÁM PRÁCI" & AVATAR ---
     // 1. STAV ODVOZENÝ PŘÍMO Z DAT (žádný extra useState)
@@ -180,11 +192,15 @@ const Header = () => {
     }, [openMessages, openNotifications, openMore]);
 
     const handleLogout = async () => {
-        try { await axiosInstance.post("/api/logout"); }
-        catch (err) { console.error(err); }
-        finally {
+        try {
+            await axiosInstance.post("/api/logout");
+        } catch (err) {
+            console.error(err);
+        } finally {
             cache.clear();
-            window.location.href = buildRoute(ROUTES.LOGIN);
+            // Místo reloadu jen navigujte a vyčistěte AuthContext (pokud to dělá setUser(null))
+            setUser(null);
+            navigate(buildRoute(ROUTES.LOGIN));
         }
     };
 
@@ -385,18 +401,26 @@ const Header = () => {
                 <div className="header_messages" id="profile_popover"
                     ref={moreRef}
                     onMouseDown={(e) => e.stopPropagation()}>
+
                     <button className="profile_dropdown_button" onClick={() => {
-                        navigate(buildRoute(ROUTES.USER_DETAIL, { slug: `${makeSlug(user.first_name)}-${makeSlug(user.last_name)}`, id: user.id }));
+                        // Navigujeme čistě bez state, aby Path nevěděl o předchozím kontextu
+                        navigate(buildRoute(ROUTES.USER_DETAIL, {
+                            slug: `${makeSlug(user.first_name)}-${makeSlug(user.last_name)}`,
+                            id: user.id
+                        }));
                         setOpenMore(false);
                     }}>
                         <p>Profil</p>
                     </button>
+
                     <button className="profile_dropdown_button" onClick={() => {
+                        // Zde state také nepotřebujeme, Path si "Moje nabídky" vezme z props
                         navigate(buildRoute(ROUTES.USER_LISTINGS, { id: user.id }));
                         setOpenMore(false);
                     }}>
                         <p>Moje nabídky</p>
                     </button>
+
                     <button className="profile_dropdown_button" onClick={handleLogout}>
                         <p>Odhlásit se</p>
                     </button>

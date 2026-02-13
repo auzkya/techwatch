@@ -1,24 +1,20 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
-import { useAuth } from "../../context/AuthContext";
-import Header from "../../components/Header";
-import Path from "../../components/Path";
-import Item from "../../components/Item";
-import ButtonSubcategory from "../../components/ButtonSubcategory";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass, faVideo, faLightbulb, faWrench, faMasksTheater } from '@fortawesome/free-solid-svg-icons';
-import { categoryMap } from "../../config/CategoryMap";
 import "../../components/GeneralForm.css";
+import Item from "../../components/Item";
 import ItemSkeleton from "../../components/ItemSkeleton";
-import { useAlert } from "../../context/AlertContext";
+import Path from "../../components/Path";
 import { ASSETS } from "../../config/assets";
+import { useAlert } from "../../context/AlertContext";
+import { useAuth } from "../../context/AuthContext";
 
 const UserListings = () => {
     const { id } = useParams();
     const { user } = useAuth();
     const navigate = useNavigate();
     const { showAlert } = useAlert();
+    const location = useLocation();
 
     const [items, setItems] = useState([]);
     const [ownerName, setOwnerName] = useState("");
@@ -139,9 +135,10 @@ const UserListings = () => {
     return (
         <>
             <Path
-                mode={isOwner ? null : "tech"}
-                category={isOwner ? null : activeSubcategory}
-                customLabel={isOwner ? "Moje nabídky" : ownerName}
+                mode={isOwner ? "direct" : (location.state?.fromMode || "tech")}
+                category={isOwner ? null : (location.state?.fromCategory || activeSubcategory)}
+                userName={isOwner ? null : ownerName} // Předáme jméno majitele
+                customLabel={isOwner ? "Moje nabídky" : "TECHNIKA"} // Poslední článek cesty
             />
 
             <h1 className="list_title">
@@ -215,7 +212,16 @@ const UserListings = () => {
                                         navigator.clipboard.writeText(`${window.location.origin}/tech/item/${id}`);
                                         showAlert("success", "Odkaz zkopírován do schránky!");
                                     }}
-                                    onClick={() => navigate(`/tech/item/${item.id}`)}
+                                    onClick={() => navigate(`/tech/item/${item.id}`, {
+                                        state: {
+                                            fromMode: "workers",       // Chceme zůstat v sekci pracovníci
+                                            fromCategory: activeSubcategory, // Např. "light"
+                                            userName: ownerName,       // "Adam Auzký"
+                                            userId: id,                // ID uživatele pro případ, že URL neobsahuje user/:id
+                                            // location.state už může obsahovat fromCategory z předchozí úrovně
+                                            ...location.state
+                                        }
+                                    })}
                                 />
                             </div>
                         ))

@@ -6,13 +6,26 @@ use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Models\Notification;
 
 Route::get('/verify/{token}', [AuthController::class, 'verify']);
 
-// ⚠️ NOVÁ ROUTE pro prodloužení active_worker (HLEDÁM PRÁCI)
+// NOVÁ ROUTE pro prodloužení active_worker (HLEDÁM PRÁCI)
 Route::get('/extend-active-worker', [ProfileController::class, 'extendActiveWorker'])
     ->name('extend-active-worker')
-    ->middleware('signed'); // ⚠️ DŮLEŽITÉ: pouze signed URLs
+    ->middleware('signed'); // DŮLEŽITÉ: pouze signed URLs
+
+// NOVÁ ROUTE PRO OTEVŘENÍ NOTIFIKACE (označí jako přečtenou a přesměruje na frontend)
+Route::get('/open-notification/{notification}', function (Notification $notification) {
+    // 1. Označíme jako přečtené
+    $notification->update(['is_read' => true]);
+
+    // 2. Přesměrujeme na FRONTEND (port 3000)
+    // env('FRONTEND_URL') vytáhne tu správnou adresu z tvého souboru
+    $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+
+    return Redirect::to($frontendUrl . '/?open_notif=' . $notification->id);
+})->name('notification.email.open');
 
 // ------------------------------------
 // OAuth Routes
@@ -114,7 +127,8 @@ Route::get('/auth/{provider}/redirect', function ($provider) {
 // OAuth callback
 Route::get('/auth/{provider}/callback', function ($provider) {
     $validProviders = ['google', 'facebook'];
-    if (!in_array($provider, $validProviders)) abort(404);
+    if (!in_array($provider, $validProviders))
+        abort(404);
 
     try {
         $socialUser = Socialite::driver($provider)->stateless()->user();

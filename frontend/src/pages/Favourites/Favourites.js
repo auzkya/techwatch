@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"; // Přidáno useParams
 import axiosInstance from "../../api/axiosInstance";
 import { ROUTES, buildRoute } from "../../routes/RouteNames";
 
-import Header from "../../components/Header";
-import Path from "../../components/Path";
-import Item from "../../components/Item";
 import ButtonSubcategory from "../../components/ButtonSubcategory";
+import Item from "../../components/Item";
 import ItemSkeleton from "../../components/ItemSkeleton";
-import makeSlug from "../../utils/makeSlug";
+import Path from "../../components/Path";
 import { ASSETS } from "../../config/assets";
+import makeSlug from "../../utils/makeSlug";
 
+import { faGears, faMagnifyingGlass, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass, faPeopleGroup, faGears } from '@fortawesome/free-solid-svg-icons';
 
 import "../Workers/Listing.css";
 

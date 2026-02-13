@@ -188,7 +188,7 @@ const UserDetail = () => {
     }, [location]);
 
     if (initialLoading) return <div className="loader_container"><div className="loader"></div></div>;
-    if (!profileData) return <div>Uživatel nenalezen</div>;
+    if (!profileData) return <div className="no-results_tech-container"><h2 className="no-results_tech">Uživatel nenalezen</h2></div>;
 
     // ✅ Dynamicky počítej isActive
     const isActive = profileData.active_worker_till
@@ -206,9 +206,9 @@ const UserDetail = () => {
             <Path
                 // Pokud fromMode existuje (přišli jsme z menu), použijeme ho.
                 // Pokud ne (přímý vstup), dáme "direct", což v Path.js skryje prostřední členy.
-                mode={fromMode || "direct"}
+                mode={fromMode}
                 category={fromCategory}
-                customLabel={`${profileData.first_name} ${profileData.last_name}`}
+                userName={`${profileData.first_name} ${profileData.last_name}`}
             />
             <PopupReview
                 isOpen={isReviewPopupOpen}
@@ -274,8 +274,8 @@ const UserDetail = () => {
                 />
             </div>
 
-            <div className="reviews_container">
-                <h2 className="strong" id="reviews_href">Pracovní recenze <span>({reviews.length})</span></h2>
+            <div className="reviews_container" id="reviews_href">
+                <h2 className="strong">Pracovní recenze <span>({reviews.length})</span></h2>
                 {canWriteReview && (
                     <button
                         type="button"
@@ -305,7 +305,7 @@ const UserDetail = () => {
                         ))
                     ) : (
                         <div className="no-results_listing-container-reviews">
-                            <h3 className="no-results_listing">Tento uživatel zatím nemá žádné recenze</h3>
+                            <h3 className="no-results_listing">Tento uživatel zatím nemá žádné recenze.</h3>
                         </div>
                     )}
                 </div>
