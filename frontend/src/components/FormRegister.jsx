@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import InputLogin from "./InputLogin";
 
 import axiosInstance from "../api/axiosInstance.js";
 
+import { faCircleXmark, faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 
 import { useAlert } from "../context/AlertContext";
 
@@ -138,6 +137,7 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
                     <InputLogin
                         type="text"
                         name="fname"
+                        value={fname}
                         onChange={(e) => setFname(e.target.value)}
                         placeholder="Jméno"
                         required
@@ -146,6 +146,7 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
                     <InputLogin
                         type="text"
                         name="lname"
+                        value={lname}
                         onChange={(e) => setLname(e.target.value)}
                         placeholder="Příjmení"
                         required
