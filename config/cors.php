@@ -11,6 +11,7 @@ return [
         'http://localhost:3000',
         'http://127.0.0.1:4040',
         'https://cathern-puppyish-apparently.ngrok-free.dev', // ngrok tunel
+        'https://www.techwatch.app', // produkce
     ],
 
     'allowed_origins_patterns' => [],

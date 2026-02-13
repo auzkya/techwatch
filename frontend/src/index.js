@@ -13,7 +13,7 @@ import axios from 'axios';
 import { AlertProvider } from "./context/AlertContext";
 import { LoadingProvider } from "./context/LoadingContext.jsx";
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = "http://localhost:8000";
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const container = document.getElementById("root"); // id musí sedět s index.html
 const root = ReactDOM.createRoot(container);

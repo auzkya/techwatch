@@ -1,17 +1,14 @@
-import React from "react";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES, buildRoute } from "../../routes/RouteNames";
 
-import Header from "../../components/Header"
-import ButtonHomePage from "../../components/ButtonHomePage"
+import ButtonHomePage from "../../components/ButtonHomePage";
 import { useAuth } from "../../context/AuthContext";
 import { useScrollLock } from "../../hooks/useScrollLock";
 
-import "./Home.css"
+import "./Home.css";
 
+import { faGears, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPeopleGroup, faGears } from '@fortawesome/free-solid-svg-icons';
 
 import { ASSETS } from "../../config/assets";
 
@@ -44,6 +41,7 @@ const Home = () => {
                 </div>
 
             </div>
+            <p className="website_info">Aplikace je aktuálně ve fázi vývoje. Pokud byste chtěli nahlásit chybu nebo navrhnout novou funkci, kontaktujte nás na <a href="mailto:a.auzky@gmail.com">a.auzky@gmail.com</a>.</p>
         </>
     )
 }

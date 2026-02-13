@@ -4,15 +4,17 @@ import Pusher from 'pusher-js';
 window.Pusher = Pusher;
 console.log('🚀 Inicializace Echo konfigurace...');
 
+const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: process.env.REACT_APP_REVERB_APP_KEY,
     wsHost: process.env.REACT_APP_REVERB_HOST,
-    wsPort: 8080,
-    wssPort: 8080,
-    forceTLS: false,
-    enabledTransports: ['ws'],
-    authEndpoint: 'http://127.0.0.1:8000/api/broadcasting/auth',
+    wsPort: process.env.REACT_APP_REVERB_PORT || 8080,
+    wssPort: process.env.REACT_APP_REVERB_PORT || 443, // Na produkci běží WS přes SSL (443)
+    forceTLS: process.env.REACT_APP_REVERB_SCHEME === 'https',
+    enabledTransports: ['ws', 'wss'],
+    authEndpoint: `${apiUrl}/api/broadcasting/auth`,
     auth: {
         headers: {
             Accept: 'application/json',

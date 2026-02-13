@@ -63,6 +63,8 @@ const Login = () => {
         }
     }, [location.search, location.pathname, navigate, showAlert, location.state]);
 
+    const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+
     return (
         <>
             <div className="login_page">
@@ -74,10 +76,10 @@ const Login = () => {
                         <LoginForm setLoading={setLoading} setErrorTop={setErrorTop}></LoginForm>
                         <div className="oauth_divider"><span className="body_base">nebo</span></div>
                         <div className="oauth_container">
-                            <button className="oauth_button" onClick={() => window.location.href = "http://127.0.0.1:8000/auth/google/redirect"}>
+                            <button className="oauth_button" onClick={() => window.location.href = `${apiUrl}/auth/google/redirect`}>
                                 <FontAwesomeIcon icon={faGoogle} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Google</p>
                             </button>
-                            <button className="oauth_button" onClick={() => window.location.href = "http://127.0.0.1:8000/auth/facebook/redirect"}>
+                            <button className="oauth_button" onClick={() => window.location.href = `${apiUrl}/auth/facebook/redirect`}>
                                 <FontAwesomeIcon icon={faFacebookF} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Facebook</p>
                             </button>
                         </div>
