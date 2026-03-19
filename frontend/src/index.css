@@ -1,12 +1,12 @@
 :root {
-    --background: #0F0F0F;
+    --background: #0f0f0f;
     --background2: #272727;
     --background3: #1d1d1d;
-    --text: #F1F1F1;
-    --text2: #C3C3C3;
-    --text3: #B3B3B3;
-    --primary: #B20300;
-    --primary2: #FF0000;
+    --text: #f1f1f1;
+    --text2: #c3c3c3;
+    --text3: #b3b3b3;
+    --primary: #b20300;
+    --primary2: #ff0000;
     --secondary: #689700;
 }
 
@@ -80,21 +80,21 @@ button:hover {
     /*transform: scale(0.98);*/
 }
 
-.smaller_opacity{
+.smaller_opacity {
     transition: 0.15s ease-in-out;
     opacity: 1;
 }
 
-.smaller_opacity:hover{
+.smaller_opacity:hover {
     opacity: 0.8;
 }
 
-.smaller_scale{
+.smaller_scale {
     transition: 0.15s ease-in-out;
     transform: scale(1);
 }
 
-.smaller_scale:hover{
+.smaller_scale:hover {
     transform: scale(0.99);
 }
 
@@ -211,9 +211,14 @@ input:active {
     aspect-ratio: 1;
     border-radius: 50%;
     background:
-        radial-gradient(farthest-side, var(--primary) 94%, #0000) top/4px 4px no-repeat,
+        radial-gradient(farthest-side, var(--primary) 94%, #0000) top/4px 4px
+            no-repeat,
         conic-gradient(#0000 30%, var(--primary));
-    -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 4px), #000 0);
+    -webkit-mask: radial-gradient(
+        farthest-side,
+        #0000 calc(100% - 4px),
+        #000 0
+    );
     animation: l13 1s infinite linear;
 }
 
@@ -328,7 +333,7 @@ input:active {
     margin: 0 0 0px 0;
 }
 
-.popup_header_sub{
+.popup_header_sub {
     text-align: center;
     padding-top: 4px;
     padding-bottom: 8px;
@@ -554,7 +559,7 @@ input:active {
 }
 
 /*Legal page*/
-.legal-container{
+.legal-container {
     padding: 40px;
     max-width: 900px;
     margin: 0 auto;
@@ -585,10 +590,10 @@ input:active {
     /*border: 1px solid #333;*/
     border: none;
     font-weight: 500;
-    
+
     /* Pozicování */
     position: absolute;
-    bottom: 120%; 
+    bottom: 120%;
     left: 50%;
     transform: translateX(-50%) translateY(10px);
     transition: all 0.2s ease-in-out;
@@ -632,10 +637,10 @@ input:active {
 .custom-select-wrapper {
     position: relative;
     width: 100%;
-
 }
 
-.custom-select-down, .custom-select-up {
+.custom-select-down,
+.custom-select-up {
     margin: 10px 0;
     display: flex;
     justify-content: space-between;
@@ -738,7 +743,7 @@ input:active {
 }
 
 /* deleted/non active item/user*/
-.non_active-warning-bar{
+.non_active-warning-bar {
     background-color: var(--background2);
     color: var(--text);
     margin: 18px auto 24px;
@@ -746,7 +751,7 @@ input:active {
     text-align: center;
     width: 100%;
 }
-.deleted-warning-bar{
+.deleted-warning-bar {
     background-color: var(--primary);
     color: var(--text);
     margin: 18px auto 24px;

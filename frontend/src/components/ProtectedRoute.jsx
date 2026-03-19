@@ -13,10 +13,21 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     }
 
     if (!user) {
-        return <Navigate to={buildRoute(ROUTES.LOGIN)} state={{ from: location }} replace />;
+        return (
+            <Navigate
+                to={buildRoute(ROUTES.LOGIN)}
+                state={{ from: location }}
+                replace
+            />
+        );
     }
 
-    if (adminOnly && (user.role !== 'admin_viewer' && user.role !== 'admin_moderator' && user.role !== 'super_admin')) {
+    if (
+        adminOnly &&
+        user.role !== "admin_viewer" &&
+        user.role !== "admin_moderator" &&
+        user.role !== "super_admin"
+    ) {
         return <Navigate to={ROUTES.FORBIDDEN} />;
     }
 

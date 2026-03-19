@@ -1,6 +1,17 @@
-import { faFlag, faHeart, faPenToSquare, faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
-import { faChevronLeft, faChevronRight, faHeart as faHeartSolid, faListCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faFlag,
+    faHeart,
+    faPenToSquare,
+    faShareFromSquare,
+} from "@fortawesome/free-regular-svg-icons";
+import {
+    faChevronLeft,
+    faChevronRight,
+    faHeart as faHeartSolid,
+    faListCheck,
+    faSpinner,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import imageCompression from "browser-image-compression";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
@@ -53,7 +64,9 @@ const UserMoreInfo = ({
         }
 
         // Liší se obsah nebo pořadí?
-        const isDifferent = images.some((img, index) => img !== riderImagesFromDb[index]);
+        const isDifferent = images.some(
+            (img, index) => img !== riderImagesFromDb[index],
+        );
 
         setHasChanges(isDifferent);
     }, [images, riderImagesFromDb]);
@@ -72,10 +85,13 @@ const UserMoreInfo = ({
         }, [url, isPdf]);
 
         return (
-            <div className={`img_wrapper ${!loaded ? 'skeleton_pulse' : ''}`} onClick={onClick} style={{ cursor: 'pointer' }} >
+            <div
+                className={`img_wrapper ${!loaded ? "skeleton_pulse" : ""}`}
+                onClick={onClick}
+                style={{ cursor: "pointer" }}
+            >
                 {isPdf ? (
                     <div className="pdf_preview_container">
-
                         {/* Skrytý embed jen pro "přednačtení", pokud je to nutné */}
                         <embed
                             src={url}
@@ -87,7 +103,7 @@ const UserMoreInfo = ({
                 ) : (
                     <img
                         src={url}
-                        className={`img_item ${loaded ? 'visible' : 'hidden-abs'}`}
+                        className={`img_item ${loaded ? "visible" : "hidden-abs"}`}
                         alt="rider"
                         onLoad={() => setLoaded(true)}
                     />
@@ -125,7 +141,9 @@ const UserMoreInfo = ({
                     ctx.imageSmoothingQuality = "high";
                     ctx.drawImage(img, 0, 0, newWidth, newHeight);
                     canvas.toBlob((blob) => {
-                        resolve(new File([blob], file.name, { type: file.type }));
+                        resolve(
+                            new File([blob], file.name, { type: file.type }),
+                        );
                     }, file.type);
                 };
             };
@@ -140,7 +158,7 @@ const UserMoreInfo = ({
         setIsFav(!previous); // Optimistický update
 
         try {
-            await toggleFavourite('user', userId);
+            await toggleFavourite("user", userId);
         } catch (err) {
             setIsFav(previous); // Rollback při chybě
             showAlert("error", "Nepodařilo se uložit do oblíbených.");
@@ -166,8 +184,12 @@ const UserMoreInfo = ({
     const pdfRef = useRef(null);
     // Pomocná funkce pro detekci PDF
     const isPdfFile = (url) => {
-        if (typeof url !== 'string') return false;
-        return url.toLowerCase().endsWith('.pdf') || url.includes('blob:') || url.includes('application/pdf');
+        if (typeof url !== "string") return false;
+        return (
+            url.toLowerCase().endsWith(".pdf") ||
+            url.includes("blob:") ||
+            url.includes("application/pdf")
+        );
     };
 
     const openGallery = (index) => setCurrentIndex(index);
@@ -185,19 +207,25 @@ const UserMoreInfo = ({
     }, [currentIndex, images]);
 
     // Obsluha klávesnice
-    const nextImg = useCallback((e) => {
-        if (e) e.stopPropagation(); // Přidáme kontrolu, e může být null z klávesnice
-        if (currentIndex < images.length - 1) {
-            setCurrentIndex(prev => prev + 1);
-        }
-    }, [currentIndex, images.length]); // Funkce se změní jen když se změní index nebo počet fotek
+    const nextImg = useCallback(
+        (e) => {
+            if (e) e.stopPropagation(); // Přidáme kontrolu, e může být null z klávesnice
+            if (currentIndex < images.length - 1) {
+                setCurrentIndex((prev) => prev + 1);
+            }
+        },
+        [currentIndex, images.length],
+    ); // Funkce se změní jen když se změní index nebo počet fotek
 
-    const prevImg = useCallback((e) => {
-        if (e) e.stopPropagation();
-        if (currentIndex > 0) {
-            setCurrentIndex(prev => prev - 1);
-        }
-    }, [currentIndex]);
+    const prevImg = useCallback(
+        (e) => {
+            if (e) e.stopPropagation();
+            if (currentIndex > 0) {
+                setCurrentIndex((prev) => prev - 1);
+            }
+        },
+        [currentIndex],
+    );
 
     // 2. useEffect teď bude stabilní
     useEffect(() => {
@@ -223,28 +251,30 @@ const UserMoreInfo = ({
     }, []);
 
     // Formátování data registrace (pokud ho posíláš z Laravelu)
-    const formattedDate = createdAt ? new Date(createdAt).toLocaleDateString('cs-CZ', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    }) : "---";
+    const formattedDate = createdAt
+        ? new Date(createdAt).toLocaleDateString("cs-CZ", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+          })
+        : "---";
 
     const locationMap = {
-        "praha": "Praha",
-        "brno": "Brno",
-        "ostrava": "Ostrava",
-        "stredocesky": "Středočeský kraj",
-        "jihocesky": "Jihočeský kraj",
-        "plzensky": "Plzeňský kraj",
-        "karlovarsky": "Karlovarský kraj",
-        "ustecky": "Ústecký kraj",
-        "liberecky": "Liberecký kraj",
-        "kralovehradecky": "Královéhradecký kraj",
-        "vysocina": "Vysočina",
-        "jihomoravsky": "Jihomoravský kraj",
-        "olomoucky": "Olomoucký kraj",
-        "zlinsky": "Zlínský kraj",
-        "moravskoslezsky": "Moravskoslezský kraj"
+        praha: "Praha",
+        brno: "Brno",
+        ostrava: "Ostrava",
+        stredocesky: "Středočeský kraj",
+        jihocesky: "Jihočeský kraj",
+        plzensky: "Plzeňský kraj",
+        karlovarsky: "Karlovarský kraj",
+        ustecky: "Ústecký kraj",
+        liberecky: "Liberecký kraj",
+        kralovehradecky: "Královéhradecký kraj",
+        vysocina: "Vysočina",
+        jihomoravsky: "Jihomoravský kraj",
+        olomoucky: "Olomoucký kraj",
+        zlinsky: "Zlínský kraj",
+        moravskoslezsky: "Moravskoslezský kraj",
     };
 
     const copyToClipboard = () => {
@@ -259,7 +289,7 @@ const UserMoreInfo = ({
         setIsProcessingFiles(true);
         const formData = new FormData();
         try {
-            formData.append('update_action', 'clear_or_update');
+            formData.append("update_action", "clear_or_update");
 
             if (images.length > 0) {
                 for (const img of images) {
@@ -267,31 +297,34 @@ const UserMoreInfo = ({
                         // Kontrola typu souboru
                         if (img.type === "application/pdf") {
                             // PDF neupravujeme, jen přidáme
-                            formData.append('images[]', img);
+                            formData.append("images[]", img);
                         } else {
                             // OBRÁZEK - Šetrnější zpracování
                             // Pokud je obrázek už velký, netřeba ho upscaleovat (vypnuto pro čitelnost)
                             // const upscaled = await upscaleImage(img); // Můžeš zvážit zakomentování, pokud to text rozmazává
 
                             const options = {
-                                maxSizeMB: 4,           // Zvýšeno z 1MB na 4MB pro zachování detailů textu
+                                maxSizeMB: 4, // Zvýšeno z 1MB na 4MB pro zachování detailů textu
                                 maxWidthOrHeight: 2560, // Zvýšeno z 1920 pro 2K/4K čitelnost
                                 useWebWorker: true,
-                                initialQuality: 0.9     // Vysoká počáteční kvalita
+                                initialQuality: 0.9, // Vysoká počáteční kvalita
                             };
-                            const compressedFile = await imageCompression(img, options);
-                            formData.append('images[]', compressedFile);
+                            const compressedFile = await imageCompression(
+                                img,
+                                options,
+                            );
+                            formData.append("images[]", compressedFile);
                         }
-                    } else if (typeof img === 'string') {
-                        formData.append('existing_images[]', img);
+                    } else if (typeof img === "string") {
+                        formData.append("existing_images[]", img);
                     }
                 }
             } else {
-                formData.append('clear_all', '1');
+                formData.append("clear_all", "1");
             }
 
             await axiosInstance.post("/api/user/update-rider", formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: { "Content-Type": "multipart/form-data" },
             });
 
             if (onRefresh) await onRefresh();
@@ -312,10 +345,13 @@ const UserMoreInfo = ({
         const created = new Date(createdAt);
         const updated = updatedAt ? new Date(updatedAt) : null;
         // Považujeme za upravené, pokud je rozdíl více než 1 minuta (pro jistotu)
-        const isUpdated = isTech && updated && (updated.getTime() - created.getTime() > 60000);
+        const isUpdated =
+            isTech && updated && updated.getTime() - created.getTime() > 60000;
         const dateToFormat = isUpdated ? updated : created;
-        const date = dateToFormat.toLocaleDateString('cs-CZ', {
-            day: 'numeric', month: 'long', year: 'numeric'
+        const date = dateToFormat.toLocaleDateString("cs-CZ", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
         });
         if (isTech) {
             return isUpdated ? `Upraveno ${date}` : `Vloženo ${date}`;
@@ -331,18 +367,26 @@ const UserMoreInfo = ({
             return <h3 className="price_location_header">{locName}</h3>;
         }
         // Pokud to JE technika, vrať kompletní info (Rentál za... v...)
-        const typeText = purpose === 'sell' ? 'Prodej' : 'Rentál';
+        const typeText = purpose === "sell" ? "Prodej" : "Rentál";
         let priceValue;
         if (price) {
-            priceValue = purpose === 'rental' ? `${price} Kč / den` : `${price} Kč`;
+            priceValue =
+                purpose === "rental" ? `${price} Kč / den` : `${price} Kč`;
         } else {
-            priceValue = 'dohodou';
+            priceValue = "dohodou";
         }
 
         return (
             <h3 className="price_location_header">
                 {typeText}
-                {(price ? <span className="price_location_header_light_weight"> za </span> : <span>  </span>)}
+                {price ? (
+                    <span className="price_location_header_light_weight">
+                        {" "}
+                        za{" "}
+                    </span>
+                ) : (
+                    <span> </span>
+                )}
                 {priceValue}
                 <span className="price_location_header_light_weight"> v </span>
                 {locName}
@@ -366,10 +410,13 @@ const UserMoreInfo = ({
                 type={isTech ? "items" : "users"}
             />
             <div className="stars_container">
-                <div className="stars"><Stars rating={review_value} /></div>
+                <div className="stars">
+                    <Stars rating={review_value} />
+                </div>
                 {reviewsCount > 0 ? (
                     <a href="#reviews_href" className="review_count">
-                        {review_value} ({reviewsCount} {getReviewLabel(reviewsCount)})
+                        {review_value} ({reviewsCount}{" "}
+                        {getReviewLabel(reviewsCount)})
                     </a>
                 ) : (
                     <a href="#reviews_href" className="review_count">
@@ -379,33 +426,42 @@ const UserMoreInfo = ({
             </div>
 
             {/* Dynamické Jméno */}
-            <h1 className="name">{firstName} {lastName}</h1>
+            <h1 className="name">
+                {firstName} {lastName}
+            </h1>
             <p className="since">{getDisplayDate()}</p>
 
             {/* Dynamické specializace (specs) z DB */}
             {!isTech && specs && specs.length > 0 && (
                 <div className="category-container">
-                    {specs.map(spec => (
-                        <div key={spec.id} className="checkbox"><span>{spec.name}</span></div>
+                    {specs.map((spec) => (
+                        <div key={spec.id} className="checkbox">
+                            <span>{spec.name}</span>
+                        </div>
                     ))}
                 </div>
             )}
 
             {/* Popis (Bio) */}
             <p className="description body_base">
-                {bio || (isTech ? "Tento inzerát nemá žádný popis." : "Uživatel o sobě nic nenapsal.")}
+                {bio ||
+                    (isTech
+                        ? "Tento inzerát nemá žádný popis."
+                        : "Uživatel o sobě nic nenapsal.")}
             </p>
 
             {/* Lokalita */}
             <pre>{renderPriceLocation()}</pre>
 
             {/* SEZNAM TECHNIKY / RIDER */}
-            {!isTech && (isLoggedUser || images.length > 0 ) && (
-                <label className="body_base options_span_tech_label">Seznam techniky</label>
+            {!isTech && (isLoggedUser || images.length > 0) && (
+                <label className="body_base options_span_tech_label">
+                    Seznam techniky
+                </label>
             )}
             {isLoggedUser && hasChanges && (
                 <div
-                    className={`options_span_tech ${isProcessingFiles ? 'is_busy' : 'clickable'}`}
+                    className={`options_span_tech ${isProcessingFiles ? "is_busy" : "clickable"}`}
                     // Pokud se zpracovává nebo odesílá, onClick není definován
                     onClick={!isProcessingFiles ? handleUpdateRider : undefined}
                 >
@@ -415,21 +471,25 @@ const UserMoreInfo = ({
                         className="options_icon"
                     />
                     <p className="options_text">
-                        {isProcessingFiles ? "Ukládám..." : "Uložit změny v seznamu"}
+                        {isProcessingFiles
+                            ? "Ukládám..."
+                            : "Uložit změny v seznamu"}
                     </p>
                 </div>
             )}
 
             <div>
                 {isLoggedUser ? (
-                    <FormImgManager images={images}
+                    <FormImgManager
+                        images={images}
                         setImages={setImages}
                         setIsProcessingFiles={setIsProcessingFiles}
                         isLoggedUser={true}
                         allowPdf={true}
                         onModalOpen={() => setIsManagerOpen(true)}
                         onModalClose={() => setIsManagerOpen(false)}
-                        className="user_more_info_images" />
+                        className="user_more_info_images"
+                    />
                 ) : (
                     <div className="user_more_info_images">
                         {images.map((url, i) => (
@@ -446,19 +506,33 @@ const UserMoreInfo = ({
 
             {/* FULLSCREEN GALERIE S PODPOROU PDF */}
             {currentIndex !== null && (
-                <div className="loader_container gallery_overlay" onClick={closeGallery}>
+                <div
+                    className="loader_container gallery_overlay"
+                    onClick={closeGallery}
+                >
                     {images.length > 1 && (
                         <>
-                            <button className={`gallery_nav prev ${currentIndex === 0 ? "disabled" : ""}`} onClick={prevImg} disabled={currentIndex === 0}>
+                            <button
+                                className={`gallery_nav prev ${currentIndex === 0 ? "disabled" : ""}`}
+                                onClick={prevImg}
+                                disabled={currentIndex === 0}
+                            >
                                 <FontAwesomeIcon icon={faChevronLeft} />
                             </button>
-                            <button className={`gallery_nav next ${currentIndex === images.length - 1 ? "disabled" : ""}`} onClick={nextImg} disabled={currentIndex === images.length - 1}>
+                            <button
+                                className={`gallery_nav next ${currentIndex === images.length - 1 ? "disabled" : ""}`}
+                                onClick={nextImg}
+                                disabled={currentIndex === images.length - 1}
+                            >
                                 <FontAwesomeIcon icon={faChevronRight} />
                             </button>
                         </>
                     )}
 
-                    <div className="gallery_content_wrapper" onClick={(e) => e.stopPropagation()}>
+                    <div
+                        className="gallery_content_wrapper"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         {isPdfFile(images[currentIndex]) ? (
                             <div className="pdf_viewer_container">
                                 <object
@@ -469,14 +543,33 @@ const UserMoreInfo = ({
                                     tabIndex="0" // Umožní focus
                                 >
                                     <div className="pdf_fallback">
-                                        <p>PDF nelze zobrazit přímo v prohlížeči.</p>
-                                        <a href={images[currentIndex]} target="_blank" rel="noreferrer" className="btn_download">Otevřít PDF</a>
+                                        <p>
+                                            PDF nelze zobrazit přímo v
+                                            prohlížeči.
+                                        </p>
+                                        <a
+                                            href={images[currentIndex]}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="btn_download"
+                                        >
+                                            Otevřít PDF
+                                        </a>
                                     </div>
                                 </object>
                             </div>
                         ) : (
-                            <QuickPinchZoom onUpdate={onUpdate} key={currentIndex} maxZoom={5}>
-                                <img ref={imgRef} src={images[currentIndex]} alt="fullscreen" className="form_img_full" />
+                            <QuickPinchZoom
+                                onUpdate={onUpdate}
+                                key={currentIndex}
+                                maxZoom={5}
+                            >
+                                <img
+                                    ref={imgRef}
+                                    src={images[currentIndex]}
+                                    alt="fullscreen"
+                                    className="form_img_full"
+                                />
                             </QuickPinchZoom>
                         )}
                     </div>
@@ -490,32 +583,71 @@ const UserMoreInfo = ({
                     {isLoggedUser ? (
                         /* SEKCE PRO VLASTNÍKA */
                         <>
-                            <span className="options_span clickable" onClick={() => console.log("Edit")}>
+                            <span
+                                className="options_span clickable"
+                                onClick={() => console.log("Edit")}
+                            >
                                 <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>
                                     <>
-                                        <FontAwesomeIcon icon={faPenToSquare} className="options_icon" />
-                                        <p className="options_text">Upravit profil</p>
+                                        <FontAwesomeIcon
+                                            icon={faPenToSquare}
+                                            className="options_icon"
+                                        />
+                                        <p className="options_text">
+                                            Upravit profil
+                                        </p>
                                     </>
                                 </Link>
-                            </span><br></br>
-                            <span className="options_span clickable" onClick={() => copyToClipboard()}>
-                                <FontAwesomeIcon icon={faShareFromSquare} className="options_icon" />
+                            </span>
+                            <br></br>
+                            <span
+                                className="options_span clickable"
+                                onClick={() => copyToClipboard()}
+                            >
+                                <FontAwesomeIcon
+                                    icon={faShareFromSquare}
+                                    className="options_icon"
+                                />
                                 <p className="options_text">Sdílet</p>
                             </span>
                         </>
                     ) : (
                         /* SEKCE PRO OSTATNÍ */
                         <>
-                            <span className="options_span clickable" onClick={handleToggleFav}>
-                                <FontAwesomeIcon icon={isFav ? faHeartSolid : faHeart} className={`options_icon ${isFav ? 'fav-active' : ''}`} />
-                                <p className="options_text">{isFav ? "Pracovník je uložený" : "Uložit pracovníka"}</p>
-                            </span><br></br>
-                            <span className="options_span clickable" onClick={() => copyToClipboard()}>
-                                <FontAwesomeIcon icon={faShareFromSquare} className="options_icon" />
+                            <span
+                                className="options_span clickable"
+                                onClick={handleToggleFav}
+                            >
+                                <FontAwesomeIcon
+                                    icon={isFav ? faHeartSolid : faHeart}
+                                    className={`options_icon ${isFav ? "fav-active" : ""}`}
+                                />
+                                <p className="options_text">
+                                    {isFav
+                                        ? "Pracovník je uložený"
+                                        : "Uložit pracovníka"}
+                                </p>
+                            </span>
+                            <br></br>
+                            <span
+                                className="options_span clickable"
+                                onClick={() => copyToClipboard()}
+                            >
+                                <FontAwesomeIcon
+                                    icon={faShareFromSquare}
+                                    className="options_icon"
+                                />
                                 <p className="options_text">Sdílet</p>
-                            </span><br></br>
-                            <span className="options_span clickable danger" onClick={() => setIsReportPopupOpen(true)}>
-                                <FontAwesomeIcon icon={faFlag} className="options_icon" />
+                            </span>
+                            <br></br>
+                            <span
+                                className="options_span clickable danger"
+                                onClick={() => setIsReportPopupOpen(true)}
+                            >
+                                <FontAwesomeIcon
+                                    icon={faFlag}
+                                    className="options_icon"
+                                />
                                 <p className="options_text">Nahlásit</p>
                             </span>
                         </>
@@ -524,6 +656,6 @@ const UserMoreInfo = ({
             )}
         </div>
     );
-}
+};
 
 export default UserMoreInfo;

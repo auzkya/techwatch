@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\NotificationSent;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Mail\ModerationActionMail;
 use App\Models\Item;
+use App\Models\Notification;
 use App\Models\Report;
 use App\Models\Spec;
-use App\Models\ReviewUser;
-use App\Models\ReviewItem;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use App\Models\User;
 use Illuminate\Http\Request;
-use App\Events\NotificationSent;
-use App\Models\Notification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\ModerationActionMail;
 
 class AdminController extends Controller
 {
@@ -71,22 +68,26 @@ class AdminController extends Controller
         // 2. Generování datových bodů
         for ($i = $steps; $i >= 0; $i--) {
             // Dynamické odečítání jednotek (dnů/týdnů/měsíců)
-            $method = 'sub' . ucfirst($subUnit) . 's';
+            $method = 'sub'.ucfirst($subUnit).'s';
             $date = $now->copy()->$method($i);
             $endOfPeriod = ($subUnit === 'day') ? $date->endOfDay() : $date->copy();
-            if ($subUnit === 'week') $endOfPeriod = $date->endOfWeek();
-            if ($subUnit === 'month') $endOfPeriod = $date->endOfMonth();
-            
+            if ($subUnit === 'week') {
+                $endOfPeriod = $date->endOfWeek();
+            }
+            if ($subUnit === 'month') {
+                $endOfPeriod = $date->endOfMonth();
+            }
+
             // Zajištění, že nepočítáme data z budoucnosti
             $checkDate = $endOfPeriod->isFuture() ? $now : $endOfPeriod;
             $dateString = $checkDate->toDateTimeString();
 
             $totalUsers = User::where('created_at', '<=', $dateString)->count();
             $totalItems = Item::where('created_at', '<=', $dateString)->count();
-            
+
             $activeWorkers = User::where('created_at', '<=', $dateString)
-                                ->where('active_worker_till', '>=', $dateString)
-                                ->count();
+                ->where('active_worker_till', '>=', $dateString)
+                ->count();
 
             $timeData->push([
                 'date' => $date->format($format),
@@ -98,9 +99,9 @@ class AdminController extends Controller
         }
 
         // Ostatní metriky
-        $specs = Spec::withCount('users')->get()->map(fn($s) => [
-            'name' => $s->name, 
-            'value' => $s->users_count
+        $specs = Spec::withCount('users')->get()->map(fn ($s) => [
+            'name' => $s->name,
+            'value' => $s->users_count,
         ]);
 
         $itemCategories = Item::select('category as name', DB::raw('count(*) as value'))
@@ -127,11 +128,11 @@ class AdminController extends Controller
             ->where('status', 'pending')
             ->whereNotNull('target_type')
             ->get()
-            ->map(function($report) {
+            ->map(function ($report) {
                 try {
                     // Načteme target
                     $target = $report->target_type::withTrashed()->find($report->target_id);
-                    
+
                     // Pokud je target načten, ručně mu dotáhneme relace, které potřebuješ v UI
                     if ($target) {
                         $modelName = class_basename($report->target_type);
@@ -151,6 +152,7 @@ class AdminController extends Controller
                 } catch (\Exception $e) {
                     $report->target = null;
                 }
+
                 return $report;
             });
 
@@ -161,7 +163,7 @@ class AdminController extends Controller
                 'itemCategories' => $itemCategories,
                 'workersVsItems' => $workersVsItems,
                 'authMethods' => $authMethods,
-                'phoneStats' => $phoneStats
+                'phoneStats' => $phoneStats,
             ],
             'users_count' => User::count(),
             'items_count' => Item::count(),
@@ -173,18 +175,18 @@ class AdminController extends Controller
     public function resolveReport(Request $request, $id)
     {
         $report = Report::findOrFail($id);
-        
+
         // Načtení targetu i když je smazaný (soft delete)
         $target = null;
         if ($report->target_type && class_exists($report->target_type)) {
             $target = $report->target_type::withTrashed()->find($report->target_id);
         }
 
-        if (!$target && $request->input('action') !== 'dismiss') {
+        if (! $target && $request->input('action') !== 'dismiss') {
             return response()->json(['message' => 'Cíl nahlášení již neexistuje a nelze nad ním provést akci.'], 422);
         }
 
-        $action = $request->input('action'); 
+        $action = $request->input('action');
         $adminNote = $request->input('adminNote') ?: null;
         $reporterNote = $request->input('reporterNote') ?: 'Bez důvodu nahlášení';
 
@@ -198,7 +200,7 @@ class AdminController extends Controller
         if ($target) {
             $modelName = class_basename($report->target_type);
             $targetDate = $target->created_at ? $target->created_at->format('d.m.Y') : '';
-            
+
             switch ($modelName) {
                 case 'Item':
                     $targetType = 'inzerát';
@@ -213,10 +215,10 @@ class AdminController extends Controller
                 case 'ReviewUser':
                     $targetType = 'recenze';
                     // Načteme uživatele, na jehož profilu recenze byla
-                    $profileOwner = $target->reviewedUser 
-                        ? "{$target->reviewedUser->first_name} {$target->reviewedUser->last_name}" 
+                    $profileOwner = $target->reviewedUser
+                        ? "{$target->reviewedUser->first_name} {$target->reviewedUser->last_name}"
                         : null;
-                        
+
                     $targetName = "uživatele **$profileOwner** ze dne **$targetDate**";
                     $suffix = 'a'; // "recenze byla odstraněna / obnovena"
                     break;
@@ -225,7 +227,7 @@ class AdminController extends Controller
                     // hledáme název inzerátu, ke kterému recenze patří
                     $itemTitle = $target->item ? "„{$target->item->title}“" : 'inzerátu';
                     $targetName = "nabídky **$itemTitle** ze dne **$targetDate**";
-                    $suffix = 'a'; 
+                    $suffix = 'a';
                     break;
             }
         }
@@ -248,41 +250,45 @@ class AdminController extends Controller
             // 2. Provedení akce
             switch ($action) {
                 case 'strike_user':
-                // STRIKE: Funguje pro uživatele přímo, i pro majitele obsahu
-                $owner = $isUser ? $target : $target->user ?? $target->reviewer;
-                if ($owner) {
-                    $owner->increment('strikes_count');
-                    $owner->refresh();
-                    if ($owner->strikes_count >= 3) {
-                        $autoReason = 'Dosáhli jste 3 varování.';
-                        $owner->update(['is_banned' => true, 'ban_reason' => 'Dosáhli jste 3 varování.']);
-                        $owner->delete(); // Soft delete při automatickém banu
+                    // STRIKE: Funguje pro uživatele přímo, i pro majitele obsahu
+                    $owner = $isUser ? $target : $target->user ?? $target->reviewer;
+                    if ($owner) {
+                        $owner->increment('strikes_count');
+                        $owner->refresh();
+                        if ($owner->strikes_count >= 3) {
+                            $autoReason = 'Dosáhli jste 3 varování.';
+                            $owner->update(['is_banned' => true, 'ban_reason' => 'Dosáhli jste 3 varování.']);
+                            $owner->delete(); // Soft delete při automatickém banu
 
-                        // Pokud admin nezadal vlastní důvod, doplníme automatický důvod banu
-                        if (empty($adminNote)) {
-                            $adminNote = $autoReason;
+                            // Pokud admin nezadal vlastní důvod, doplníme automatický důvod banu
+                            if (empty($adminNote)) {
+                                $adminNote = $autoReason;
+                            }
                         }
                     }
-                }
-                // Pokud to nebyl nahlášený uživatel přímo, ale jeho inzerát/recenze, smažeme ten obsah
-                if (!$isUser && $target) { $target->delete(); }
-                break;
+                    // Pokud to nebyl nahlášený uživatel přímo, ale jeho inzerát/recenze, smažeme ten obsah
+                    if (! $isUser && $target) {
+                        $target->delete();
+                    }
+                    break;
 
                 case 'ban_user':
                     // BAN: Zablokuje uživatele a provede soft-delete
                     $owner = $isUser ? $target : $target->user ?? $target->reviewer;
                     if ($owner) {
                         $owner->update([
-                            'is_banned' => true, 
-                            'ban_reason' => $adminNote
+                            'is_banned' => true,
+                            'ban_reason' => $adminNote,
                         ]);
                         $owner->delete(); // Soft delete - zapíše deleted_at
                     }
-                    if (!$isUser && $target) { $target->delete(); }
+                    if (! $isUser && $target) {
+                        $target->delete();
+                    }
                     break;
 
                 case 'delete_content':
-                    // Tato akce by u typu User neměla v UI ideálně vůbec být, 
+                    // Tato akce by u typu User neměla v UI ideálně vůbec být,
                     // ale pro jistotu ji ošetříme, aby uživateli neublížila (jen ho "schová")
                     if ($isUser) {
                         $target->delete(); // Jen soft-delete bez banu/striku
@@ -305,8 +311,12 @@ class AdminController extends Controller
             // 4. Notifikace majiteli
             if ($owner && $action !== 'dismiss') {
                 $notifTitle = 'Tým TechWatch: Smazání obsahu';
-                if ($action === 'strike_user') $notifTitle = 'Tým TechWatch: Varování (Strike)';
-                if ($action === 'ban_user') $notifTitle = 'Tým TechWatch: Zablokování účtu';
+                if ($action === 'strike_user') {
+                    $notifTitle = 'Tým TechWatch: Varování (Strike)';
+                }
+                if ($action === 'ban_user') {
+                    $notifTitle = 'Tým TechWatch: Zablokování účtu';
+                }
 
                 // Dynamické skloňování členu (Váš / Vaše)
                 $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
@@ -315,17 +325,17 @@ class AdminController extends Controller
                 if ($action === 'strike_user') {
                     $currentStrikes = $owner->strikes_count;
                     $verb = ($suffix === 'a') ? 'byla vyhodnocena jako závadná' : 'byl vyhodnocen jako závadný';
-                    
+
                     if ($currentStrikes >= 3) {
                         // Text pro finální 3. strike
                         $notifTitle = 'Tým TechWatch: Zablokování účtu';
-                        $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. " .
-                                        "Za opakované porušení pravidel Vám byl udělen **3. strike**, a proto byl Váš účet **trvale zablokován**.";
+                        $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. ".
+                                        'Za opakované porušení pravidel Vám byl udělen **3. strike**, a proto byl Váš účet **trvale zablokován**.';
                     } else {
                         // Text pro 1. a 2. strike
-                        $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. " .
-                                        "Za porušení pravidel vám byl udělen **Strike**. Toto je Váš **$currentStrikes. ze 3 možných**. " .
-                                        "Upozorňujeme, že při dosažení **3 striků** bude Váš účet **zablokován**.";
+                        $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. ".
+                                        "Za porušení pravidel vám byl udělen **Strike**. Toto je Váš **$currentStrikes. ze 3 možných**. ".
+                                        'Upozorňujeme, že při dosažení **3 striků** bude Váš účet **zablokován**.';
                     }
                 } elseif ($action === 'ban_user') {
                     $fullDescription = "Dobrý den, $pronoun $targetType $targetName byl důvodem pro okamžité **zablokování Vašeho účtu**.";
@@ -336,7 +346,7 @@ class AdminController extends Controller
                 }
 
                 // Zobrazit "Odůvodnění" jen pokud není adminNote prázdný
-                if (!empty($adminNote)) {
+                if (! empty($adminNote)) {
                     $fullDescription .= "\n**Odůvodnění**: $adminNote";
                 }
 
@@ -353,7 +363,7 @@ class AdminController extends Controller
                     'type' => 'moderation_action',
                     'title' => $notifTitle,
                     'description' => $fullDescription,
-                    'data' => ['action' => $action, 'is_alert' => true]
+                    'data' => ['action' => $action, 'is_alert' => true],
                 ]);
 
                 broadcast(new NotificationSent($notifOwner))->toOthers();
@@ -373,7 +383,7 @@ class AdminController extends Controller
                     'type' => 'report_feedback',
                     'title' => 'Tým TechWatch',
                     'description' => $reporterNote,
-                    'data' => ['report_id' => $report->id]
+                    'data' => ['report_id' => $report->id],
                 ]);
                 broadcast(new NotificationSent($notifReporter))->toOthers();
             }
@@ -390,19 +400,26 @@ class AdminController extends Controller
             ->orderBy('resolved_at', 'desc')
             ->limit(50)
             ->get()
-            ->map(function($report) {
+            ->map(function ($report) {
                 try {
                     $target = $report->target_type::withTrashed()->find($report->target_id);
                     if ($target) {
                         $modelName = class_basename($report->target_type);
-                        if ($modelName === 'Item') $target->load('user');
-                        if ($modelName === 'ReviewUser') $target->load(['reviewer', 'reviewedUser']);
-                        if ($modelName === 'ReviewItem') $target->load(['reviewer', 'item']);
+                        if ($modelName === 'Item') {
+                            $target->load('user');
+                        }
+                        if ($modelName === 'ReviewUser') {
+                            $target->load(['reviewer', 'reviewedUser']);
+                        }
+                        if ($modelName === 'ReviewItem') {
+                            $target->load(['reviewer', 'item']);
+                        }
                     }
                     $report->setRelation('target', $target); // Nastavíme relaci "oficiálně"
                 } catch (\Exception $e) {
                     $report->setRelation('target', null);
                 }
+
                 return $report;
             });
     }
@@ -424,7 +441,7 @@ class AdminController extends Controller
             // 2. Textace (přesunuto nad notifikaci)
             $targetType = 'obsah';
             $targetName = '';
-            $suffix = ''; 
+            $suffix = '';
 
             if ($target) {
                 $modelName = class_basename($modelClass);
@@ -434,7 +451,7 @@ class AdminController extends Controller
                     case 'Item':
                         $targetType = 'inzerát';
                         $targetName = "**„{$target->title}“**";
-                        $suffix = ''; 
+                        $suffix = '';
                         break;
                     case 'User':
                         $targetType = 'účet';
@@ -471,25 +488,25 @@ class AdminController extends Controller
             if ($owner) {
                 $hadStrikeOrBan = ($owner->strikes_count > 0 || $owner->is_banned);
                 $strikeWasRemoved = false;
-                
+
                 if ($owner->strikes_count > 0) {
                     $owner->decrement('strikes_count');
                     $strikeWasRemoved = true;
                 }
-                
+
                 $wasUnbanned = false;
                 // Pokud je uživatel zablokovaný a počet striků klesl pod 3, odbanujeme ho
                 if ($owner->is_banned && $owner->strikes_count < 3) {
                     $owner->update([
-                        'is_banned' => false, 
-                        'ban_reason' => null
+                        'is_banned' => false,
+                        'ban_reason' => null,
                     ]);
-                    
+
                     // Pokud byl uživatel smazaný (banem), musíme ho obnovit v DB
                     if (method_exists($owner, 'restore') && $owner->trashed()) {
                         $owner->restore();
                     }
-                    
+
                     $wasUnbanned = true;
                 }
 
@@ -497,7 +514,7 @@ class AdminController extends Controller
                 if ($shouldNotify && $report->status === 'resolved') {
                     $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
                     $verb = ($suffix === 'a') ? 'obnovena' : 'obnoven';
-                    
+
                     $title = 'Tým TechWatch';
                     $msg = "Dobrý den, po dodatečném přezkoumání byl $pronoun $targetType $targetName $verb.";
 
@@ -507,7 +524,7 @@ class AdminController extends Controller
                     }
 
                     if ($wasUnbanned) {
-                        $msg .= " Zároveň byl Váš účet **plně odblokován** a přístup k němu **obnoven**.";
+                        $msg .= ' Zároveň byl Váš účet **plně odblokován** a přístup k němu **obnoven**.';
                     }
 
                     // Očistit od nebezpečných tagů
@@ -523,7 +540,7 @@ class AdminController extends Controller
                         'type' => 'moderation_action',
                         'title' => $title,
                         'description' => $msg,
-                        'data' => ['action' => 'revert']
+                        'data' => ['action' => 'revert'],
                     ]);
 
                     broadcast(new NotificationSent($notif))->toOthers();
@@ -540,7 +557,7 @@ class AdminController extends Controller
                 'resolved_at' => null,
                 'resolved_by' => null,
                 'admin_note' => null,
-                'reporter_note' => null
+                'reporter_note' => null,
             ]);
         });
 

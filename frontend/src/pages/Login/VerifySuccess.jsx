@@ -20,7 +20,6 @@ const VerifySuccess = () => {
         });
     }, []);
 
-
     return (
         <div className="loader_container">
             <div className="loader"></div>

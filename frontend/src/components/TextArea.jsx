@@ -1,6 +1,18 @@
 import "./TextArea.css";
 
-const TextArea = ({ type, name, placeholder, autoComplete, required, rows, maxLength, error_message, value, onChange, extraClass }) => {
+const TextArea = ({
+    type,
+    name,
+    placeholder,
+    autoComplete,
+    required,
+    rows,
+    maxLength,
+    error_message,
+    value,
+    onChange,
+    extraClass,
+}) => {
     const currentLength = value ? value.length : 0;
     const remaining = maxLength ? maxLength - currentLength : null;
 
@@ -17,17 +29,19 @@ const TextArea = ({ type, name, placeholder, autoComplete, required, rows, maxLe
                 required={required ? true : undefined}
                 rows={rows}
                 //maxLength={maxLength}
-                value={value}      // ← přidej
+                value={value} // ← přidej
                 onChange={onChange} // ← přidej
                 className={`form_textarea ${extraClass ? extraClass : ""}`}
             />
             {maxLength && (
-                <div className={`textarea-char-counter ${isOverLimit ? "textarea-at-limit" : ""}`}>
+                <div
+                    className={`textarea-char-counter ${isOverLimit ? "textarea-at-limit" : ""}`}
+                >
                     {remaining}
                 </div>
             )}
         </>
-    )
-}
+    );
+};
 
-export default TextArea
+export default TextArea;

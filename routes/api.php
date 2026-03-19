@@ -1,20 +1,19 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FavouriteController;
 use App\Http\Controllers\Api\OAuthController;
 use App\Http\Controllers\Api\PasswordController;
-use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\PhoneController;
-use App\Http\Controllers\Api\TechController;
-use App\Http\Controllers\Api\FavouriteController;
-use App\Http\Controllers\Api\ReviewUserController;
-use App\Http\Controllers\Api\ReviewItemController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReportController;
-use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\ReviewItemController;
+use App\Http\Controllers\Api\ReviewUserController;
+use App\Http\Controllers\Api\TechController;
+use App\Http\Controllers\NotificationController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -181,6 +180,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         if (auth()->user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
+
         return \App\Models\Report::with('reporter')->get();
     });
 });

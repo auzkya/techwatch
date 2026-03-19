@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-use Intervention\Image\Facades\Image;
+use App\Models\Spec;
 use App\Models\User;
 use App\Models\UserRider;
-use Illuminate\Support\Facades\Auth;
-use \App\Models\Spec;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Intervention\Image\Facades\Image;
 
 class ProfileController extends Controller
 {
@@ -42,7 +41,7 @@ class ProfileController extends Controller
             if (empty($newPhone)) {
                 $user->phone = null;
                 $user->phone_verified_at = null;
-            } 
+            }
             // SCÉNÁŘ B: Uživatel telefon změnil na jiné číslo
             elseif ($newPhone !== $user->phone) {
                 $verification = \App\Models\PhoneVerification::where('user_id', $user->id)
@@ -50,9 +49,9 @@ class ProfileController extends Controller
                     ->latest()
                     ->first();
 
-                if (!$verification || !$verification->isValid()) {
+                if (! $verification || ! $verification->isValid()) {
                     return response()->json([
-                        'message' => 'Nové telefonní číslo musí být ověřeno'
+                        'message' => 'Nové telefonní číslo musí být ověřeno',
                     ], 422);
                 }
 
@@ -66,7 +65,7 @@ class ProfileController extends Controller
         if (array_key_exists('bio', $validated)) {
             $user->bio = $validated['bio'] ? strip_tags($validated['bio']) : null;
         }
-        
+
         if (array_key_exists('location', $validated)) {
             $user->location = $validated['location'] ? strip_tags($validated['location']) : null;
         }
@@ -83,14 +82,14 @@ class ProfileController extends Controller
         // Avatar
         if ($request->hasFile('avatar')) {
             // 1. Smazání starého avataru (pokud existuje)
-            if ($user->profile_image && !filter_var($user->profile_image, FILTER_VALIDATE_URL)) {
+            if ($user->profile_image && ! filter_var($user->profile_image, FILTER_VALIDATE_URL)) {
                 Storage::disk('r2')->delete($user->profile_image);
             }
 
             $file = $request->file('avatar');
-            
+
             // 2. Definice názvu (vždy končí .webp)
-            $filename = 'avatars/' . $user->id . '_' . time() . '.webp';
+            $filename = 'avatars/'.$user->id.'_'.time().'.webp';
 
             // 3. Zpracování obrázku pomocí Intervention
             // fit(400, 400) ořízne obrázek na čtverec (center crop)
@@ -116,10 +115,10 @@ class ProfileController extends Controller
         // Po uložení všech dat zkontrolujeme eligibilitu
         $profileComplete = $user->first_name && $user->last_name && $user->email &&
                         $user->bio && $user->location && $user->phone;
-        
+
         // Načteme specs, pokud nejsou v modelu User přes $with
         $hasSpecializations = $user->specs()->count() > 0;
-        $hasAvatar = !empty($user->profile_image);
+        $hasAvatar = ! empty($user->profile_image);
 
         $wasActive = $user->active_worker_till && $user->active_worker_till->isFuture();
         $isStillEligible = $profileComplete && $hasSpecializations && $hasAvatar;
@@ -127,7 +126,7 @@ class ProfileController extends Controller
         $extraMessage = null;
 
         // Pokud byl aktivní a už není způsobilý, vypneme mu to
-        if ($wasActive && !$isStillEligible) {
+        if ($wasActive && ! $isStillEligible) {
             $user->active_worker_till = null;
             $user->save();
             $extraMessage = 'Profil byl aktualizován, ale mód "Hledám práci" byl vypnut kvůli neúplným údajům.';
@@ -136,7 +135,7 @@ class ProfileController extends Controller
         return response()->json([
             'message' => $extraMessage ?? 'Profil byl úspěšně aktualizován.',
             'user' => $user->fresh()->load('specs')->append('profile_image_url'),
-            'deactivated' => ($wasActive && !$isStillEligible)
+            'deactivated' => ($wasActive && ! $isStillEligible),
         ]);
     }
 
@@ -156,7 +155,7 @@ class ProfileController extends Controller
         return response()->json([
             'profileComplete' => $profileComplete,
             'hasSpecializations' => $hasSpecializations,
-            'hasAvatar' => !empty($user->profile_image)
+            'hasAvatar' => ! empty($user->profile_image),
         ]);
     }
 
@@ -165,20 +164,20 @@ class ProfileController extends Controller
         $user = User::with('specs')->findOrFail($id);
 
         // Pokud uživatel chce zapnout (nyní je vypnuto nebo prošlé)
-        if (!$user->active_worker_till || $user->active_worker_till->isPast()) {
+        if (! $user->active_worker_till || $user->active_worker_till->isPast()) {
 
             // --- VALIDACE PŘED ZAPNUTÍM ---
             $profileComplete = $user->first_name && $user->last_name && $user->email &&
                 $user->bio && $user->location && $user->phone;
             $hasSpecializations = $user->specs->count() > 0;
-            $hasAvatar = !empty($user->profile_image);
+            $hasAvatar = ! empty($user->profile_image);
 
-            if (!$profileComplete || !$hasSpecializations || !$hasAvatar) {
+            if (! $profileComplete || ! $hasSpecializations || ! $hasAvatar) {
                 return response()->json([
                     'error' => 'incomplete_profile',
                     'profileComplete' => (bool) $profileComplete,
                     'hasSpecializations' => (bool) $hasSpecializations,
-                    'hasAvatar' => (bool) $hasAvatar
+                    'hasAvatar' => (bool) $hasAvatar,
                 ], 422);
             }
 
@@ -192,7 +191,7 @@ class ProfileController extends Controller
 
         return response()->json([
             'active_worker_till' => $user->active_worker_till,
-            'is_active' => $user->active_worker_till !== null
+            'is_active' => $user->active_worker_till !== null,
         ]);
     }
 
@@ -207,7 +206,7 @@ class ProfileController extends Controller
         $user->save();
 
         // redirect do FE
-        return redirect(config('app.frontend_url') . '/app/?extended=1');
+        return redirect(config('app.frontend_url').'/app/?extended=1');
     }
 
     public function show($id)
@@ -218,7 +217,7 @@ class ProfileController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Uživatel nenalezen'], 404);
         }
 
@@ -226,12 +225,13 @@ class ProfileController extends Controller
         $isPrivileged = $visitor && ($visitor->isAdmin() || $visitor->isModerator());
 
         // Pokud je smazaný a nejsem privilegovaný, skryju citlivá data, ale pošlu zbytek
-        if ($user->trashed() && !$isPrivileged) {
+        if ($user->trashed() && ! $isPrivileged) {
             $user->makeHidden(['bio', 'location', 'phone', 'email', 'specs', 'riders', 'created_at', 'last_login']);
+
             return response()->json([
                 'user' => $user->append('profile_image_url'),
                 'rider_images' => [], // Smazaný uživatel pro běžné lidi nemá fotky techniky
-                'is_trashed_view' => true
+                'is_trashed_view' => true,
             ]);
         }
 
@@ -244,12 +244,12 @@ class ProfileController extends Controller
 
         // Důležité: Vrátit rider_images ve formátu, který očekává frontend
         $riderImages = $user->riders->map(function ($rider) use ($baseUrl) {
-            return $baseUrl ? rtrim($baseUrl, '/') . '/' . $rider->image_url : $rider->image_url;
+            return $baseUrl ? rtrim($baseUrl, '/').'/'.$rider->image_url : $rider->image_url;
         });
 
         return response()->json([
             'user' => $user->append(['profile_image_url']),
-            'rider_images' => $riderImages // Pole stringů (URL)
+            'rider_images' => $riderImages, // Pole stringů (URL)
         ]);
     }
 
@@ -265,9 +265,9 @@ class ProfileController extends Controller
 
         // 3. Smazání odstraněných souborů
         foreach ($currentRiders as $rider) {
-            $fullUrl = config('filesystems.disks.r2.url') . '/' . $rider->image_url;
+            $fullUrl = config('filesystems.disks.r2.url').'/'.$rider->image_url;
 
-            if (!in_array($fullUrl, $existingImages)) {
+            if (! in_array($fullUrl, $existingImages)) {
                 Storage::disk('r2')->delete($rider->image_url);
                 $rider->delete();
             }
@@ -276,21 +276,21 @@ class ProfileController extends Controller
         // 4. Přidání nových souborů
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                
+
                 $extension = strtolower($file->getClientOriginalExtension());
-                $uniqueName = uniqid() . '_' . time();
+                $uniqueName = uniqid().'_'.time();
                 $folder = "riders/{$user->id}/";
 
                 if ($extension === 'pdf') {
                     // --- LOGIKA PRO PDF ---
-                    $filename = $folder . $uniqueName . '.pdf';
-                    
+                    $filename = $folder.$uniqueName.'.pdf';
+
                     // PDF neupravujeme, jen ho uložíme
-                    Storage::disk('r2')->putFileAs($folder, $file, $uniqueName . '.pdf', 'public');
+                    Storage::disk('r2')->putFileAs($folder, $file, $uniqueName.'.pdf', 'public');
 
                 } else {
                     // --- LOGIKA PRO OBRÁZKY (WebP konverze) ---
-                    $filename = $folder . $uniqueName . '.webp';
+                    $filename = $folder.$uniqueName.'.webp';
 
                     // Zpracování obrázku pomocí Intervention Image
                     $img = Image::make($file)
@@ -365,7 +365,7 @@ class ProfileController extends Controller
             $user->formatted_specs = $user->specs->pluck('name')->implode(' | ');
 
             // Pokud currentUserId neexistuje, nastavíme false defaultně
-            if (!isset($user->is_favourite)) {
+            if (! isset($user->is_favourite)) {
                 $user->is_favourite = false;
             } else {
                 // SQL vrací 1/0 jako string nebo int, převedeme na boolean pro JS

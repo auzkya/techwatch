@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\PhoneVerification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Twilio\Rest\Client;
-use App\Models\User;
-use App\Models\PhoneVerification;
 
 class PhoneController extends Controller
 {
@@ -26,7 +26,7 @@ class PhoneController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'phone' => 'required|string'
+            'phone' => 'required|string',
         ]);
 
         try {
@@ -39,7 +39,7 @@ class PhoneController extends Controller
 
             return response()->json([
                 'success' => true,
-                'status' => $verification->status
+                'status' => $verification->status,
             ]);
 
         } catch (\Throwable $e) {
@@ -49,7 +49,7 @@ class PhoneController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 422);
         }
     }
@@ -78,7 +78,7 @@ class PhoneController extends Controller
             if ($check->status !== 'approved') {
                 return response()->json([
                     'success' => false,
-                    'error' => 'Zadaný kód je neplatný'
+                    'error' => 'Zadaný kód je neplatný',
                 ], 422);
             }
 
@@ -102,7 +102,7 @@ class PhoneController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 422);
         }
     }
@@ -115,10 +115,10 @@ class PhoneController extends Controller
 
         $phone = $request->phone;
 
-        if (!str_starts_with($phone, '+')) {
+        if (! str_starts_with($phone, '+')) {
             return response()->json([
                 'valid' => false,
-                'error' => 'Telefonní číslo musí být ve formátu +420...'
+                'error' => 'Telefonní číslo musí být ve formátu +420...',
             ], 422);
         }
 
@@ -131,10 +131,10 @@ class PhoneController extends Controller
             $lookup = $twilio->lookups->v2
                 ->phoneNumbers($phone)
                 ->fetch([
-                    'fields' => 'line_type_intelligence'
+                    'fields' => 'line_type_intelligence',
                 ]);
 
-            if (!empty($lookup->validationErrors)) {
+            if (! empty($lookup->validationErrors)) {
                 return response()->json([
                     'valid' => false,
                     'error' => $this->translateTwilioErrors($lookup->validationErrors),

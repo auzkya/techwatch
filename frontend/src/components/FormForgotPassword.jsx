@@ -25,16 +25,23 @@ const ForgotPasswordForm = ({ setLoading, setErrorTop, setInfoText }) => {
         setLoading(true);
 
         try {
-            const res = await axiosInstance.post("/api/password-reset-request", { email });
+            const res = await axiosInstance.post(
+                "/api/password-reset-request",
+                { email },
+            );
 
             // Úspěch
-            setInfoText("Na zadaný e-mail jsme odeslali odkaz pro obnovení hesla");
+            setInfoText(
+                "Na zadaný e-mail jsme odeslali odkaz pro obnovení hesla",
+            );
             setSuccess(true);
             setCountdown(59);
             setAlreadyTried(true);
         } catch (err) {
             console.error("Chyba při odeslání:", err);
-            const msg = err.response?.data?.message || "Nepodařilo se odeslat e-mail pro obnovu hesla.";
+            const msg =
+                err.response?.data?.message ||
+                "Nepodařilo se odeslat e-mail pro obnovu hesla.";
             setErrorTop(msg);
         } finally {
             setLoading(false);
@@ -51,7 +58,8 @@ const ForgotPasswordForm = ({ setLoading, setErrorTop, setInfoText }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="input-login"
-                />)}
+                />
+            )}
 
             <button
                 type="submit"
@@ -59,8 +67,14 @@ const ForgotPasswordForm = ({ setLoading, setErrorTop, setInfoText }) => {
                 disabled={countdown > 0}
             >
                 {(() => {
-                    if (countdown > 0) return <p className="strong">Zkusit znovu za {countdown}s</p>;
-                    if (alreadyTried) return <p className="strong">Zkusit znovu</p>;
+                    if (countdown > 0)
+                        return (
+                            <p className="strong">
+                                Zkusit znovu za {countdown}s
+                            </p>
+                        );
+                    if (alreadyTried)
+                        return <p className="strong">Zkusit znovu</p>;
                     return <p className="strong">Pokračovat</p>;
                 })()}
             </button>

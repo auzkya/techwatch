@@ -262,10 +262,26 @@
     font-size: 0.85rem;
 }
 
-.action-critical { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; border: 1px solid #ff4d4d44; }
-.action-warning { background: rgba(255, 165, 0, 0.2); color: #ffa500; border: 1px solid #ffa50044; }
-.action-delete { background: rgba(200, 200, 200, 0.1); color: #eee; border: 1px solid #ffffff22; }
-.action-info { background: rgba(0, 123, 255, 0.2); color: #5dade2; border: 1px solid #5dade244; }
+.action-critical {
+    background: rgba(255, 77, 77, 0.2);
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d44;
+}
+.action-warning {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+    border: 1px solid #ffa50044;
+}
+.action-delete {
+    background: rgba(200, 200, 200, 0.1);
+    color: #eee;
+    border: 1px solid #ffffff22;
+}
+.action-info {
+    background: rgba(0, 123, 255, 0.2);
+    color: #5dade2;
+    border: 1px solid #5dade244;
+}
 
 .btn-revert {
     background: #576574;
@@ -319,7 +335,7 @@
     transform: scale(1.05);
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
     /* Zvýraznění aktivní pilulky - využije tvou barvu z .action-X */
-    border-width: 1px; 
+    border-width: 1px;
 }
 
 .action-pill-group .status-pill:hover {
@@ -333,8 +349,8 @@
 }
 
 /* Pokud chceš, aby ignorování vypadalo jako tvoje šedá varianta */
-.action-delete { 
-    background: rgba(200, 200, 200, 0.1); 
-    color: #999; 
-    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+.action-delete {
+    background: rgba(200, 200, 200, 0.1);
+    color: #999;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }

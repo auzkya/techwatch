@@ -28,5 +28,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, //true nutné pro cookies
+    'supports_credentials' => true, // true nutné pro cookies
 ];

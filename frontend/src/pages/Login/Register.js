@@ -4,8 +4,8 @@ import "./Page.css";
 
 import FormRegister from "../../components/FormRegister";
 
-import { faFacebookF, faGoogle } from '@fortawesome/free-brands-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebookF, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { Link, useNavigate } from "react-router-dom";
 import { ASSETS } from "../../config/assets";
@@ -18,7 +18,7 @@ import { useAuth } from "../../context/AuthContext";
 const Register = () => {
     const [loading, setLoading] = useState(false);
     useScrollLock(loading);
-    const [success, setSuccess] = useState("");
+    const [setSuccess] = useState("");
     const [titleText, setTitleText] = useState("REGISTRACE"); // dynamický titul
     const [infoText, setInfoText] = useState("");
 
@@ -39,40 +39,80 @@ const Register = () => {
         <>
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={ASSETS.logo_top} />
+                    <img
+                        className="login_logo"
+                        alt="logo"
+                        src={ASSETS.logo_top}
+                    />
                     <div className="login_section">
                         <h2 className="strong">{titleText}</h2>
-                        {infoText && (<p className="login_section_info body_base" dangerouslySetInnerHTML={{ __html: infoText }} />)}
-                        <FormRegister setLoading={setLoading}
+                        {infoText && (
+                            <p
+                                className="login_section_info body_base"
+                                dangerouslySetInnerHTML={{ __html: infoText }}
+                            />
+                        )}
+                        <FormRegister
+                            setLoading={setLoading}
                             setSuccess={setSuccess}
-                            setTitleText={setTitleText} setInfoText={setInfoText}></FormRegister>
+                            setTitleText={setTitleText}
+                            setInfoText={setInfoText}
+                        ></FormRegister>
                         {setTitleText === "REGISTRACE" && (
                             <>
-                                <div className="oauth_divider"><span className="body_base">nebo</span></div>
+                                <div className="oauth_divider">
+                                    <span className="body_base">nebo</span>
+                                </div>
                                 <div className="oauth_container">
-                                    <button className="oauth_button" onClick={() => window.location.href = `${apiUrl}/auth/google/redirect`}>
-                                        <FontAwesomeIcon icon={faGoogle} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Google</p>
+                                    <button
+                                        className="oauth_button"
+                                        onClick={() =>
+                                            (window.location.href = `${apiUrl}/auth/google/redirect`)
+                                        }
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faGoogle}
+                                            className="oauth_icon"
+                                        />
+                                        <p className="oauth_text strong">
+                                            Pokračovat přes Google
+                                        </p>
                                     </button>
-                                    <button className="oauth_button" onClick={() => window.location.href = `${apiUrl}/auth/facebook/redirect`}>
-                                        <FontAwesomeIcon icon={faFacebookF} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Facebook</p>
+                                    <button
+                                        className="oauth_button"
+                                        onClick={() =>
+                                            (window.location.href = `${apiUrl}/auth/facebook/redirect`)
+                                        }
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faFacebookF}
+                                            className="oauth_icon"
+                                        />
+                                        <p className="oauth_text strong">
+                                            Pokračovat přes Facebook
+                                        </p>
                                     </button>
                                 </div>
                             </>
                         )}
                     </div>
                 </div>
-                <p className="login_link">Už máte účet?
-                    <Link to={ROUTES.LOGIN} className="login_a strong"> Přihlaste se!</Link>
+                <p className="login_link">
+                    Už máte účet?
+                    <Link to={ROUTES.LOGIN} className="login_a strong">
+                        {" "}
+                        Přihlaste se!
+                    </Link>
                 </p>
 
                 <footer className="login-footer">
-                    <Link to="/privacy" className="body_smallest">Privacy Policy</Link>
+                    <Link to="/privacy" className="body_smallest">
+                        Privacy Policy
+                    </Link>
                 </footer>
-
             </div>
-
         </>
-    )
-}
+    );
+};
 
-export default Register
+export default Register;

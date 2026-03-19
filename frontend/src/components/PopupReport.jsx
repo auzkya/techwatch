@@ -24,22 +24,27 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
     // Select logika
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isCatOpen && !catRef.current?.contains(event.target)) setIsCatOpen(false);
+            if (isCatOpen && !catRef.current?.contains(event.target))
+                setIsCatOpen(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, [isCatOpen]);
-
 
     useScrollLock(isOpen);
 
     const getTitle = () => {
         switch (type) {
-            case "items": return "Nahlásit inzerát";
-            case "users": return "Nahlásit uživatele";
+            case "items":
+                return "Nahlásit inzerát";
+            case "users":
+                return "Nahlásit uživatele";
             case "reviews_users":
-            case "reviews_items": return "Nahlásit recenzi";
-            default: return "Nahlásit";
+            case "reviews_items":
+                return "Nahlásit recenzi";
+            default:
+                return "Nahlásit";
         }
     };
 
@@ -68,9 +73,9 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
         try {
             await axiosInstance.post("/api/reports", {
                 target_id: targetId, // ID z props
-                type: type,          // 'items' | 'users' atd. z props
+                type: type, // 'items' | 'users' atd. z props
                 category: category, // To, co uživatel vybral v radio/selectu
-                reason: reason,         // Dobrovolný text z textarea
+                reason: reason, // Dobrovolný text z textarea
             });
 
             showAlert("success", "Nahlášení bylo odesláno ke kontrole.");
@@ -91,21 +96,33 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
             <div className="popup_big" onClick={(e) => e.stopPropagation()}>
                 <div className="popup_header">
                     <h2>{getTitle()}</h2>
-                    <p className="popup_header_sub">Vaše nahlášení prověří admin.</p>
+                    <p className="popup_header_sub">
+                        Vaše nahlášení prověří admin.
+                    </p>
                 </div>
 
                 <div className="form-review">
                     <div className="review-fuller">
-                        <label className="body_base label-move">Důvod nahlášení</label>
+                        <label className="body_base label-move">
+                            Důvod nahlášení
+                        </label>
                         <div className="custom-select-wrapper" ref={catRef}>
                             <div
                                 className={`custom-select-down ${isCatOpen ? "open" : ""}`}
                                 onClick={() => setIsCatOpen(!isCatOpen)}
                             >
-                                <span className={`selected ${category === "" ? "gray-text" : ""}`}>
-                                    {reportOptions.find(opt => opt.value === category)?.label || "-- Vyberte důvod --"}
+                                <span
+                                    className={`selected ${category === "" ? "gray-text" : ""}`}
+                                >
+                                    {reportOptions.find(
+                                        (opt) => opt.value === category,
+                                    )?.label || "-- Vyberte důvod --"}
                                 </span>
-                                <span className={`arrow ${isCatOpen ? "rotate" : ""}`}>▼</span>
+                                <span
+                                    className={`arrow ${isCatOpen ? "rotate" : ""}`}
+                                >
+                                    ▼
+                                </span>
                             </div>
 
                             {isCatOpen && (
@@ -114,7 +131,10 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
                                         <div
                                             key={opt.value}
                                             className={`option ${category === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
-                                            onClick={() => { setCategory(opt.value); setIsCatOpen(false); }}
+                                            onClick={() => {
+                                                setCategory(opt.value);
+                                                setIsCatOpen(false);
+                                            }}
                                         >
                                             {opt.label}
                                         </div>
@@ -123,7 +143,9 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
                             )}
                         </div>
 
-                        <label className="body_base label-move">Doplňující informace</label>
+                        <label className="body_base label-move">
+                            Doplňující informace
+                        </label>
                         <TextArea
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
@@ -138,7 +160,9 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
                         onClick={handleSubmit}
                         disabled={loading}
                     >
-                        <p className="strong">{loading ? "Odesílám..." : "Odeslat nahlášení"}</p>
+                        <p className="strong">
+                            {loading ? "Odesílám..." : "Odeslat nahlášení"}
+                        </p>
                     </button>
                 </div>
             </div>

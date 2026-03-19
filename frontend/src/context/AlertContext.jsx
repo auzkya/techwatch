@@ -22,7 +22,11 @@ export const AlertProvider = ({ children }) => {
         let finalMessage = message;
 
         // Pokud je message objekt a NENÍ to React element (JSX)
-        if (typeof message === 'object' && message !== null && !React.isValidElement(message)) {
+        if (
+            typeof message === "object" &&
+            message !== null &&
+            !React.isValidElement(message)
+        ) {
             // 1. Zkusíme běžné Laravel klíče
             if (message.message) {
                 finalMessage = message.message;
@@ -30,7 +34,9 @@ export const AlertProvider = ({ children }) => {
             // 2. Pokud jsou to validační chyby (errors: { field: [msg] })
             else if (message.errors) {
                 const firstError = Object.values(message.errors)[0];
-                finalMessage = Array.isArray(firstError) ? firstError[0] : "Chyba validace dat.";
+                finalMessage = Array.isArray(firstError)
+                    ? firstError[0]
+                    : "Chyba validace dat.";
             }
             // 3. Totální fallback - převedeme na string, aby to aspoň nespadlo
             else {
@@ -42,19 +48,19 @@ export const AlertProvider = ({ children }) => {
             }
         }
 
-        setAlerts(prev => [
+        setAlerts((prev) => [
             ...prev,
             {
                 id: uuidv4(),
                 type,
                 message,
-                key
-            }
+                key,
+            },
         ]);
     };
 
     const removeAlert = (id) => {
-        setAlerts(prev => prev.filter(alert => alert.id !== id));
+        setAlerts((prev) => prev.filter((alert) => alert.id !== id));
     };
 
     return (
@@ -62,7 +68,7 @@ export const AlertProvider = ({ children }) => {
             {children}
 
             <div className="alert_container">
-                {alerts.map(alert => (
+                {alerts.map((alert) => (
                     <Alert
                         key={alert.id}
                         type={alert.type}

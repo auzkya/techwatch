@@ -14,8 +14,8 @@ import UserBasicInfo from "../../components/UserBasicInfo";
 import UserMoreInfo from "../../components/UserMoreInfo";
 import { useScrollToHash } from "../../hooks/useScrollToHash";
 
-import { faPencil } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPencil } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./TechDetail.css";
 
 const TechDetail = () => {
@@ -25,7 +25,9 @@ const TechDetail = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const isAdmin = currentUser && ["admin_moderator", "super_admin"].includes(currentUser.role);
+    const isAdmin =
+        currentUser &&
+        ["admin_moderator", "super_admin"].includes(currentUser.role);
 
     // Stavy pro inzerát
     const [item, setItem] = useState(null);
@@ -43,11 +45,20 @@ const TechDetail = () => {
     const [reviewToDelete, setReviewToDelete] = useState(null);
 
     // Zámek scrollování
-    useScrollLock(loading || actionLoading || isReviewPopupOpen || showDeletePopup || showReviewDeletePopup);
+    useScrollLock(
+        loading ||
+            actionLoading ||
+            isReviewPopupOpen ||
+            showDeletePopup ||
+            showReviewDeletePopup,
+    );
 
-    const isOwner = currentUser && String(currentUser.id) === String(item?.user_id);
+    const isOwner =
+        currentUser && String(currentUser.id) === String(item?.user_id);
     const canWriteReview = currentUser && !isOwner;
-    const existingReview = reviews.find(r => String(r.reviewer_id) === String(currentUser?.id));
+    const existingReview = reviews.find(
+        (r) => String(r.reviewer_id) === String(currentUser?.id),
+    );
 
     // --- Načítání Dat ---
     const fetchTech = useCallback(async () => {
@@ -100,7 +111,10 @@ const TechDetail = () => {
         setActionLoading(true);
         try {
             if (existingReview) {
-                await axiosInstance.put(`/api/reviews-item/${existingReview.id}`, reviewData);
+                await axiosInstance.put(
+                    `/api/reviews-item/${existingReview.id}`,
+                    reviewData,
+                );
                 showAlert("success", "Recenze techniky aktualizována");
             } else {
                 await axiosInstance.post(`/api/item/${id}/reviews`, reviewData);
@@ -119,13 +133,16 @@ const TechDetail = () => {
     // --- Scroll na recenzi po kliknutí z notifikace ---
     useEffect(() => {
         const hash = window.location.hash;
-        if (hash && hash.startsWith('#review-')) {
+        if (hash && hash.startsWith("#review-")) {
             // Počkáme chvíli, než se recenze načtou z API
             setTimeout(() => {
                 const element = document.getElementById(hash.substring(1));
                 if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    element.classList.add('highlight-flash'); // Volitelný efekt bliknutí
+                    element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                    });
+                    element.classList.add("highlight-flash"); // Volitelný efekt bliknutí
                 }
             }, 500); // Timeout je nutný, pokud se data teprve stahují
         }
@@ -153,13 +170,19 @@ const TechDetail = () => {
 
     useScrollToHash([reviews]); // Spustí se i po načtení recenzí - důležité pro scroll na recenzi z notifikace
 
-
-    if (loading) return <div className="loader_container"><div className="loader"></div></div>;
+    if (loading)
+        return (
+            <div className="loader_container">
+                <div className="loader"></div>
+            </div>
+        );
     // Inzerát je smazaný
     if (!item) {
         return (
             <div className="no-results_tech-container">
-                <h2 className="no-results_tech">Tato nabídka neexistuje nebo byla trvale odstraněna</h2>
+                <h2 className="no-results_tech">
+                    Tato nabídka neexistuje nebo byla trvale odstraněna
+                </h2>
             </div>
         );
     }
@@ -185,7 +208,11 @@ const TechDetail = () => {
 
     return (
         <>
-            {actionLoading && <div className="loader_container"><div className="loader" /></div>}
+            {actionLoading && (
+                <div className="loader_container">
+                    <div className="loader" />
+                </div>
+            )}
 
             {/* Path */}
             <Path
@@ -195,19 +222,25 @@ const TechDetail = () => {
                 name={item.title}
                 userId={item.user?.id || item.user_id}
                 // Pokud je userName ve state explicitně null, necháme ho null
-                userName={location.state?.hasOwnProperty('userName') ? location.state.userName : `${item.user?.first_name} ${item.user?.last_name}`}
+                userName={
+                    location.state?.hasOwnProperty("userName")
+                        ? location.state.userName
+                        : `${item.user?.first_name} ${item.user?.last_name}`
+                }
             />
 
             {/* Varovné pruhy */}
             {isActuallyDeleted && isAdmin && (
                 <div className="deleted-warning-bar strong">
-                    Tato nabídka byla smazána. Vidíte ji pouze jako administrátor.
+                    Tato nabídka byla smazána. Vidíte ji pouze jako
+                    administrátor.
                 </div>
             )}
 
             {isInactive && isOwner && (
                 <div className="non_active-warning-bar strong">
-                    Tato nabídka je neaktivní. Vidíte ji pouze jako její majitel.
+                    Tato nabídka je neaktivní. Vidíte ji pouze jako její
+                    majitel.
                 </div>
             )}
 
@@ -219,22 +252,47 @@ const TechDetail = () => {
                 onDelete={() => handleDeleteReviewClick(id)}
                 targetName={item.title}
                 type="item"
-                initialData={existingReview ? {
-                    rating: existingReview.review_value,
-                    pros: existingReview.pros || [""],
-                    cons: existingReview.cons || [""],
-                    text: existingReview.review
-                } : null}
+                initialData={
+                    existingReview
+                        ? {
+                              rating: existingReview.review_value,
+                              pros: existingReview.pros || [""],
+                              cons: existingReview.cons || [""],
+                              text: existingReview.review,
+                          }
+                        : null
+                }
             />
 
             {/* Popup pro Smazání Inzerátu */}
             {showDeletePopup && (
-                <div className="popup_container" onClick={() => setShowDeletePopup(false)}>
-                    <div className="popup_small" onClick={(e) => e.stopPropagation()}>
+                <div
+                    className="popup_container"
+                    onClick={() => setShowDeletePopup(false)}
+                >
+                    <div
+                        className="popup_small"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3>Opravdu chcete tuto nabídku trvale smazat?</h3>
                         <div className="cropped">
-                            <button className="form-submit" onClick={handleDeleteItem}><p className="strong" style={{ color: 'white' }}>Ano</p></button>
-                            <button className="secondary_button" onClick={() => setShowDeletePopup(false)}><p className="oauth_text strong">Ne</p></button>
+                            <button
+                                className="form-submit"
+                                onClick={handleDeleteItem}
+                            >
+                                <p
+                                    className="strong"
+                                    style={{ color: "white" }}
+                                >
+                                    Ano
+                                </p>
+                            </button>
+                            <button
+                                className="secondary_button"
+                                onClick={() => setShowDeletePopup(false)}
+                            >
+                                <p className="oauth_text strong">Ne</p>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -242,21 +300,53 @@ const TechDetail = () => {
 
             {/* Popup pro Smazání Recenze */}
             {showReviewDeletePopup && (
-                <div className="popup_container" onClick={() => setShowReviewDeletePopup(false)}>
-                    <div className="popup_small" onClick={(e) => e.stopPropagation()}>
+                <div
+                    className="popup_container"
+                    onClick={() => setShowReviewDeletePopup(false)}
+                >
+                    <div
+                        className="popup_small"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3>Opravdu chcete tuto recenzi trvale smazat?</h3>
                         <div className="cropped">
-                            <button className="form-submit" onClick={handleConfirmDeleteReview}><p className="strong" style={{ color: 'white' }}>Ano</p></button>
-                            <button className="secondary_button" onClick={() => setShowReviewDeletePopup(false)}><p className="oauth_text strong">Ne</p></button>
+                            <button
+                                className="form-submit"
+                                onClick={handleConfirmDeleteReview}
+                            >
+                                <p
+                                    className="strong"
+                                    style={{ color: "white" }}
+                                >
+                                    Ano
+                                </p>
+                            </button>
+                            <button
+                                className="secondary_button"
+                                onClick={() => setShowReviewDeletePopup(false)}
+                            >
+                                <p className="oauth_text strong">Ne</p>
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="tech_container" style={isActuallyDeleted ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
+            <div
+                className="tech_container"
+                style={
+                    isActuallyDeleted
+                        ? { pointerEvents: "none", opacity: 0.8 }
+                        : {}
+                }
+            >
                 <TechPhoto
                     itemId={item.id}
-                    images={item.image_urls?.length > 0 ? item.image_urls : [ASSETS.default_item]}
+                    images={
+                        item.image_urls?.length > 0
+                            ? item.image_urls
+                            : [ASSETS.default_item]
+                    }
                     isLoggedUser={isOwner}
                     isFavouriteInitially={item.is_favourite}
                     onDeleteClick={() => setShowDeletePopup(true)}
@@ -289,13 +379,32 @@ const TechDetail = () => {
                 />
             </div>
 
-            <div className="reviews_container" id="reviews_href" style={isActuallyDeleted ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
-                <h2 className="strong">Recenze zařízení <span>({reviews.length})</span></h2>
+            <div
+                className="reviews_container"
+                id="reviews_href"
+                style={
+                    isActuallyDeleted
+                        ? { pointerEvents: "none", opacity: 0.8 }
+                        : {}
+                }
+            >
+                <h2 className="strong">
+                    Recenze zařízení <span>({reviews.length})</span>
+                </h2>
                 {canWriteReview && (
-                    <button type="button" className="write-review" onClick={() => setIsReviewPopupOpen(true)}>
-                        <FontAwesomeIcon icon={faPencil} className="options_icon" />
+                    <button
+                        type="button"
+                        className="write-review"
+                        onClick={() => setIsReviewPopupOpen(true)}
+                    >
+                        <FontAwesomeIcon
+                            icon={faPencil}
+                            className="options_icon"
+                        />
                         <p className="body_base strong">
-                            {existingReview ? "Upravit recenzi" : "Napsat recenzi"}
+                            {existingReview
+                                ? "Upravit recenzi"
+                                : "Napsat recenzi"}
                         </p>
                     </button>
                 )}
@@ -314,7 +423,9 @@ const TechDetail = () => {
                         ))
                     ) : (
                         <div className="no-results_listing-container-reviews">
-                            <h3 className="no-results_listing">Toto zařízení zatím nemá žádné recenze.</h3>
+                            <h3 className="no-results_listing">
+                                Toto zařízení zatím nemá žádné recenze.
+                            </h3>
                         </div>
                     )}
                 </div>

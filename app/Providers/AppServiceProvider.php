@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use App\Models\ReviewItem;
+use App\Models\ReviewUser;
+use App\Observers\ReviewItemObserver;
+use App\Observers\ReviewUserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use App\Models\ReviewUser;
-use App\Models\ReviewItem;
-use App\Observers\ReviewUserObserver;
-use App\Observers\ReviewItemObserver;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

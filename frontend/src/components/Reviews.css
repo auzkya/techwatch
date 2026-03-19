@@ -79,7 +79,8 @@
     margin: -6px auto 6px auto;
 }
 
-.review_component_plus-container, .review_component_minus-container{
+.review_component_plus-container,
+.review_component_minus-container {
     width: 48%;
 }
 
@@ -92,11 +93,11 @@
 
 .review_component_point p {
     margin: 0px 0 0 8px;
-    white-space: normal;     /* Standardní zalamování (vypne případný no-wrap) */
+    white-space: normal; /* Standardní zalamování (vypne případný no-wrap) */
     overflow-wrap: anywhere; /* Zajistí zalomení kdekoli, pokud slovo přesahuje šířku */
 }
 
-.review_component_point .icon{
+.review_component_point .icon {
     width: 16px;
     height: 16px;
     margin-top: 3px;
@@ -148,7 +149,7 @@
     /*margin-top: 50px;*/
 }
 
-.write-review .options_icon{
+.write-review .options_icon {
     font-size: 16px;
 }
 

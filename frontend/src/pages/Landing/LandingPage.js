@@ -25,20 +25,26 @@ const LandingPage = () => {
                 <img className="home_logo" alt="logo" src={ASSETS.logo_top} />
 
                 <h2>Platforma pro technické pracovníky v kultuře</h2>
-                <p className="body_base">TechWatch je webová platforma pro techniky v kulturním sektoru, včetně divadel, koncertů a festivalů. Náš systém usnadňuje sdílení technického vybavení a propojuje kvalifikované techniky s krátkodobými pracovními příležitostmi.</p>
+                <p className="body_base">
+                    TechWatch je webová platforma pro techniky v kulturním
+                    sektoru, včetně divadel, koncertů a festivalů. Náš systém
+                    usnadňuje sdílení technického vybavení a propojuje
+                    kvalifikované techniky s krátkodobými pracovními
+                    příležitostmi.
+                </p>
 
                 <button
                     type="button"
                     className="enter-app-button smaller_scale"
                     onClick={handleNavigation}
                 >
-                    <h3>
-                        Vstoupit do aplikace
-                    </h3>
+                    <h3>Vstoupit do aplikace</h3>
                 </button>
             </div>
             <footer className="login-footer">
-                <Link to="/privacy" className="body_smallest">Privacy Policy</Link>
+                <Link to="/privacy" className="body_smallest">
+                    Privacy Policy
+                </Link>
             </footer>
         </div>
     );

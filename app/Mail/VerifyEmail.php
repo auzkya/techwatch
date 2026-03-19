@@ -2,16 +2,17 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\User;
 
 class VerifyEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $user;
+
     public $token;
 
     /**
@@ -29,10 +30,10 @@ class VerifyEmail extends Mailable
     public function build()
     {
         return $this->subject('Dokončení registrace')
-                    ->view('emails.verify-email')
-                    ->with([
-                        'user' => $this->user,
-                        'token' => $this->token,
-                    ]);
+            ->view('emails.verify-email')
+            ->with([
+                'user' => $this->user,
+                'token' => $this->token,
+            ]);
     }
 }

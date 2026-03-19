@@ -1,10 +1,11 @@
 <?php
 
 // Hlídá automatický přepočet hodnocení u zařízení na základě recenzí
+
 namespace App\Observers;
 
-use App\Models\ReviewItem;
 use App\Models\Item;
+use App\Models\ReviewItem;
 
 class ReviewItemObserver
 {
@@ -14,11 +15,22 @@ class ReviewItemObserver
         $average = ReviewItem::where('item_id', $itemId)->avg('review_value');
 
         Item::where('id', $itemId)->update([
-            'review_value' => $average ? round($average, 1) : null
+            'review_value' => $average ? round($average, 1) : null,
         ]);
     }
 
-    public function created(ReviewItem $review) { $this->updateRating($review); }
-    public function updated(ReviewItem $review) { $this->updateRating($review); }
-    public function deleted(ReviewItem $review) { $this->updateRating($review); }
+    public function created(ReviewItem $review)
+    {
+        $this->updateRating($review);
+    }
+
+    public function updated(ReviewItem $review)
+    {
+        $this->updateRating($review);
+    }
+
+    public function deleted(ReviewItem $review)
+    {
+        $this->updateRating($review);
+    }
 }

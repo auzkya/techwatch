@@ -14,7 +14,7 @@
 }
 
 /* Velký graf na celou šířku */
-.category-grid-activity{
+.category-grid-activity {
     grid-column-gap: 20px;
     grid-row-gap: 10px;
     display: grid;
@@ -44,7 +44,7 @@
     transition: all 0.2s ease;
 }
 
-.category-grid-activity .checkbox input:checked+span {
+.category-grid-activity .checkbox input:checked + span {
     background: var(--text);
     font-weight: 500;
     color: var(--background3);
@@ -75,7 +75,10 @@
 .stat-card {
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 16px -16px #1f1f1f;
+    box-shadow:
+        0 0 1px #1f1f1f,
+        0 1px 4px #1f1f1f,
+        0 16px 16px -16px #1f1f1f;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -138,11 +141,11 @@
     font-weight: 600;
 }
 
-
-
 /* Vynutíme, aby SVG tvary nebyly přebíjeny globálním stylem */
 .recharts-pie-sector path {
-    transition: filter 0.3s ease, transform 0.3s ease;
+    transition:
+        filter 0.3s ease,
+        transform 0.3s ease;
     cursor: pointer;
 }
 
@@ -150,7 +153,7 @@
     filter: brightness(1.1);
 }
 
-.recharts-legend-item{
+.recharts-legend-item {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;

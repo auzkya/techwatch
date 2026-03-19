@@ -123,7 +123,10 @@ header .right {
     /*border: solid;
     border-width: 0 2px 2px 0;*/
     border-radius: 16px;
-    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 16px -16px #1f1f1f;
+    box-shadow:
+        0 0 1px #1f1f1f,
+        0 1px 4px #1f1f1f,
+        0 16px 16px -16px #1f1f1f;
     max-width: 340px;
     overflow: hidden;
     max-height: 70vh;
@@ -149,7 +152,6 @@ header .right {
     display: flex;
     align-items: center;
 }
-
 
 @keyframes fadeInDown {
     from {
@@ -251,7 +253,7 @@ header .right {
     width: 30px;
     height: 16px;
     margin: 0 10px 0 auto;
-    pointer-events: none
+    pointer-events: none;
 }
 
 .switch input {
@@ -268,8 +270,8 @@ header .right {
     right: 0;
     bottom: 0;
     background-color: var(--text);
-    -webkit-transition: .4s;
-    transition: .4s;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
 }
 
 .slider:before {
@@ -280,19 +282,19 @@ header .right {
     left: 2px;
     bottom: 1px;
     background-color: var(--background2);
-    -webkit-transition: .4s;
-    transition: .4s;
+    -webkit-transition: 0.4s;
+    transition: 0.4s;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
     background-color: var(--primary2);
 }
 
-input:focus+.slider {
-    box-shadow: 0 0 1px #2196F3;
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196f3;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
     -webkit-transform: translateX(12px);
     -ms-transform: translateX(12px);
     transform: translateX(12px);

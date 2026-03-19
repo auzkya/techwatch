@@ -8,7 +8,6 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 class NotificationSent implements ShouldBroadcast
 {
@@ -30,7 +29,7 @@ class NotificationSent implements ShouldBroadcast
     {
         // Kanál, který poslouchá konkrétní uživatel v Reactu
         return [
-            new PrivateChannel('user.' . $this->notification->user_id),
+            new PrivateChannel('user.'.$this->notification->user_id),
         ];
     }
 
@@ -40,7 +39,7 @@ class NotificationSent implements ShouldBroadcast
         return [
             'notification' => $this->notification->load(['sender.specs']),
             'unread_count' => Notification::where('user_id', $this->notification->user_id)
-                ->where('is_read', false)->count()
+                ->where('is_read', false)->count(),
         ];
     }
 }

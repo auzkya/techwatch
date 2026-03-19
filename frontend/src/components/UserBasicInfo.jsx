@@ -11,19 +11,19 @@ import { ASSETS } from "../config/assets";
 import "./UserBasicInfo.css";
 
 const UserBasicInfo = ({
-    currentUser,    // info o tom, zda jsem majitel profilu/inzerátu
+    currentUser, // info o tom, zda jsem majitel profilu/inzerátu
     profileImage,
     isActive,
     email,
     phone,
     phoneVisible,
-    isTechDetail,   // NOVÁ PROP: rozliší mód zobrazení
-    firstName,      // Jméno majitele inzerátu
-    lastName,       // Příjmení majitele inzerátu
-    specs = [],     // Specializace (pole)
-    userId,          // ID uživatele pro proklik na profil
-    techTitle,       // Název techniky (pro zobrazení v tech odpovědi na inzerát)
-    techId
+    isTechDetail, // NOVÁ PROP: rozliší mód zobrazení
+    firstName, // Jméno majitele inzerátu
+    lastName, // Příjmení majitele inzerátu
+    specs = [], // Specializace (pole)
+    userId, // ID uživatele pro proklik na profil
+    techTitle, // Název techniky (pro zobrazení v tech odpovědi na inzerát)
+    techId,
 }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -42,7 +42,7 @@ const UserBasicInfo = ({
 
     // Sestavení specializací: "Osvětlovač | Stagehands"
     const formattedSpecs = specs
-        .map(s => categoryMap[s.name] || s.name)
+        .map((s) => categoryMap[s.name] || s.name)
         .join(" | ");
 
     const handleProfileClick = () => {
@@ -53,12 +53,12 @@ const UserBasicInfo = ({
             navigate(`/user/${userId}/${slug}`, {
                 state: {
                     ...location.state, // Zachová, zda jsi přišel z PRACOVNÍCI > OSVĚTLOVAČ
-                    userName: `${firstName} ${lastName}` // Předá jméno pro Path
-                }
+                    userName: `${firstName} ${lastName}`, // Předá jméno pro Path
+                },
             });
         } else if (userId) {
             navigate(buildRoute(ROUTES.USER_DETAIL, { id: userId }), {
-                state: { ...location.state }
+                state: { ...location.state },
             });
         }
     };
@@ -67,8 +67,8 @@ const UserBasicInfo = ({
         navigate(buildRoute(ROUTES.USER_LISTINGS, { id: userId }), {
             state: {
                 ...location.state,
-                userName: `${firstName} ${lastName}` // Aby breadcrumb věděl, čí nabídky to jsou
-            }
+                userName: `${firstName} ${lastName}`, // Aby breadcrumb věděl, čí nabídky to jsou
+            },
         });
     };
 
@@ -82,7 +82,9 @@ const UserBasicInfo = ({
 
     return (
         <>
-            <div className={`user_basic_info ${isTechDetail ? "tech_mode" : ""}`}>
+            <div
+                className={`user_basic_info ${isTechDetail ? "tech_mode" : ""}`}
+            >
                 <div
                     className={`user_basic_info_profile_picture ${isTechDetail ? "small_avatar clickable" : ""}`}
                     onClick={isTechDetail ? handleProfileClick : undefined}
@@ -96,29 +98,42 @@ const UserBasicInfo = ({
                 <div className="user_basic_info_details">
                     {/* 2) a 3) Jméno a specializace */}
                     {isTechDetail ? (
-                        <div className="owner_info clickable" onClick={handleProfileClick}>
-                            <h3 className="owner_name">{firstName} {lastName}</h3>
-                            {formattedSpecs && <p className="owner_specs">{formattedSpecs}</p>}
+                        <div
+                            className="owner_info clickable"
+                            onClick={handleProfileClick}
+                        >
+                            <h3 className="owner_name">
+                                {firstName} {lastName}
+                            </h3>
+                            {formattedSpecs && (
+                                <p className="owner_specs">{formattedSpecs}</p>
+                            )}
                         </div>
                     ) : (
                         <>
                             {isActive ? (
                                 <h3 className="status_active">HLEDÁ PRÁCI</h3>
                             ) : (
-                                <h3 className="status_inactive">NEHLEDÁ PRÁCI</h3>
+                                <h3 className="status_inactive">
+                                    NEHLEDÁ PRÁCI
+                                </h3>
                             )}
                         </>
                     )}
 
                     {/* 4) Tlačítko Ozvat se s TOOLTIPEM */}
-                    <div className={`tooltip-wrapper ${isUnclickable ? "has-tooltip" : ""}`}>
+                    <div
+                        className={`tooltip-wrapper ${isUnclickable ? "has-tooltip" : ""}`}
+                    >
                         <button
                             type="button"
                             className={`form-submit ${isUnclickable ? "unclickable" : ""}`}
                             onClick={handleMessageClick}
                         >
                             <p className="strong">
-                                {isTechDetail ? "Ozvat se na nabídku" : "Ozvat se s prací"}
+                                {isTechDetail
+                                    ? "Ozvat se na nabídku"
+                                    : "Ozvat se s prací"}
                             </p>
                         </button>
                         {isUnclickable && (
@@ -129,9 +144,14 @@ const UserBasicInfo = ({
                     </div>
 
                     {/* 5) Druhé tlačítko */}
-                    <button className="secondary_button extra_space" onClick={handleShowListings}>
+                    <button
+                        className="secondary_button extra_space"
+                        onClick={handleShowListings}
+                    >
                         <p className="oauth_text strong">
-                            {isTechDetail ? "Zobrazit všechny nabídky" : "Zobrazit nabídky techniky"}
+                            {isTechDetail
+                                ? "Zobrazit všechny nabídky"
+                                : "Zobrazit nabídky techniky"}
                         </p>
                     </button>
 
@@ -142,9 +162,12 @@ const UserBasicInfo = ({
                     </div>
 
                     {/* Kontakt: Telefon */}
-                    {phone && (phoneVisible) ? (
+                    {phone && phoneVisible ? (
                         <div className="user_basic_info_contact">
-                            <FontAwesomeIcon icon={faPhone} className="contact_icon" />
+                            <FontAwesomeIcon
+                                icon={faPhone}
+                                className="contact_icon"
+                            />
                             <p className="contact_text">{phone}</p>
                         </div>
                     ) : null}
@@ -154,12 +177,14 @@ const UserBasicInfo = ({
                 isOpen={isMessagePopupOpen}
                 onClose={() => setIsMessagePopupOpen(false)}
                 targetId={userId}
-                targetName={isTechDetail ? techTitle : `${firstName} ${lastName}`}
+                targetName={
+                    isTechDetail ? techTitle : `${firstName} ${lastName}`
+                }
                 type={isTechDetail ? "tech" : "job"}
                 techId={isTechDetail ? techId : null}
             />
         </>
     );
-}
+};
 
 export default UserBasicInfo;

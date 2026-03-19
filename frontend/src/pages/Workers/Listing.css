@@ -186,7 +186,8 @@
 }
 
 /* Animace pro načítání položek */
-.all-items > div, .all-items-full > div {
+.all-items > div,
+.all-items-full > div {
     animation: fadeInTech 0.4s ease-out forwards;
 }
 

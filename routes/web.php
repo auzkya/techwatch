@@ -1,14 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Socialite\Facades\Socialite;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProfileController;
-use App\Models\Notification;
 
-//Route::get('/verify/{token}', [AuthController::class, 'verify']);
+// Route::get('/verify/{token}', [AuthController::class, 'verify']);
 
 // NOVÁ ROUTE pro prodloužení active_worker (HLEDÁM PRÁCI)
 Route::get('/extend-active-worker', [ProfileController::class, 'extendActiveWorker'])
@@ -24,7 +24,7 @@ Route::get('/open-notification/{notification}', function (Notification $notifica
     // env('FRONTEND_URL') vytáhne tu správnou adresu z tvého souboru
     $frontendUrl = env('FRONTEND_URL', 'https://techwatch.app/app');
 
-    return Redirect::to($frontendUrl . '/?open_notif=' . $notification->id);
+    return Redirect::to($frontendUrl.'/?open_notif='.$notification->id);
 })->name('notification.email.open');
 
 // ------------------------------------
@@ -32,7 +32,7 @@ Route::get('/open-notification/{notification}', function (Notification $notifica
 // ------------------------------------
 Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
     $validProviders = ['google', 'facebook'];
-    if (!in_array($provider, $validProviders)) {
+    if (! in_array($provider, $validProviders)) {
         abort(404);
     }
 
@@ -41,7 +41,7 @@ Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
     // Zakódujeme cíl do parametru state, který Google pošle zpět
     return Socialite::driver($provider)
         ->stateless()
-        ->with(['state' => 'redirect=' . $target])
+        ->with(['state' => 'redirect='.$target])
         ->redirect();
 });
 
@@ -133,13 +133,14 @@ Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
 // OAuth callback
 Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
     $validProviders = ['google', 'facebook'];
-    if (!in_array($provider, $validProviders))
+    if (! in_array($provider, $validProviders)) {
         abort(404);
+    }
 
     try {
         $socialUser = Socialite::driver($provider)->stateless()->user();
     } catch (\Exception $e) {
-        return redirect(config('app.frontend_url') . '/login?error=oauth_failed');
+        return redirect(config('app.frontend_url').'/login?error=oauth_failed');
     }
 
     $email = $socialUser->getEmail();
@@ -155,23 +156,24 @@ Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
     if ($user) {
         // Pokud má uživatel ban
         if ($user->is_banned) {
-            $reason = $user->ban_reason ? "&reason=" . urlencode($user->ban_reason) : "";
-            return redirect($frontend . "/login?error=banned" . $reason);
+            $reason = $user->ban_reason ? '&reason='.urlencode($user->ban_reason) : '';
+
+            return redirect($frontend.'/login?error=banned'.$reason);
         }
 
         // Pokud je uživatel smazaný (trashed)
         if ($user->trashed()) {
-            return redirect($frontend . "/login?error=deleted");
+            return redirect($frontend.'/login?error=deleted');
         }
     }
 
     // Pokud uživatel neexistuje vůbec, přesměruj na registraci s předvyplněnými údaji
-    if (!$user) {
+    if (! $user) {
         $name = $socialUser->getName() ?? '';
-        [$fname, $lname] = explode(' ', $name . ' ', 2);
+        [$fname, $lname] = explode(' ', $name.' ', 2);
 
         return redirect(
-            $frontend . "/oauth-registration?" . http_build_query([
+            $frontend.'/oauth-registration?'.http_build_query([
                 'email' => $email,
                 'fname' => $fname,
                 'lname' => $lname,
@@ -183,8 +185,8 @@ Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
     }
 
     // EXISTUJÍCÍ UŽIVATEL → VYTVOŘ TOKENY
-    $providerColumn = $provider . '_id';
-    if (!$user->{$providerColumn}) {
+    $providerColumn = $provider.'_id';
+    if (! $user->{$providerColumn}) {
         $user->{$providerColumn} = $providerId;
         $user->save();
     }
@@ -203,7 +205,7 @@ Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
         now()->addDays(14)
     )->plainTextToken;
 
-    return redirect($frontend . '/oauth-callback?token=' . $accessToken . '&redirect=' . urlencode($targetRedirect))
+    return redirect($frontend.'/oauth-callback?token='.$accessToken.'&redirect='.urlencode($targetRedirect))
         ->cookie(
             'refresh_token',
             $refreshToken,

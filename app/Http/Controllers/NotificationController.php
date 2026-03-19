@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NotificationSent;
+use App\Mail\NewMessageMail;
 use App\Models\Notification;
 use App\Models\User;
-use App\Models\Item;
-use App\Events\NotificationSent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\NewMessageMail;
 
 class NotificationController extends Controller
 {
@@ -40,8 +39,8 @@ class NotificationController extends Controller
             'description' => $request->message,
             'data' => [
                 'tech_id' => $request->tech_id,
-                'is_job_offer' => $request->type === 'job'
-            ]
+                'is_job_offer' => $request->type === 'job',
+            ],
         ]);
 
         // 1. Okamžité odeslání přes websocket
@@ -58,10 +57,10 @@ class NotificationController extends Controller
                 $currentNotification = Notification::find($notification->id);
 
                 // Kontrola: Poslat jen pokud je stále nepřečtená
-                if ($currentNotification && !$currentNotification->is_read) {
+                if ($currentNotification && ! $currentNotification->is_read) {
                     Mail::to($recipient->email)->send(new NewMessageMail($currentNotification));
                 }
-            });//->delay(now()->addMinutes(1));
+            }); // ->delay(now()->addMinutes(1));
         }
 
         return response()->json(['success' => true]);
@@ -84,6 +83,7 @@ class NotificationController extends Controller
             }
 
             $query->update(['is_read' => true]);
+
             return response()->json(['success' => true]);
         }
 
@@ -93,6 +93,7 @@ class NotificationController extends Controller
             ->firstOrFail();
 
         $notification->update(['is_read' => true]);
+
         return response()->json(['success' => true]);
     }
 
@@ -101,7 +102,7 @@ class NotificationController extends Controller
         return response()->json([
             'count' => Notification::where('user_id', auth()->id())
                 ->where('is_read', false)
-                ->count()
+                ->count(),
         ]);
     }
 }

@@ -10,8 +10,12 @@ import Path from "../../components/Path";
 import { ASSETS } from "../../config/assets";
 import makeSlug from "../../utils/makeSlug";
 
-import { faGears, faMagnifyingGlass, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faGears,
+    faMagnifyingGlass,
+    faPeopleGroup,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import "../Workers/Listing.css";
 
@@ -26,12 +30,12 @@ const Favourites = () => {
         const fetchFavs = async () => {
             setLoading(true);
             try {
-                const response = await axiosInstance.get('/api/favourites', {
-                    params: { search: searchTerm }
+                const response = await axiosInstance.get("/api/favourites", {
+                    params: { search: searchTerm },
                 });
                 setData({
                     workers: response.data.workers || [],
-                    tech: response.data.tech || []
+                    tech: response.data.tech || [],
                 });
             } catch (error) {
                 console.error("Chyba:", error);
@@ -44,8 +48,11 @@ const Favourites = () => {
     }, [searchTerm]);
 
     // LOGIKA PRO BOD 2: Příprava dat pro zobrazení
-    const workersWithFlag = data.workers.map(w => ({ ...w, itemType: 'worker' }));
-    const techWithFlag = data.tech.map(t => ({ ...t, itemType: 'tech' }));
+    const workersWithFlag = data.workers.map((w) => ({
+        ...w,
+        itemType: "worker",
+    }));
+    const techWithFlag = data.tech.map((t) => ({ ...t, itemType: "tech" }));
 
     let displayItems = [];
     if (!subcategory) {
@@ -61,12 +68,19 @@ const Favourites = () => {
             <Path mode="favourites" category={subcategory} />
 
             <h1 className="list_title">
-                {!subcategory ? "Uložené nabídky" : subcategory === "workers" ? "Uložení pracovníci" : "Uložená technika"}
+                {!subcategory
+                    ? "Uložené nabídky"
+                    : subcategory === "workers"
+                      ? "Uložení pracovníci"
+                      : "Uložená technika"}
             </h1>
 
             <div className="search_bar-container">
                 <div className="search_bar-box">
-                    <FontAwesomeIcon icon={faMagnifyingGlass} className="search_bar-icon" />
+                    <FontAwesomeIcon
+                        icon={faMagnifyingGlass}
+                        className="search_bar-icon"
+                    />
                     <input
                         className="search_bar"
                         placeholder="Hledejte v oblíbených"
@@ -82,12 +96,24 @@ const Favourites = () => {
                     <ButtonSubcategory
                         icon={<FontAwesomeIcon icon={faPeopleGroup} />}
                         text="Pracovníci"
-                        onClick={() => navigate(buildRoute(ROUTES.FAVOURITES_CATEGORY, { subcategory: "workers" }))}
+                        onClick={() =>
+                            navigate(
+                                buildRoute(ROUTES.FAVOURITES_CATEGORY, {
+                                    subcategory: "workers",
+                                }),
+                            )
+                        }
                     />
                     <ButtonSubcategory
                         icon={<FontAwesomeIcon icon={faGears} />}
                         text="Technika"
-                        onClick={() => navigate(buildRoute(ROUTES.FAVOURITES_CATEGORY, { subcategory: "tech" }))}
+                        onClick={() =>
+                            navigate(
+                                buildRoute(ROUTES.FAVOURITES_CATEGORY, {
+                                    subcategory: "tech",
+                                }),
+                            )
+                        }
                     />
                 </div>
             )}
@@ -99,16 +125,20 @@ const Favourites = () => {
                             <ItemSkeleton key={`skeleton-${index}`} />
                         ))
                     ) : displayItems.length > 0 ? (
-                        displayItems.map(item => {
-                            const isWorker = item.itemType === 'worker';
+                        displayItems.map((item) => {
+                            const isWorker = item.itemType === "worker";
 
                             // 1. Sjednocení polí (Důležité: u techniky používáš item.title v Tech.js)
                             const displayName = isWorker
-                                ? `${item.first_name ?? ''} ${item.last_name ?? ''}`
-                                : (item.title || item.name); // fallback pokud by backend poslal name místo title
+                                ? `${item.first_name ?? ""} ${item.last_name ?? ""}`
+                                : item.title || item.name; // fallback pokud by backend poslal name místo title
 
                             // 2. Příprava slugu pro dělníky (stejná logika jako ve Workers)
-                            const workerSlug = isWorker ? makeSlug(`${item.first_name}-${item.last_name}`) : "";
+                            const workerSlug = isWorker
+                                ? makeSlug(
+                                      `${item.first_name}-${item.last_name}`,
+                                  )
+                                : "";
 
                             return (
                                 <Item
@@ -116,24 +146,36 @@ const Favourites = () => {
                                     id={item.id}
                                     isFavouriteInitially={true}
                                     // Fallback na defaultní obrázky
-                                    profile_picture={isWorker
-                                        ? (item.profile_image_url || ASSETS.default_avatar)
-                                        : (item.main_image_url || ASSETS.default_item)
+                                    profile_picture={
+                                        isWorker
+                                            ? item.profile_image_url ||
+                                              ASSETS.default_avatar
+                                            : item.main_image_url ||
+                                              ASSETS.default_item
                                     }
                                     rating={item.review_value}
                                     name={displayName}
-                                    role={isWorker ? item.formatted_specs : null}
+                                    role={
+                                        isWorker ? item.formatted_specs : null
+                                    }
                                     price={item.price}
                                     purpose={item.purpose}
                                     quantity={item.quantity}
                                     onClick={() => {
                                         if (isWorker) {
-                                            navigate(`/user/${item.id}/${workerSlug}`, {
-                                                state: { fromMode: "favourites" }
-                                            });
+                                            navigate(
+                                                `/user/${item.id}/${workerSlug}`,
+                                                {
+                                                    state: {
+                                                        fromMode: "favourites",
+                                                    },
+                                                },
+                                            );
                                         } else {
                                             navigate(`/tech/item/${item.id}`, {
-                                                state: { fromMode: "favourites" }
+                                                state: {
+                                                    fromMode: "favourites",
+                                                },
                                             });
                                         }
                                     }}
@@ -145,8 +187,7 @@ const Favourites = () => {
                             <h2 className="no-results_listing">
                                 {searchTerm
                                     ? "Nebylo nalezeno nic, co by odpovídalo hledání."
-                                    : `Nemáte ${subcategory === 'workers' ? 'žádné uložené pracovníky' : subcategory === 'tech' ? 'žádnou uloženou techniku' : 'žádné uložené nabídky'}.`
-                                }
+                                    : `Nemáte ${subcategory === "workers" ? "žádné uložené pracovníky" : subcategory === "tech" ? "žádnou uloženou techniku" : "žádné uložené nabídky"}.`}
                             </h2>
                         </div>
                     )}

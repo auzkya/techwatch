@@ -22,11 +22,11 @@
 
 .form_textarea:focus {
     color: var(--text);
-        background-color: var(--background2);
+    background-color: var(--background2);
     outline: none;
 }
 
-.textarea-char-counter{
+.textarea-char-counter {
     font-size: 12px;
     color: var(--text3);
     text-align: right;
@@ -34,14 +34,21 @@
     margin-top: -4px;
 }
 
-.textarea-at-limit{
+.textarea-at-limit {
     color: var(--primary2);
     font-weight: 500;
     animation: shake 0.2s ease-in-out;
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    75% { transform: translateX(2px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-2px);
+    }
+    75% {
+        transform: translateX(2px);
+    }
 }

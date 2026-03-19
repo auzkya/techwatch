@@ -3,17 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Item extends Model
 {
     // aby nahlášené položky při smazání adminem úplně nezmizely z historie
     use SoftDeletes;
-    
+
     protected $fillable = [
         'user_id', 'title', 'description', 'price', 'category',
-        'location', 'purpose', 'quantity', 'images', 'active_item', 'review_value'
+        'location', 'purpose', 'quantity', 'images', 'active_item', 'review_value',
     ];
 
     // Přidáno reviews_count pro frontend
@@ -46,10 +46,14 @@ class Item extends Model
     public function getImageUrlsAttribute()
     {
         $paths = $this->images ?? [];
+
         return array_map(function ($path) {
-            if (str_starts_with($path, 'http')) return $path;
+            if (str_starts_with($path, 'http')) {
+                return $path;
+            }
+
             return Storage::disk('r2')->url($path);
-        }, (array)$paths);
+        }, (array) $paths);
     }
 
     public function favouritedBy()

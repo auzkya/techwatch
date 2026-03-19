@@ -32,7 +32,7 @@
 .subcategory_icon-wrapper span {
     display: flex;
     align-items: center;
-    font-size: 22px;   /* Stejné jako vaše h3 v index.css */
+    font-size: 22px; /* Stejné jako vaše h3 v index.css */
     max-height: 26px;
     margin: 0 4px 0 0;
 }

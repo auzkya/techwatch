@@ -10,7 +10,7 @@ const PopupRevertReport = ({ report, targetName, onClose, onConfirm }) => {
 
     if (!report) return null;
 
-    const isResolved = report.status === 'resolved';
+    const isResolved = report.status === "resolved";
 
     // Detekce postihu pro label
     const hasPenalty = report.admin_note !== null;
@@ -33,22 +33,32 @@ const PopupRevertReport = ({ report, targetName, onClose, onConfirm }) => {
                 <div className="popup_header">
                     <h2>Zvrátit rozhodnutí</h2>
                     <p className="popup_header_sub">
-                        Cíl: <strong>{targetName}</strong> | Aktuální stav: <strong>{report.status === 'resolved' ? 'Vyřešeno' : 'Ignorováno'}</strong>
+                        Cíl: <strong>{targetName}</strong> | Aktuální stav:{" "}
+                        <strong>
+                            {report.status === "resolved"
+                                ? "Vyřešeno"
+                                : "Ignorováno"}
+                        </strong>
                     </p>
                 </div>
 
                 <div className="form-review">
-                    <p style={{ textAlign: 'center' }}>
-                        Zvrácením se nahlášení vrátí do stavu "Čekající".<br></br> Pokud byl obsah smazán nebo uživatel strikován/zabanován, akce se stornuje.
+                    <p style={{ textAlign: "center" }}>
+                        Zvrácením se nahlášení vrátí do stavu "Čekající".
+                        <br></br> Pokud byl obsah smazán nebo uživatel
+                        strikován/zabanován, akce se stornuje.
                     </p>
 
                     {/* Checkbox zobrazíme POUZE pokud byl report vyřešen (smazán/banován) */}
                     {isResolved && (
-                        <div className="review-fuller" style={{
-                            justifyContent: 'center',
-                            display: 'flex',
-                            marginTop: '30px'
-                        }}>
+                        <div
+                            className="review-fuller"
+                            style={{
+                                justifyContent: "center",
+                                display: "flex",
+                                marginTop: "30px",
+                            }}
+                        >
                             <div className="checkbox-container">
                                 <input
                                     type="checkbox"
@@ -58,13 +68,20 @@ const PopupRevertReport = ({ report, targetName, onClose, onConfirm }) => {
                                     checked={notify}
                                     onChange={() => setNotify(!notify)}
                                 />
-                                <label htmlFor="notify-user" className="checkbox-text">
+                                <label
+                                    htmlFor="notify-user"
+                                    className="checkbox-text"
+                                >
                                     <span className="strong">
-                                        Informovat postihnutého uživatele {hasPenalty ? "(Aplikace + E-mail)" : "(Aplikace)"}
+                                        Informovat postihnutého uživatele{" "}
+                                        {hasPenalty
+                                            ? "(Aplikace + E-mail)"
+                                            : "(Aplikace)"}
                                     </span>
                                     <br />
                                     <small style={{ opacity: 0.8 }}>
-                                        Uživatel dostane systémovou omluvu a informaci o obnovení.
+                                        Uživatel dostane systémovou omluvu a
+                                        informaci o obnovení.
                                     </small>
                                 </label>
                             </div>
@@ -86,6 +103,6 @@ const PopupRevertReport = ({ report, targetName, onClose, onConfirm }) => {
             </div>
         </div>
     );
-}
+};
 
 export default PopupRevertReport;

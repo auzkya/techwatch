@@ -31,7 +31,7 @@
 
 @keyframes l13 {
     100% {
-        transform: rotate(1turn)
+        transform: rotate(1turn);
     }
 }
 
@@ -152,7 +152,9 @@ input[type="checkbox" i] {
     border: 2px solid var(--text) !important;
     outline: none;
     box-shadow: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 /* Stav po kliknutí, kdy prvek stále drží focus */
@@ -173,7 +175,7 @@ input[type="checkbox" i] {
 }
 
 .custom-checkbox:checked::after {
-    content: '';
+    content: "";
     position: absolute;
     left: 50%;
     top: 50%;
@@ -308,7 +310,7 @@ input[type="checkbox" i] {
     transform: translate(-50%);
     bottom: 10px;
     display: block;
-    opacity: .4;
+    opacity: 0.4;
     text-align: center;
 }
 

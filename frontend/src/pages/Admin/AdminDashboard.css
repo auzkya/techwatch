@@ -8,7 +8,10 @@
 .admin-logout {
     align-items: center;
     border-radius: 8px;
-    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 16px -16px #1f1f1f;
+    box-shadow:
+        0 0 1px #1f1f1f,
+        0 1px 4px #1f1f1f,
+        0 16px 16px -16px #1f1f1f;
     position: absolute;
     padding: 0px 20px;
     background-color: var(--background);
@@ -34,7 +37,10 @@
 .admin-tabs {
     background: var(--background);
     border-radius: 10px;
-    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 16px -16px #1f1f1f;
+    box-shadow:
+        0 0 1px #1f1f1f,
+        0 1px 4px #1f1f1f,
+        0 16px 16px -16px #1f1f1f;
     display: flex;
     gap: 12px;
     padding: 6px 12px;
@@ -49,7 +55,7 @@
     cursor: pointer;
     font-weight: 600;
     padding: 14px 24px;
-    transition: all .2s;
+    transition: all 0.2s;
     font-size: 14px;
 }
 
@@ -81,7 +87,7 @@
     animation: fadeIn 0.3s ease-in;
 }
 
-.fade-in .section-header{
+.fade-in .section-header {
     text-align: center;
 }
 

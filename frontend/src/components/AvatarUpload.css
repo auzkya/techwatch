@@ -51,7 +51,7 @@
     width: 500px;
     height: 500px;
     border-radius: 50%;
-        margin: 0 auto;
+    margin: 0 auto;
     overflow: hidden;
 }
 
@@ -62,9 +62,9 @@
     display: flex;
 }
 
-.crop_actions_cancel{
+.crop_actions_cancel {
     margin: 0 5px;
-        padding: 12px 20px;
+    padding: 12px 20px;
     border: none;
     border-radius: 8px;
     background-color: transparent;
@@ -72,16 +72,16 @@
     text-decoration: underline;
 }
 
-.crop_actions_save{
-        padding: 12px 20px;
-        margin: 0 5px;
+.crop_actions_save {
+    padding: 12px 20px;
+    margin: 0 5px;
     border: none;
     border-radius: 8px;
     background-color: var(--primary);
     color: var(--text);
 }
 
-.crop_actions p{
+.crop_actions p {
     margin: 0 !important;
 }
 

@@ -5,8 +5,8 @@ const axiosInstance = axios.create({
     withCredentials: true, // KRITICKÉ! pro httpOnly cookie
     headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
+        Accept: "application/json",
+    },
 });
 
 // Interceptor pro automatické přidání access tokenu
@@ -14,7 +14,7 @@ let accessToken = null;
 
 export const setAccessToken = (token) => {
     accessToken = token;
-    console.log('🔑 Access token nastaven:', token ? 'ANO' : 'NE');
+    console.log("🔑 Access token nastaven:", token ? "ANO" : "NE");
 };
 
 export const getAccessToken = () => accessToken;
@@ -27,7 +27,7 @@ axiosInstance.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
 );
 
 // Response interceptor - automatický refresh při 401
@@ -35,7 +35,7 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-    failedQueue.forEach(prom => {
+    failedQueue.forEach((prom) => {
         if (error) {
             prom.reject(error);
         } else {
@@ -52,10 +52,10 @@ axiosInstance.interceptors.response.use(
 
         // Ignoruj 401 z refresh a login endpointů
         if (
-            originalRequest.url.includes('/refresh') ||
-            originalRequest.url.includes('/login') ||
-            originalRequest.url.includes('/logout') ||
-            originalRequest.url.includes('/registration')
+            originalRequest.url.includes("/refresh") ||
+            originalRequest.url.includes("/login") ||
+            originalRequest.url.includes("/logout") ||
+            originalRequest.url.includes("/registration")
         ) {
             return Promise.reject(error);
         }
@@ -74,37 +74,41 @@ axiosInstance.interceptors.response.use(
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
-                    .then(token => {
+                    .then((token) => {
                         originalRequest.headers.Authorization = `Bearer ${token}`;
                         return axiosInstance(originalRequest);
                     })
-                    .catch(err => Promise.reject(err));
+                    .catch((err) => Promise.reject(err));
             }
 
             originalRequest._retry = true;
             isRefreshing = true;
 
             try {
-                console.log('🔄 Pokouším se obnovit access token...');
+                console.log("🔄 Pokouším se obnovit access token...");
 
                 // DŮLEŽITÉ: Použij čistý axios aby se nevyvolal interceptor znovu
                 const res = await axios.post(
                     `${axiosInstance.defaults.baseURL}/api/refresh`,
                     {},
-                    { withCredentials: true }
+                    { withCredentials: true },
                 );
 
                 const newToken = res.data.access_token;
-                console.log('✅ Nový access token získán');
+                console.log("✅ Nový access token získán");
 
                 setAccessToken(newToken);
                 processQueue(null, newToken);
 
-                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+                axiosInstance.defaults.headers.common["Authorization"] =
+                    `Bearer ${newToken}`;
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return axiosInstance(originalRequest);
             } catch (refreshError) {
-                console.log('❌ Refresh token selhal:', refreshError.response?.data || refreshError.message);
+                console.log(
+                    "❌ Refresh token selhal:",
+                    refreshError.response?.data || refreshError.message,
+                );
                 processQueue(refreshError, null);
                 setAccessToken(null);
                 return Promise.reject(refreshError);
@@ -114,7 +118,7 @@ axiosInstance.interceptors.response.use(
         }
 
         return Promise.reject(error);
-    }
+    },
 );
 
 export default axiosInstance;

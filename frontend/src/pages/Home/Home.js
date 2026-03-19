@@ -7,14 +7,14 @@ import { useScrollLock } from "../../hooks/useScrollLock";
 
 import "./Home.css";
 
-import { faGears, faPeopleGroup } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGears, faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { ASSETS } from "../../config/assets";
 
 const Home = () => {
     const navigate = useNavigate();
-    const { user, loading } = useAuth();
+    const { loading } = useAuth();
 
     useScrollLock(loading);
 
@@ -31,19 +31,30 @@ const Home = () => {
                     <ButtonHomePage
                         icon={<FontAwesomeIcon icon={faPeopleGroup} />}
                         text="PRACOVNÍCI"
-                        onClick={() => navigate(buildRoute(ROUTES.WORKERS, { subcategory: "" }))}
+                        onClick={() =>
+                            navigate(
+                                buildRoute(ROUTES.WORKERS, { subcategory: "" }),
+                            )
+                        }
                     />
                     <ButtonHomePage
                         icon={<FontAwesomeIcon icon={faGears} />}
                         text="TECHNIKA"
-                        onClick={() => navigate(buildRoute(ROUTES.TECH, { subcategory: "" }))}
+                        onClick={() =>
+                            navigate(
+                                buildRoute(ROUTES.TECH, { subcategory: "" }),
+                            )
+                        }
                     />
                 </div>
-
             </div>
-            <p className="website_info">Aplikace je aktuálně ve fázi vývoje. Pokud byste chtěli nahlásit chybu nebo navrhnout novou funkci, kontaktujte nás na <a href="mailto:info@techwatch.app">info@techwatch.app</a>.</p>
+            <p className="website_info">
+                Aplikace je aktuálně ve fázi vývoje. Pokud byste chtěli nahlásit
+                chybu nebo navrhnout novou funkci, kontaktujte nás na{" "}
+                <a href="mailto:info@techwatch.app">info@techwatch.app</a>.
+            </p>
         </>
-    )
-}
+    );
+};
 
-export default Home
+export default Home;

@@ -18,7 +18,7 @@ class Report extends Model
         'resolution_action',
         'admin_note',     // Přidáno pro tvoje poznámky (RQ-37)
         'resolved_at',
-        'resolved_by'
+        'resolved_by',
     ];
 
     /**

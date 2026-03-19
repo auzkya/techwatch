@@ -8,7 +8,10 @@
     margin: 10px auto;
     border: none;
     width: 100%;
-    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 24px -20px #1f1f1f;
+    box-shadow:
+        0 0 1px #1f1f1f,
+        0 1px 4px #1f1f1f,
+        0 16px 24px -20px #1f1f1f;
     overflow: hidden;
 }
 
@@ -70,7 +73,7 @@
     text-overflow: ellipsis;
 }
 
-.no_wrap{
+.no_wrap {
     text-wrap: auto;
 }
 

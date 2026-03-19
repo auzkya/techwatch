@@ -132,7 +132,7 @@
     text-decoration: none;
 }
 
-.price_location_header_light_weight{
+.price_location_header_light_weight {
     font-weight: 300;
     margin: 0 4px;
 }
@@ -140,7 +140,7 @@
 /* Upravit původní třídu */
 .gallery_content_wrapper {
     /* Místo 90% šířky použijeme auto, aby se wrapper smrskl na obsah */
-    width: auto; 
+    width: auto;
     max-width: 95%;
     height: auto;
     max-height: 80vh;
@@ -148,19 +148,19 @@
     justify-content: center;
     align-items: center;
     /* Důležité: pointer-events nesmí blokovat overlay */
-    position: relative; 
+    position: relative;
     z-index: 1001;
 }
 
 .pdf_viewer_container {
     /* Tady definujeme pevnou velikost pro PDF */
-    width: 80vw; 
+    width: 80vw;
     max-width: 1000px;
     height: 80vh; /* PDF by mělo mít výšku, aby se dalo scrollovat */
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* Pokud je to fotka přes QuickPinchZoom, zajisti, aby nevyplňovala celý wrapper */

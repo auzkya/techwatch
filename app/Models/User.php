@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -34,7 +34,7 @@ class User extends Authenticatable
         'strikes_count',
         'is_banned',
         'ban_reason',
-        'last_login'
+        'last_login',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -58,10 +58,12 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Spec::class);
     }
+
     public function items()
     {
         return $this->hasMany(Item::class);
     }
+
     public function riders()
     {
         return $this->hasMany(UserRider::class, 'user_id');
@@ -81,10 +83,13 @@ class User extends Authenticatable
 
     public function getProfileImageUrlAttribute()
     {
-        if (!$this->profile_image)
+        if (! $this->profile_image) {
             return null;
-        if (filter_var($this->profile_image, FILTER_VALIDATE_URL))
+        }
+        if (filter_var($this->profile_image, FILTER_VALIDATE_URL)) {
             return $this->profile_image;
+        }
+
         return Storage::disk('r2')->url($this->profile_image);
     }
 
@@ -111,6 +116,6 @@ class User extends Authenticatable
     public function getIsBannedAttribute($value)
     {
         // Vrací true, pokud je is_banned v DB true NEBO pokud je záznam v koši (Soft Deleted)
-        return (bool)$value || $this->trashed();
+        return (bool) $value || $this->trashed();
     }
 }

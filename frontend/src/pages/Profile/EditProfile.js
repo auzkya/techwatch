@@ -8,8 +8,6 @@ const EditProfile = () => {
     const [loading, setLoading] = useState(false);
     useScrollLock(loading);
     const { loading: authLoading } = useAuth();
-    const [success, setSuccess] = useState("");
-    const [error, setError] = useState("");
     return (
         <>
             {(authLoading || loading) && (
@@ -20,18 +18,16 @@ const EditProfile = () => {
 
             <div
                 style={{
-                    display:(authLoading || loading) ? "none" : "block"
+                    display: authLoading || loading ? "none" : "block",
                 }}
             >
                 <div className="general_form">
                     <h1>Profil</h1>
-                    <FormEditProfile
-                        setLoading={setLoading}
-                    />
+                    <FormEditProfile setLoading={setLoading} />
                 </div>
             </div>
         </>
-    )
-}
+    );
+};
 
-export default EditProfile
+export default EditProfile;

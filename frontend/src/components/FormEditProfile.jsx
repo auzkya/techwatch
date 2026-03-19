@@ -1,6 +1,6 @@
-import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
-import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import intlTelInput from "intl-tel-input";
 import "intl-tel-input/build/css/intlTelInput.css";
 import { useEffect, useRef, useState } from "react";
@@ -71,10 +71,12 @@ const FormEditProfile = ({ setLoading }) => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isLocOpen && !locRef.current?.contains(event.target)) setIsLocOpen(false);
+            if (isLocOpen && !locRef.current?.contains(event.target))
+                setIsLocOpen(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, [isLocOpen]);
 
     // Načtení dat uživatele
@@ -99,11 +101,11 @@ const FormEditProfile = ({ setLoading }) => {
         }
     }, [user]);
 
-    // 2. ⚠️ OPRAVA SPECIALIZACÍ: Tento efekt zajistí, že se checkboxy zaškrtnou 
+    // 2. ⚠️ OPRAVA SPECIALIZACÍ: Tento efekt zajistí, že se checkboxy zaškrtnou
     // i po reloadu, jakmile se načte user z API/Contextu
     useEffect(() => {
         if (user && user.specs) {
-            const userSlugs = user.specs.map(s => s.slug);
+            const userSlugs = user.specs.map((s) => s.slug);
             // Porovnáme, jestli se data skutečně liší, abychom se vyhnuli nekonečnému loopu
             setCategory(userSlugs);
         }
@@ -167,7 +169,7 @@ const FormEditProfile = ({ setLoading }) => {
     // Countdown
     useEffect(() => {
         if (countdown <= 0) return;
-        const timer = setTimeout(() => setCountdown(prev => prev - 1), 1000);
+        const timer = setTimeout(() => setCountdown((prev) => prev - 1), 1000);
         return () => clearTimeout(timer);
     }, [countdown]);
 
@@ -205,10 +207,10 @@ const FormEditProfile = ({ setLoading }) => {
     };
 
     const toggleCategory = (value) => {
-        setCategory(prev =>
+        setCategory((prev) =>
             prev.includes(value)
-                ? prev.filter(v => v !== value)
-                : [...prev, value]
+                ? prev.filter((v) => v !== value)
+                : [...prev, value],
         );
     };
 
@@ -227,7 +229,7 @@ const FormEditProfile = ({ setLoading }) => {
                 setLoading(false);
                 showAlert(
                     "error",
-                    err.response?.data?.error || "Chyba při odesílání SMS"
+                    err.response?.data?.error || "Chyba při odesílání SMS",
                 );
             }
             return;
@@ -279,7 +281,7 @@ const FormEditProfile = ({ setLoading }) => {
             setLoading(false);
             showAlert(
                 "error",
-                err.response?.data?.error || "Chyba při odesílání SMS"
+                err.response?.data?.error || "Chyba při odesílání SMS",
             );
         }
     };
@@ -299,14 +301,13 @@ const FormEditProfile = ({ setLoading }) => {
             setLoading(false);
             showAlert(
                 "error",
-                err.response?.data?.error || "Chyba při odesílání SMS"
+                err.response?.data?.error || "Chyba při odesílání SMS",
             );
         }
     };
 
     // ⚠️ POPUP: Krok 2 - Ověření OTP
     const handleVerifyOtp = async () => {
-
         setLoading(true);
         if (otp.length !== 6) {
             setLoading(false);
@@ -332,7 +333,6 @@ const FormEditProfile = ({ setLoading }) => {
             setSavedPhone(currentPhone);
             setPhoneChanged(false);
             handleClosePopup();
-
         } catch {
             setLoading(false);
             showAlert("error", "Chyba při ověřování kódu");
@@ -351,7 +351,10 @@ const FormEditProfile = ({ setLoading }) => {
         e.preventDefault();
 
         if (phoneChanged && currentPhone !== "") {
-            showAlert("error", "Telefonní číslo bylo změněno a musí být ověřeno");
+            showAlert(
+                "error",
+                "Telefonní číslo bylo změněno a musí být ověřeno",
+            );
             return;
         }
 
@@ -367,7 +370,7 @@ const FormEditProfile = ({ setLoading }) => {
 
             formData.append("phone_visible", phoneVisible ? "1" : "0");
 
-            category.forEach(cat => {
+            category.forEach((cat) => {
                 formData.append("spec[]", cat);
             });
 
@@ -397,23 +400,23 @@ const FormEditProfile = ({ setLoading }) => {
 
             // 2. LOGIKA ALERTU - Vezmeme zprávu z backendu
             const isDeactivated = response.data.deactivated;
-            const msg = response.data.message || "Profil byl úspěšně aktualizován.";
+            const msg =
+                response.data.message || "Profil byl úspěšně aktualizován.";
 
             // 3. Zobrazení alertu - pokud došlo k vypnutí módu, dáme "warning" nebo "info"
             showAlert(isDeactivated ? "warning" : "success", msg);
 
-            // 4. NAVIGACE - Pokud chceš, aby uživatel viděl ten alert, 
+            // 4. NAVIGACE - Pokud chceš, aby uživatel viděl ten alert,
             // můžeš navigaci o vteřinu odložit, nebo se ujisti, že AlertContext přežije navigaci.
             setTimeout(() => {
                 navigate(`/user/${response.data.user.id}`);
             }, 100);
-
         } catch (err) {
             setLoading(false);
             const messages = err.response?.data?.errors
                 ? Object.values(err.response.data.errors).flat()
                 : [err.response?.data?.message || "Došlo k chybě"];
-            messages.forEach(msg => showAlert("error", msg));
+            messages.forEach((msg) => showAlert("error", msg));
         }
     };
 
@@ -441,7 +444,9 @@ const FormEditProfile = ({ setLoading }) => {
                                         className="form-submit"
                                         onClick={handlePopupSubmit}
                                     >
-                                        <p className="strong">Odeslat ověřovací SMS</p>
+                                        <p className="strong">
+                                            Odeslat ověřovací SMS
+                                        </p>
                                     </button>
                                 </div>
                             )}
@@ -457,7 +462,12 @@ const FormEditProfile = ({ setLoading }) => {
                                         placeholder="Zadejte 6místný kód"
                                         value={otp || ""}
                                         onChange={(e) =>
-                                            setOtp(e.target.value.replace(/\D/g, ""))
+                                            setOtp(
+                                                e.target.value.replace(
+                                                    /\D/g,
+                                                    "",
+                                                ),
+                                            )
                                         }
                                     />
                                     <button
@@ -478,7 +488,9 @@ const FormEditProfile = ({ setLoading }) => {
                                                 Odeslat znovu za {countdown}s
                                             </p>
                                         ) : (
-                                            <p className="strong">Odeslat znovu</p>
+                                            <p className="strong">
+                                                Odeslat znovu
+                                            </p>
                                         )}
                                     </button>
                                 </div>
@@ -492,7 +504,10 @@ const FormEditProfile = ({ setLoading }) => {
             <form className="form_edit_profile" onSubmit={handleSubmit}>
                 {/* Jméno */}
                 <div className="name">
-                    <label htmlFor="first_name" className="body_base label-move">
+                    <label
+                        htmlFor="first_name"
+                        className="body_base label-move"
+                    >
                         Křestní jméno
                     </label>
                     <InputLogin
@@ -527,7 +542,9 @@ const FormEditProfile = ({ setLoading }) => {
 
                 {/* Bio */}
                 <div className="bio">
-                    <label htmlFor="bio" className="body_base label-move">Bio</label>
+                    <label htmlFor="bio" className="body_base label-move">
+                        Bio
+                    </label>
                     <TextArea
                         name="bio"
                         placeholder="např. Pracoval jsem 2 roky jako bedňák..."
@@ -542,7 +559,13 @@ const FormEditProfile = ({ setLoading }) => {
                 <div className="category">
                     <legend>Specializace</legend>
                     <div className="category-grid">
-                        {['light_technician', 'sound_technician', 'av_technician', 'rigger', 'stagehands'].map(spec => (
+                        {[
+                            "light_technician",
+                            "sound_technician",
+                            "av_technician",
+                            "rigger",
+                            "stagehands",
+                        ].map((spec) => (
                             <label key={spec} className="checkbox">
                                 <input
                                     type="checkbox"
@@ -551,12 +574,16 @@ const FormEditProfile = ({ setLoading }) => {
                                     onChange={() => toggleCategory(spec)}
                                 />
                                 <span>
-                                    {spec === 'light_technician' && 'Osvětlovač'}
-                                    {spec === 'sound_technician' && 'Zvukař'}
-                                    {spec === 'av_technician' && 'AV technik'}
-                                    {spec === 'rigger' && 'Rigger'}
-                                    {spec === 'stagehands' && 'Stagehands'}
-                                    <FontAwesomeIcon icon={faCircleCheck} className="input-selected-icon" />
+                                    {spec === "light_technician" &&
+                                        "Osvětlovač"}
+                                    {spec === "sound_technician" && "Zvukař"}
+                                    {spec === "av_technician" && "AV technik"}
+                                    {spec === "rigger" && "Rigger"}
+                                    {spec === "stagehands" && "Stagehands"}
+                                    <FontAwesomeIcon
+                                        icon={faCircleCheck}
+                                        className="input-selected-icon"
+                                    />
                                 </span>
                             </label>
                         ))}
@@ -571,10 +598,18 @@ const FormEditProfile = ({ setLoading }) => {
                             className={`custom-select-up ${isLocOpen ? "open" : ""}`}
                             onClick={() => setIsLocOpen(!isLocOpen)}
                         >
-                            <span className={`selected ${location === "" ? "gray-text" : ""}`}>
-                                {locationOptions.find(opt => opt.value === location)?.label || "-- Vyberte lokalitu --"}
+                            <span
+                                className={`selected ${location === "" ? "gray-text" : ""}`}
+                            >
+                                {locationOptions.find(
+                                    (opt) => opt.value === location,
+                                )?.label || "-- Vyberte lokalitu --"}
                             </span>
-                            <span className={`arrow ${isLocOpen ? "rotate" : ""}`}>▼</span>
+                            <span
+                                className={`arrow ${isLocOpen ? "rotate" : ""}`}
+                            >
+                                ▼
+                            </span>
                         </div>
 
                         {isLocOpen && (
@@ -583,7 +618,10 @@ const FormEditProfile = ({ setLoading }) => {
                                     <div
                                         key={opt.value}
                                         className={`option ${location === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
-                                        onClick={() => { setLocation(opt.value); setIsLocOpen(false); }}
+                                        onClick={() => {
+                                            setLocation(opt.value);
+                                            setIsLocOpen(false);
+                                        }}
                                     >
                                         {opt.label}
                                     </div>
@@ -595,7 +633,9 @@ const FormEditProfile = ({ setLoading }) => {
 
                 {/* Email */}
                 <div className="email">
-                    <label htmlFor="email" className="body_base label-move">Email</label>
+                    <label htmlFor="email" className="body_base label-move">
+                        Email
+                    </label>
                     <InputLogin
                         type="email"
                         name="email"
@@ -608,7 +648,9 @@ const FormEditProfile = ({ setLoading }) => {
 
                 {/* Telefon */}
                 <div className="phone">
-                    <label htmlFor="phone" className="body_base label-move">Telefon</label>
+                    <label htmlFor="phone" className="body_base label-move">
+                        Telefon
+                    </label>
                     <input
                         type="tel"
                         id="phone1"

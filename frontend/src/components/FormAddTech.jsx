@@ -11,8 +11,8 @@ import "./GeneralForm.css";
 import InputLogin from "./InputLogin";
 import TextArea from "./TextArea";
 
-import { faCircleMinus, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleMinus, faCirclePlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const FormAddTech = ({ setLoading, isEdit }) => {
     const { id } = useParams(); // ID z URL /tech/edit/:id
@@ -78,18 +78,22 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     // Upravený useEffect pro zavírání všech dropdownů při kliknuití mimo
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (isCatOpen && !catRef.current?.contains(event.target)) setIsCatOpen(false);
-            if (isLocOpen && !locRef.current?.contains(event.target)) setIsLocOpen(false);
-            if (isPurpOpen && !purpRef.current?.contains(event.target)) setIsPurpOpen(false);
+            if (isCatOpen && !catRef.current?.contains(event.target))
+                setIsCatOpen(false);
+            if (isLocOpen && !locRef.current?.contains(event.target))
+                setIsLocOpen(false);
+            if (isPurpOpen && !purpRef.current?.contains(event.target))
+                setIsPurpOpen(false);
         };
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, [isCatOpen, isLocOpen, isPurpOpen]);
 
     const [existingImages, setExistingImages] = useState([]); // Pro zobrazení původních fotek
     // Funkce pro odstranění existujícího obrázku z náhledu
     const removeExistingImage = (urlToRemove) => {
-        setExistingImages(prev => prev.filter(url => url !== urlToRemove));
+        setExistingImages((prev) => prev.filter((url) => url !== urlToRemove));
     };
 
     const navigate = useNavigate();
@@ -111,7 +115,9 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             const fetchItem = async () => {
                 setLoading(true);
                 try {
-                    const res = await axiosInstance.get(`/api/tech/${id}?for_edit=true`);
+                    const res = await axiosInstance.get(
+                        `/api/tech/${id}?for_edit=true`,
+                    );
                     const item = res.data.item;
 
                     setTitle(item.title || "");
@@ -132,7 +138,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         setImages(item.image_urls);
                     }
                 } catch (err) {
-                    // Pokud interceptor zachytí 403, window.location.href v axiosInstance.js 
+                    // Pokud interceptor zachytí 403, window.location.href v axiosInstance.js
                     // uživatele okamžitě přesměruje. Zde řešíme jen ostatní chyby (např. 404).
                     if (err.response?.status === 404) {
                         showAlert("error", "Inzerát nebyl nalezen.");
@@ -164,11 +170,17 @@ const FormAddTech = ({ setLoading, isEdit }) => {
         }
 
         // Validace velikosti (přidaná kontrola pro případ, že images je prázdné)
-        const totalSize = images.length > 0 ? images.reduce((sum, img) => sum + img.size, 0) : 0;
+        const totalSize =
+            images.length > 0
+                ? images.reduce((sum, img) => sum + img.size, 0)
+                : 0;
         const maxSize = 20 * 1024 * 1024;
 
         if (totalSize > maxSize) {
-            showAlert("error", `Celková velikost obrázků (${(totalSize / 1024 / 1024).toFixed(1)} MB) překračuje limit 20 MB. Zkuste nahrát méně obrázků nebo je více zkomprimovat.`);
+            showAlert(
+                "error",
+                `Celková velikost obrázků (${(totalSize / 1024 / 1024).toFixed(1)} MB) překračuje limit 20 MB. Zkuste nahrát méně obrázků nebo je více zkomprimovat.`,
+            );
             return;
         }
 
@@ -180,7 +192,6 @@ const FormAddTech = ({ setLoading, isEdit }) => {
         setLoading(true);
 
         try {
-
             const formData = new FormData();
             formData.append("title", title);
             formData.append("description", description);
@@ -194,11 +205,16 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             if (isEdit) {
                 formData.append("_method", "PUT");
                 // Filtrujeme stringy z aktuálního stavu 'images'
-                const existingUrls = images.filter(img => typeof img === "string");
-                formData.append("existing_images", JSON.stringify(existingUrls));
+                const existingUrls = images.filter(
+                    (img) => typeof img === "string",
+                );
+                formData.append(
+                    "existing_images",
+                    JSON.stringify(existingUrls),
+                );
             }
 
-            const newFiles = images.filter(img => img instanceof File);
+            const newFiles = images.filter((img) => img instanceof File);
 
             // Komprese a přidání nových obrázků
             const compressedImages = await Promise.all(
@@ -209,7 +225,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         useWebWorker: true,
                     });
                     return compressed;
-                })
+                }),
             );
             compressedImages.forEach((file) => {
                 formData.append("images[]", file);
@@ -217,7 +233,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
 
             const url = isEdit ? `/api/tech/${id}` : "/api/tech";
             const res = await axiosInstance.post(url, formData, {
-                headers: { "Content-Type": "multipart/form-data" }
+                headers: { "Content-Type": "multipart/form-data" },
             });
             // 1. Získáme ID (u nového z res.data, u editace ho už máme)
             const itemId = isEdit ? id : res.data.item.id;
@@ -227,17 +243,22 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                     fromMode: null, // Vymažeme mode, aby se necpal do cesty
                     customLabel: "Moje nabídky",
                     userId: user?.id || currentUser?.id, // ID právě přihlášeného uživatele
-                    userName: null // Aby se v cestě skrylo jméno
-                }
+                    userName: null, // Aby se v cestě skrylo jméno
+                },
             });
             // 3. Zobrazíme úspěšný alert, který se vykreslí už na nové stránce
-            showAlert("success", isEdit ? "Inzerát byl úspěšně aktualizován." : "Inzerát byl úspěšně přidán.");
+            showAlert(
+                "success",
+                isEdit
+                    ? "Inzerát byl úspěšně aktualizován."
+                    : "Inzerát byl úspěšně přidán.",
+            );
         } catch (err) {
             const messages = err.response?.data?.errors
                 ? Object.values(err.response.data.errors).flat()
                 : ["Došlo k chybě."];
             setLoading(false);
-            messages.forEach(msg => showAlert("error", msg));
+            messages.forEach((msg) => showAlert("error", msg));
         } /*finally {
             setLoading(false);
         }*/
@@ -246,7 +267,9 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     return (
         <form className="form_add_tech" onSubmit={handleSubmit}>
             <div className="div1">
-                <label htmlFor="title" className="body_base label-move">Název</label>
+                <label htmlFor="title" className="body_base label-move">
+                    Název
+                </label>
                 <InputLogin
                     type="text"
                     name="title"
@@ -258,10 +281,16 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             </div>
             <div className="div2">
                 <label className="body_base label-move">Obrázky</label>
-                <FormImgManager images={images} setImages={setImages} className="form_images" />
+                <FormImgManager
+                    images={images}
+                    setImages={setImages}
+                    className="form_images"
+                />
             </div>
             <div className="div3">
-                <label htmlFor="description" className="body_base label-move">Popisek</label>
+                <label htmlFor="description" className="body_base label-move">
+                    Popisek
+                </label>
                 <TextArea
                     name="description"
                     placeholder="např. Reflektor s RGBW LED diodami, ovládání přes DMX, napájení IEC, ideální na menší scény. Mírně poškrábaný kryt, plně funkční."
@@ -280,9 +309,13 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         onClick={() => setIsCatOpen(!isCatOpen)}
                     >
                         <span className="selected">
-                            {categoryOptions.find(opt => opt.value === category)?.label || "-- Vyberte kategorii --"}
+                            {categoryOptions.find(
+                                (opt) => opt.value === category,
+                            )?.label || "-- Vyberte kategorii --"}
                         </span>
-                        <span className={`arrow ${isCatOpen ? "rotate" : ""}`}>▼</span>
+                        <span className={`arrow ${isCatOpen ? "rotate" : ""}`}>
+                            ▼
+                        </span>
                     </div>
                     {isCatOpen && (
                         <div className="options-up">
@@ -290,7 +323,10 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                                 <div
                                     key={opt.value}
                                     className={`option ${category === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
-                                    onClick={() => { setCategory(opt.value); setIsCatOpen(false); }}
+                                    onClick={() => {
+                                        setCategory(opt.value);
+                                        setIsCatOpen(false);
+                                    }}
                                 >
                                     {opt.label}
                                 </div>
@@ -306,10 +342,16 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         className={`custom-select-up ${isLocOpen ? "open" : ""}`}
                         onClick={() => setIsLocOpen(!isLocOpen)}
                     >
-                        <span className={`selected ${location === "" ? "gray-text" : ""}`}>
-                            {locationOptions.find(opt => opt.value === location)?.label || "-- Vyberte lokalitu --"}
+                        <span
+                            className={`selected ${location === "" ? "gray-text" : ""}`}
+                        >
+                            {locationOptions.find(
+                                (opt) => opt.value === location,
+                            )?.label || "-- Vyberte lokalitu --"}
                         </span>
-                        <span className={`arrow ${isLocOpen ? "rotate" : ""}`}>▼</span>
+                        <span className={`arrow ${isLocOpen ? "rotate" : ""}`}>
+                            ▼
+                        </span>
                     </div>
 
                     {isLocOpen && (
@@ -318,7 +360,10 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                                 <div
                                     key={opt.value}
                                     className={`option ${location === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
-                                    onClick={() => { setLocation(opt.value); setIsLocOpen(false); }}
+                                    onClick={() => {
+                                        setLocation(opt.value);
+                                        setIsLocOpen(false);
+                                    }}
                                 >
                                     {opt.label}
                                 </div>
@@ -335,9 +380,12 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         onClick={() => setIsPurpOpen(!isPurpOpen)}
                     >
                         <span className="selected">
-                            {purposeOptions.find(opt => opt.value === purpose)?.label || "-- Vyberte dostupnost --"}
+                            {purposeOptions.find((opt) => opt.value === purpose)
+                                ?.label || "-- Vyberte dostupnost --"}
                         </span>
-                        <span className={`arrow ${isPurpOpen ? "rotate" : ""}`}>▼</span>
+                        <span className={`arrow ${isPurpOpen ? "rotate" : ""}`}>
+                            ▼
+                        </span>
                     </div>
                     {isPurpOpen && (
                         <div className="options-up">
@@ -346,7 +394,10 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                                 <div
                                     key={opt.value}
                                     className={`option ${purpose === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
-                                    onClick={() => { setPurpose(opt.value); setIsPurpOpen(false); }}
+                                    onClick={() => {
+                                        setPurpose(opt.value);
+                                        setIsPurpOpen(false);
+                                    }}
                                 >
                                     {opt.label}
                                 </div>
@@ -356,7 +407,9 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                 </div>
             </div>
             <div className="div7">
-                <label htmlFor="quantity" className="body_base label-move">Množství</label>
+                <label htmlFor="quantity" className="body_base label-move">
+                    Množství
+                </label>
                 <div className="quantity-stepper add-tech-stepper">
                     <div className="stepper-input-wrapper">
                         <input
@@ -370,8 +423,12 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                             onChange={(e) => {
                                 const val = e.target.value;
                                 // Povoli jen čísla a limit 7 znaků (pro tvých 1 000 000)
-                                if (val === "" || (/^[0-9\b]+$/.test(val) && val.length <= 7)) {
-                                    const numVal = val === "" ? "" : parseInt(val);
+                                if (
+                                    val === "" ||
+                                    (/^[0-9\b]+$/.test(val) && val.length <= 7)
+                                ) {
+                                    const numVal =
+                                        val === "" ? "" : parseInt(val);
                                     // Kontrola horního limitu
                                     if (numVal === "" || numVal <= 1000000) {
                                         setQuantity(numVal);
@@ -380,29 +437,39 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                             }}
                             onBlur={() => {
                                 // Pokud uživatel odejde a pole je prázdné, nastavíme 1
-                                if (quantity === "" || quantity < 1) setQuantity(1);
+                                if (quantity === "" || quantity < 1)
+                                    setQuantity(1);
                             }}
                         />
                         <div className="stepper-input-wrapper-btn-container">
                             <FontAwesomeIcon
                                 icon={faCircleMinus}
                                 className={`stepper-btn ${quantity <= 1 ? "button_disabled" : ""}`}
-                                onClick={() => setQuantity(prev => Math.max(1, (parseInt(prev) || 1) - 1))}
+                                onClick={() =>
+                                    setQuantity((prev) =>
+                                        Math.max(1, (parseInt(prev) || 1) - 1),
+                                    )
+                                }
                             />
                             <FontAwesomeIcon
                                 icon={faCirclePlus}
                                 className={`stepper-btn ${quantity >= 1000000 ? "button_disabled" : ""}`}
-                                onClick={() => setQuantity(prev => {
-                                    const next = (parseInt(prev) || 0) + 1;
-                                    return next <= 1000000 ? next : prev;
-                                })}
+                                onClick={() =>
+                                    setQuantity((prev) => {
+                                        const next = (parseInt(prev) || 0) + 1;
+                                        return next <= 1000000 ? next : prev;
+                                    })
+                                }
                             />
                         </div>
                     </div>
                 </div>
             </div>
             <div className="div8">
-                <label htmlFor="price" className="body_base label-move">Cena ( Kč / ks )</label><br></br>
+                <label htmlFor="price" className="body_base label-move">
+                    Cena ( Kč / ks )
+                </label>
+                <br></br>
                 <div className="price-wrapper">
                     <InputLogin
                         type="number"
@@ -414,13 +481,20 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         extraClass={`price-input ${priceNegotiable ? "disabled-input" : ""}`}
                     />
                     <div className="checkbox-container">
-                        <input type="checkbox" id="dohodou" name="dohodou" value="dohodou" className="custom-checkbox"
+                        <input
+                            type="checkbox"
+                            id="dohodou"
+                            name="dohodou"
+                            value="dohodou"
+                            className="custom-checkbox"
                             checked={priceNegotiable}
-                            onChange={handleCheckboxChange} />
-                        <label htmlFor="dohodou" className="checkbox-text">Dohodou</label>
+                            onChange={handleCheckboxChange}
+                        />
+                        <label htmlFor="dohodou" className="checkbox-text">
+                            Dohodou
+                        </label>
                     </div>
                 </div>
-
             </div>
             <button type="submit" className="form-submit div9" disabled={false}>
                 <p className="strong">{isEdit ? "Uložit změny" : "Přidat"}</p>

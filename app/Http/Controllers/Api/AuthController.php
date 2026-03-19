@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Str;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
-use Laravel\Sanctum\PersonalAccessToken;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -19,33 +19,33 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string'
+            'password' => 'required|string',
         ]);
 
         $user = User::withTrashed()->where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
-                'message' => 'Špatný email nebo heslo.'
+                'message' => 'Špatný email nebo heslo.',
             ], 401);
         }
 
         if ($user->is_banned) {
             return response()->json([
-                'message' => 'Účet je zablokovaný.'
+                'message' => 'Účet je zablokovaný.',
             ], 403);
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return response()->json([
-                'message' => 'Neaktivní uživatel, zkontrolujte e-mail.'
+                'message' => 'Neaktivní uživatel, zkontrolujte e-mail.',
             ], 403);
         }
 
         // ověříme heslo
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (! Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'Špatný email nebo heslo.'
+                'message' => 'Špatný email nebo heslo.',
             ], 401);
         }
 
@@ -74,7 +74,7 @@ class AuthController extends Controller
         return response()
             ->json([
                 'access_token' => $accessToken,
-                'user' => $user
+                'user' => $user,
             ])
             ->cookie(
                 'refresh_token',
@@ -93,19 +93,20 @@ class AuthController extends Controller
     {
         $refreshToken = $request->cookie('refresh_token');
 
-        if (!$refreshToken) {
+        if (! $refreshToken) {
             return response()->json(['message' => 'Missing refresh token'], 401);
         }
 
         $pat = PersonalAccessToken::findToken($refreshToken);
 
-        if (!$pat || $pat->name !== 'refresh') {
+        if (! $pat || $pat->name !== 'refresh') {
             return response()->json(['message' => 'Invalid refresh token'], 401);
         }
 
         // Zkontroluj expiraci
         if ($pat->expires_at && $pat->expires_at->isPast()) {
             $pat->delete();
+
             return response()->json(['message' => 'Expired refresh token'], 401);
         }
 
@@ -126,7 +127,7 @@ class AuthController extends Controller
 
         return response()->json([
             'access_token' => $accessToken,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -181,7 +182,7 @@ class AuthController extends Controller
         $verificationLink = "https://api.techwatch.app/api/verify/{$user->email_verification_token}";
 
         Mail::send('emails.verify-email', [
-            'link' => $verificationLink
+            'link' => $verificationLink,
         ], function ($message) use ($user) {
             $message->to($user->email)
                 ->subject('Potvrzení emailu');
@@ -193,12 +194,12 @@ class AuthController extends Controller
     public function resendVerification(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Uživatel nenalezen.'], 404);
         }
 
@@ -214,27 +215,27 @@ class AuthController extends Controller
         $verificationLink = "https://api.techwatch.app/api/verify/{$user->email_verification_token}";
 
         Mail::send('emails.verify-email', [
-            'link' => $verificationLink
+            'link' => $verificationLink,
         ], function ($message) use ($user) {
             $message->to($user->email)
                 ->subject('Potvrzení emailu');
         });
 
         return response()->json([
-            'message' => 'Potvrzovací email byl odeslán znovu.'
+            'message' => 'Potvrzovací email byl odeslán znovu.',
         ]);
     }
 
     public function emailCheck(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'required|email',
         ]);
 
         $exists = User::where('email', $request->email)->exists();
 
         return response()->json([
-            'valid' => !$exists
+            'valid' => ! $exists,
         ]);
     }
 
@@ -244,14 +245,15 @@ class AuthController extends Controller
             ->where('is_active', false)  // jen neověřené účty
             ->first();
 
-        if (!$user) {
-            return redirect(config('app.frontend_url') . '/login?error=invalid');
+        if (! $user) {
+            return redirect(config('app.frontend_url').'/login?error=invalid');
         }
 
         // Kontrola expirace (např. 24 hodin)
         if ($user->email_verification_sent_at->addHours(24)->isPast()) {
             $user->delete();
-            return redirect(config('app.frontend_url') . '/login?error=expired');
+
+            return redirect(config('app.frontend_url').'/login?error=expired');
         }
 
         // Ověření
@@ -266,7 +268,7 @@ class AuthController extends Controller
         $accessToken = $user->createToken('access', ['*'], now()->addMinutes(30))->plainTextToken;
         $refreshToken = $user->createToken('refresh', ['refresh'], now()->addDays(14))->plainTextToken;
 
-        return redirect(config('app.frontend_url') . "/verify-success?token=$accessToken")
+        return redirect(config('app.frontend_url')."/verify-success?token=$accessToken")
             ->cookie('refresh_token', $refreshToken, 60 * 24 * 14, '/', null, false, true, false, 'Lax');
     }
 }

@@ -4,9 +4,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class DeleteInactiveUsers extends Command
 {

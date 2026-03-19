@@ -3,8 +3,12 @@ import InputLogin from "./InputLogin";
 
 import axiosInstance from "../api/axiosInstance.js";
 
-import { faCircleXmark, faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faCircleXmark,
+    faEye,
+    faEyeSlash,
+} from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { useAlert } from "../context/AlertContext";
 
@@ -33,7 +37,9 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
 
         const timeout = setTimeout(async () => {
             try {
-                const res = await axiosInstance.post("/api/email-check", { email });
+                const res = await axiosInstance.post("/api/email-check", {
+                    email,
+                });
 
                 setEmailValid(res.data.valid);
                 setEmailValidSpecific(res.data.valid);
@@ -47,7 +53,7 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
     useEffect(() => {
         if (countdown <= 0) return; // nic nedělej pokud countdown = 0
         const timer = setTimeout(() => {
-            setCountdown(prev => prev - 1);
+            setCountdown((prev) => prev - 1);
         }, 1000);
 
         return () => clearTimeout(timer);
@@ -57,7 +63,10 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
         setLoading(true);
         try {
             await axiosInstance.post("/api/resend-verification", { email });
-            showAlert("success", "Potvrzovací email byl odeslán znovu. Pokud email stále nevidíte, možná skočil do spamu nebo nevyžádané pošty.");
+            showAlert(
+                "success",
+                "Potvrzovací email byl odeslán znovu. Pokud email stále nevidíte, možná skočil do spamu nebo nevyžádané pošty.",
+            );
             setCountdown(59); // restart countdownu
         } catch (err) {
             console.error(err);
@@ -71,7 +80,11 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
         e.preventDefault();
 
         // pokud existují chyby, formulář vůbec neodesílej
-        if (!emailValid || password.length < 8 || password !== passwordConfirm) {
+        if (
+            !emailValid ||
+            password.length < 8 ||
+            password !== passwordConfirm
+        ) {
             return;
         }
 
@@ -79,7 +92,10 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
         setLoading(true);
 
         if (!emailValidSpecific) {
-            showAlert("error", "Tento e-mail je již zaregistrován.<br />Přihlaste se, zkuste jiný e-mail, anebo potvrďte založení účtu ve svém emailu pokud jste tak ještě neudělal.");
+            showAlert(
+                "error",
+                "Tento e-mail je již zaregistrován.<br />Přihlaste se, zkuste jiný e-mail, anebo potvrďte založení účtu ve svém emailu pokud jste tak ještě neudělal.",
+            );
             setLoading(false);
             return;
         }
@@ -95,7 +111,7 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
             lname,
             email,
             password,
-            password_confirmation: passwordConfirm
+            password_confirmation: passwordConfirm,
         };
 
         try {
@@ -114,7 +130,10 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
             if (errors?.email) {
                 const message = errors.email[0];
                 if (message.includes("already been taken")) {
-                    showAlert("error", "Tento e-mail je již zaregistrován.<br />Přihlaste se, zkuste jiný e-mail anebo potvrďte založení účtu ve svém emailu pokud jste tak ještě neudělal.");
+                    showAlert(
+                        "error",
+                        "Tento e-mail je již zaregistrován.<br />Přihlaste se, zkuste jiný e-mail anebo potvrďte založení účtu ve svém emailu pokud jste tak ještě neudělal.",
+                    );
                 } else if (message.includes("valid email")) {
                     showAlert("error", "Zadejte platný e-mail.");
                 } else {
@@ -123,7 +142,10 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
             } else if (errors) {
                 showAlert("error", Object.values(errors).flat().join("\n"));
             } else {
-                showAlert("error", "Chyba serveru, zkuste to prosím později.<br />Pokud bude problém přetrvávat, kontaktujte nás prosím na <i>info@techwatch.app</i>.");
+                showAlert(
+                    "error",
+                    "Chyba serveru, zkuste to prosím později.<br />Pokud bude problém přetrvávat, kontaktujte nás prosím na <i>info@techwatch.app</i>.",
+                );
             }
 
             setLoading(false);
@@ -161,7 +183,15 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     {!emailValid && (
-                        <div className="error_all"><FontAwesomeIcon icon={faCircleXmark} className="error_icon" /><p className="error_text">Tento e-mail nelze použít</p></div>
+                        <div className="error_all">
+                            <FontAwesomeIcon
+                                icon={faCircleXmark}
+                                className="error_icon"
+                            />
+                            <p className="error_text">
+                                Tento e-mail nelze použít
+                            </p>
+                        </div>
                     )}
                     <div className="password-wrapper">
                         <div className="password-field">
@@ -173,15 +203,25 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
                                 value={password || ""}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
-                            <span className="password-toggle-icon" onClick={togglePassword}>
-                                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                            <span
+                                className="password-toggle-icon"
+                                onClick={togglePassword}
+                            >
+                                <FontAwesomeIcon
+                                    icon={showPassword ? faEyeSlash : faEye}
+                                />
                             </span>
                         </div>
 
                         {password.length > 0 && password.length < 8 && (
                             <div className="error_all">
-                                <FontAwesomeIcon icon={faCircleXmark} className="error_icon" />
-                                <p className="error_text">Heslo musí obsahovat minimálně 8 znaků</p>
+                                <FontAwesomeIcon
+                                    icon={faCircleXmark}
+                                    className="error_icon"
+                                />
+                                <p className="error_text">
+                                    Heslo musí obsahovat minimálně 8 znaků
+                                </p>
                             </div>
                         )}
                     </div>
@@ -192,32 +232,62 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
                         value={passwordConfirm || ""}
                         onChange={(e) => setPasswordConfirm(e.target.value)}
                     />
-                    {password && passwordConfirm && password !== passwordConfirm && (
-                        <div className="error_all"><FontAwesomeIcon icon={faCircleXmark} className="error_icon" /><p className="error_text">Hesla se neshodují</p></div>
-                    )}
+                    {password &&
+                        passwordConfirm &&
+                        password !== passwordConfirm && (
+                            <div className="error_all">
+                                <FontAwesomeIcon
+                                    icon={faCircleXmark}
+                                    className="error_icon"
+                                />
+                                <p className="error_text">Hesla se neshodují</p>
+                            </div>
+                        )}
 
                     <div className="checkbox-container">
-                        <input type="checkbox" id="gdpr" name="gdpr" value="yes" className="custom-checkbox" required />
-                        <label htmlFor="gdpr" className="checkbox-text">Souhlasím se <a
-                            href="https://www.stubchaser.cz/souhlas_se_zpracovanim_osobnich_udaju.html" className="login_a strong">zpracováním osobních
-                            údajů</a></label>
+                        <input
+                            type="checkbox"
+                            id="gdpr"
+                            name="gdpr"
+                            value="yes"
+                            className="custom-checkbox"
+                            required
+                        />
+                        <label htmlFor="gdpr" className="checkbox-text">
+                            Souhlasím se{" "}
+                            <a
+                                href="https://www.stubchaser.cz/souhlas_se_zpracovanim_osobnich_udaju.html"
+                                className="login_a strong"
+                            >
+                                zpracováním osobních údajů
+                            </a>
+                        </label>
                     </div>
                 </>
             )}
 
             <button
                 type={alreadyTried ? "button" : "submit"} // submit jen při první registraci
-                className={`form-submit extra_space ${countdown > 0 ? "button_disabled" : !(!alreadyTried && countdown === 0 && !success) ? "extra_space" : ""
-                    }`}
+                className={`form-submit extra_space ${
+                    countdown > 0
+                        ? "button_disabled"
+                        : !(!alreadyTried && countdown === 0 && !success)
+                          ? "extra_space"
+                          : ""
+                }`}
                 disabled={countdown > 0}
-                onClick={alreadyTried && countdown === 0 ? handleResend : undefined}
+                onClick={
+                    alreadyTried && countdown === 0 ? handleResend : undefined
+                }
                 style={countdown > 0 ? { cursor: "default", opacity: 0.6 } : {}}
             >
-                {countdown > 0
-                    ? <p className="strong">Zkusit znovu za {countdown}s</p>
-                    : alreadyTried
-                        ? <p className="strong">Zkusit znovu</p>
-                        : <p className="strong">Registrovat se</p>}
+                {countdown > 0 ? (
+                    <p className="strong">Zkusit znovu za {countdown}s</p>
+                ) : alreadyTried ? (
+                    <p className="strong">Zkusit znovu</p>
+                ) : (
+                    <p className="strong">Registrovat se</p>
+                )}
             </button>
         </form>
     );

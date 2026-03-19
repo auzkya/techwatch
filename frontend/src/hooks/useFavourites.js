@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import axiosInstance from '../api/axiosInstance';
+import { useState } from "react";
+import axiosInstance from "../api/axiosInstance";
 
 export const useFavourites = () => {
     const [favLoading, setFavLoading] = useState(false);
@@ -7,7 +7,9 @@ export const useFavourites = () => {
     const toggleFavourite = async (type, id) => {
         setFavLoading(true);
         try {
-            const response = await axiosInstance.post(`/api/favourites/${type}/${id}`);
+            const response = await axiosInstance.post(
+                `/api/favourites/${type}/${id}`,
+            );
             return response.data; // Vrací { status: 'added' / 'removed' }
         } catch (error) {
             console.error("Chyba při ukládání do oblíbených:", error);

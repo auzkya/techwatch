@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\ReviewItem;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Item;
 use App\Events\NotificationSent;
+use App\Http\Controllers\Controller;
+use App\Models\Item;
 use App\Models\Notification;
+use App\Models\ReviewItem;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReviewItemController extends Controller
 {
@@ -22,7 +22,7 @@ class ReviewItemController extends Controller
         $reviews = ReviewItem::where('item_id', $itemId)
             ->with(['reviewer:id,first_name,last_name,profile_image', 'reviewer.specs'])
             // ✅ Moje recenze bude první, zbytek podle data
-            ->orderByRaw("CASE WHEN reviewer_id = ? THEN 0 ELSE 1 END", [$currentUserId])
+            ->orderByRaw('CASE WHEN reviewer_id = ? THEN 0 ELSE 1 END', [$currentUserId])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -63,7 +63,7 @@ class ReviewItemController extends Controller
             'description' => "<span className='strong'>{$reviewer->first_name} {$reviewer->last_name}</span> ohodnotil <span className='strong'>Vaši nabídku</span>.",
             'target_id' => $itemId, // ID nabídky
             'target_sub_id' => $review->id, // ID konkrétní recenze pro scroll
-            'is_read' => false
+            'is_read' => false,
         ]);
 
         broadcast(new NotificationSent($notification->load('sender')));

@@ -1,8 +1,8 @@
 const CACHE_KEYS = {
-    ACTIVE_WORKER_TILL: 'active_worker_till',
-    PROFILE_IMAGE_URL: 'profile_image_url',
-    PROFILE_ELIGIBLE: 'profile_eligible',
-    USER_DATA: 'user_data', // Pro celý profil
+    ACTIVE_WORKER_TILL: "active_worker_till",
+    PROFILE_IMAGE_URL: "profile_image_url",
+    PROFILE_ELIGIBLE: "profile_eligible",
+    USER_DATA: "user_data", // Pro celý profil
 };
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 minut
@@ -12,7 +12,7 @@ class CacheManager {
         const item = {
             value,
             timestamp: Date.now(),
-            ttl
+            ttl,
         };
         localStorage.setItem(key, JSON.stringify(item));
     }
@@ -42,7 +42,7 @@ class CacheManager {
     }
 
     clear() {
-        Object.values(CACHE_KEYS).forEach(key => this.remove(key));
+        Object.values(CACHE_KEYS).forEach((key) => this.remove(key));
     }
 
     // Specifické metody pro často používané hodnoty

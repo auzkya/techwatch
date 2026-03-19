@@ -37,12 +37,14 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
     } = useSortable({ id });
 
     // detekce PDF souboru - kontrolujeme jak URL, tak název souboru (pro případ nově nahraných souborů bez URL)
-    const isPdf = (typeof url === 'string' && url.split('?')[0].toLowerCase().endsWith('.pdf')) ||
-        (fileName?.toLowerCase().endsWith('.pdf'));
+    const isPdf =
+        (typeof url === "string" &&
+            url.split("?")[0].toLowerCase().endsWith(".pdf")) ||
+        fileName?.toLowerCase().endsWith(".pdf");
 
     const style = {
         transform: CSS.Transform.toString(transform),
-        transition: isDragging ? 'none' : transition,
+        transition: isDragging ? "none" : transition,
         zIndex: isDragging ? 10 : 1,
         opacity: isDragging ? 0.5 : 1, // Vizuální feedback při tažení
     };
@@ -57,7 +59,7 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
 
     return (
         <div
-            className={`img_item ${!isLoaded ? 'skeleton_pulse' : ''}`}
+            className={`img_item ${!isLoaded ? "skeleton_pulse" : ""}`}
             ref={setNodeRef}
             style={style}
             {...attributes}
@@ -66,9 +68,16 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
             {!isLoaded && <div className="skeleton_shimmer"></div>}
             {url ? (
                 isPdf ? (
-                    <div onClick={() => setShowFull(url)} style={{ height: '100%', opacity: isLoaded ? 1 : 0 }}>
+                    <div
+                        onClick={() => setShowFull(url)}
+                        style={{ height: "100%", opacity: isLoaded ? 1 : 0 }}
+                    >
                         {/* Náhled PDF - #toolbar=0 skryje ovládací lištu */}
-                        <embed src={`${url}#toolbar=0&navpanes=0&scrollbar=0`} type="application/pdf" className="pdf_thumbnail_embed" />
+                        <embed
+                            src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
+                            type="application/pdf"
+                            className="pdf_thumbnail_embed"
+                        />
                         {/* Průhledná vrstva aby šlo na položku kliknout a táhnout ji */}
                         <div className="pdf_overlay_clicker"></div>
                     </div>
@@ -78,7 +87,7 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
                         alt=""
                         draggable="false"
                         onClick={() => setShowFull(url)}
-                        className={isLoaded ? 'visible' : 'hidden'} // Plynulý přechod
+                        className={isLoaded ? "visible" : "hidden"} // Plynulý přechod
                         onLoad={() => setIsLoaded(true)} // KLÍČOVÁ OPRAVA: Ukončení skeletonu
                     />
                 )
@@ -86,10 +95,13 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
                 <div className="img_placeholder">No image</div>
             )}
             {isLoaded && (
-                <button className="delete_btn" onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(id);
-                }}>
+                <button
+                    className="delete_btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(id);
+                    }}
+                >
                     <FontAwesomeIcon icon={faXmark} />
                 </button>
             )}
@@ -100,7 +112,13 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
 // --------------------------------------------------------
 // MAIN COMPONENT
 // --------------------------------------------------------
-export default function FormImgManager({ images, setImages, className, allowPdf = false, setIsProcessingFiles }) {
+export default function FormImgManager({
+    images,
+    setImages,
+    className,
+    allowPdf = false,
+    setIsProcessingFiles,
+}) {
     const [internalImages, setInternalImages] = useState(() => {
         if (!Array.isArray(images)) return []; // Bezpečnostní pojistka
         return images.map((img, i) => ({ id: "img-" + i, url: img }));
@@ -117,7 +135,11 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
 
     // useEffect pro focus PDF v manažeru
     useEffect(() => {
-        if (showFull && typeof showFull === 'string' && showFull.toLowerCase().endsWith('.pdf')) {
+        if (
+            showFull &&
+            typeof showFull === "string" &&
+            showFull.toLowerCase().endsWith(".pdf")
+        ) {
             setTimeout(() => pdfFullRef.current?.focus(), 100);
         }
     }, [showFull]);
@@ -134,43 +156,51 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
     // Touch-friendly drag sensors
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-        useSensor(TouchSensor, { activationConstraint: { delay: 50, tolerance: 5 } })
+        useSensor(TouchSensor, {
+            activationConstraint: { delay: 50, tolerance: 5 },
+        }),
     );
 
     // Sync external images
     useEffect(() => {
         if (!Array.isArray(images)) return;
 
-        const newInternalImages = images.map((img, i) => {
-            // 1. Pokud je img UŽ URL string (z databáze)
-            if (typeof img === "string") {
-                return {
-                    id: "img-db-" + i + "-" + img.substring(img.length - 10), // stabilnější ID
-                    url: img,
-                    file: img
-                };
-            }
+        const newInternalImages = images
+            .map((img, i) => {
+                // 1. Pokud je img UŽ URL string (z databáze)
+                if (typeof img === "string") {
+                    return {
+                        id:
+                            "img-db-" +
+                            i +
+                            "-" +
+                            img.substring(img.length - 10), // stabilnější ID
+                        url: img,
+                        file: img,
+                    };
+                }
 
-            // 2. Pokud je img File objekt (nově nahraný)
-            if (img instanceof File) {
-                return {
-                    id: "img-file-" + i + "-" + img.name,
-                    url: URL.createObjectURL(img),
-                    file: img
-                };
-            }
+                // 2. Pokud je img File objekt (nově nahraný)
+                if (img instanceof File) {
+                    return {
+                        id: "img-file-" + i + "-" + img.name,
+                        url: URL.createObjectURL(img),
+                        file: img,
+                    };
+                }
 
-            // 3. Fallback pro objekty typu {url: '...', file: ...}
-            if (img && typeof img === "object" && img.url) {
-                return {
-                    id: "img-obj-" + i,
-                    url: img.url,
-                    file: img.file || img
-                };
-            }
+                // 3. Fallback pro objekty typu {url: '...', file: ...}
+                if (img && typeof img === "object" && img.url) {
+                    return {
+                        id: "img-obj-" + i,
+                        url: img.url,
+                        file: img.file || img,
+                    };
+                }
 
-            return null;
-        }).filter(Boolean); // Odstraní případné neplatné záznamy
+                return null;
+            })
+            .filter(Boolean); // Odstraní případné neplatné záznamy
 
         setInternalImages(newInternalImages);
     }, [images]);
@@ -178,9 +208,9 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
     //Vyčištění alokované paměti pro náhledy
     useEffect(() => {
         return () => {
-            internalImages.forEach(i => {
+            internalImages.forEach((i) => {
                 if (i.file instanceof File) {
-                    URL.revokeObjectURL(i.url);  // uvolníme paměť pro náhled
+                    URL.revokeObjectURL(i.url); // uvolníme paměť pro náhled
                 }
             });
         };
@@ -212,8 +242,14 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                 };
                 img.onload = () => {
                     // Pokud je už velký nebo má extrémní rozlišení, které by zabilo Canvas
-                    if ((img.width >= minSize && img.height >= minSize) || img.width > 5000 || img.height > 5000) {
-                        console.log("Upscale není nutný nebo je obrázek příliš velký pro bezpečný upscale.");
+                    if (
+                        (img.width >= minSize && img.height >= minSize) ||
+                        img.width > 5000 ||
+                        img.height > 5000
+                    ) {
+                        console.log(
+                            "Upscale není nutný nebo je obrázek příliš velký pro bezpečný upscale.",
+                        );
                         resolve(file);
                         return;
                     }
@@ -236,19 +272,34 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                         ctx.imageSmoothingQuality = "high";
                         ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
-                        canvas.toBlob((blob) => {
-                            if (!blob) {
-                                console.error("Canvas toBlob selhal (vrátil null)");
-                                resolve(file);
-                                return;
-                            }
-                            const upscaledFile = new File([blob], file.name, {
-                                type: file.type,
-                                lastModified: Date.now(),
-                            });
-                            console.log("Upscale úspěšný:", newWidth, "x", newHeight);
-                            resolve(upscaledFile);
-                        }, file.type, 0.9); // Přidána kvalita 0.9 pro úsporu místa
+                        canvas.toBlob(
+                            (blob) => {
+                                if (!blob) {
+                                    console.error(
+                                        "Canvas toBlob selhal (vrátil null)",
+                                    );
+                                    resolve(file);
+                                    return;
+                                }
+                                const upscaledFile = new File(
+                                    [blob],
+                                    file.name,
+                                    {
+                                        type: file.type,
+                                        lastModified: Date.now(),
+                                    },
+                                );
+                                console.log(
+                                    "Upscale úspěšný:",
+                                    newWidth,
+                                    "x",
+                                    newHeight,
+                                );
+                                resolve(upscaledFile);
+                            },
+                            file.type,
+                            0.9,
+                        ); // Přidána kvalita 0.9 pro úsporu místa
                     } catch (e) {
                         console.error("Chyba při práci s Canvasem:", e);
                         resolve(file);
@@ -266,11 +317,14 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
         if (!files.length) return;
 
         const MAX_SIZE = 10 * 1024 * 1024; // 10MB
-        const oversizedFiles = files.filter(f => f.size > MAX_SIZE);
+        const oversizedFiles = files.filter((f) => f.size > MAX_SIZE);
 
         if (oversizedFiles.length > 0) {
             // Zde nahraďte vaším toastem/notifikací
-            showAlert("error", `Soubor ${oversizedFiles[0].name} je příliš velký. Max. velikost je 10MB.`);
+            showAlert(
+                "error",
+                `Soubor ${oversizedFiles[0].name} je příliš velký. Max. velikost je 10MB.`,
+            );
             return;
         }
 
@@ -284,7 +338,7 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                         return {
                             id: "img-" + crypto.randomUUID(),
                             url: URL.createObjectURL(file),
-                            file: file
+                            file: file,
                         };
                     }
 
@@ -293,9 +347,9 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                     return {
                         id: "img-" + crypto.randomUUID(),
                         url: URL.createObjectURL(processedFile),
-                        file: processedFile
+                        file: processedFile,
                     };
-                })
+                }),
             );
             const idx = addIndexRef.current ?? internalImages.length;
             const newList = [
@@ -307,7 +361,6 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
             setInternalImages(newList);
             const filesToSync = newList.map((i) => i.file);
             setImages(filesToSync);
-
         } catch (error) {
             console.error("Chyba při zpracování:", error);
             showAlert("error", "Nepodařilo se zpracovat soubory.");
@@ -377,15 +430,29 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                     onDragEnd={handleDragEnd}
                     onDragCancel={handleDragCancel}
                 >
-                    <SortableContext items={internalImages.map((i) => i.id)} strategy={rectSortingStrategy}>
+                    <SortableContext
+                        items={internalImages.map((i) => i.id)}
+                        strategy={rectSortingStrategy}
+                    >
                         {internalImages.map((img, index) => (
                             <div className="img_wrapper" key={img.id}>
-                                <SortableThumb id={img.id} url={img.url} fileName={img.file?.name} onDelete={handleDelete} setShowFull={setShowFull} />
+                                <SortableThumb
+                                    id={img.id}
+                                    url={img.url}
+                                    fileName={img.file?.name}
+                                    onDelete={handleDelete}
+                                    setShowFull={setShowFull}
+                                />
                             </div>
                         ))}
 
                         {/* + button */}
-                        <div className="img_add" onClick={() => handleAddClick(internalImages.length)}>
+                        <div
+                            className="img_add"
+                            onClick={() =>
+                                handleAddClick(internalImages.length)
+                            }
+                        >
                             <FontAwesomeIcon icon={faPlus} />
                         </div>
                     </SortableContext>
@@ -393,8 +460,18 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                     <DragOverlay>
                         {activeItem ? (
                             <div className="img_item img_dragging">
-                                {activeItem.url.toLowerCase().endsWith('.pdf') || activeItem.file?.name?.toLowerCase().endsWith('.pdf') ? (
-                                    <div className="pdf_preview_placeholder"><FontAwesomeIcon icon={faFilePdf} size="3x" /></div>
+                                {activeItem.url
+                                    .toLowerCase()
+                                    .endsWith(".pdf") ||
+                                activeItem.file?.name
+                                    ?.toLowerCase()
+                                    .endsWith(".pdf") ? (
+                                    <div className="pdf_preview_placeholder">
+                                        <FontAwesomeIcon
+                                            icon={faFilePdf}
+                                            size="3x"
+                                        />
+                                    </div>
                                 ) : (
                                     <img src={activeItem.url} alt="" />
                                 )}
@@ -405,13 +482,25 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
             </div>
             {/* FULLSCREEN MODAL */}
             {showFull && (
-                <div className="loader_container gallery_overlay" onClick={() => setShowFull(false)}>
+                <div
+                    className="loader_container gallery_overlay"
+                    onClick={() => setShowFull(false)}
+                >
                     {/* Kontrola zda jde o PDF podle URL nebo typu v internalImages */}
-                    {(internalImages.find(img => img.url === showFull)?.file?.type === "application/pdf" || showFull.toLowerCase().includes(".pdf")) ? (
-                        <div className="pdf_preview_full" onClick={(e) => e.stopPropagation()}>
+                    {internalImages.find((img) => img.url === showFull)?.file
+                        ?.type === "application/pdf" ||
+                    showFull.toLowerCase().includes(".pdf") ? (
+                        <div
+                            className="pdf_preview_full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             {/* Trik pro Firefox: neviditelný input pro získání focusu */}
                             <input
-                                style={{ position: 'absolute', opacity: 0, height: 0 }}
+                                style={{
+                                    position: "absolute",
+                                    opacity: 0,
+                                    height: 0,
+                                }}
                                 autoFocus
                                 ref={(input) => input && input.focus()}
                             />
@@ -422,7 +511,12 @@ export default function FormImgManager({ images, setImages, className, allowPdf 
                                 height="100%"
                             >
                                 {/* Fallback pokud prohlížeč neumí zobrazit PDF přímo */}
-                                <iframe src={showFull} width="100%" height="100%" title="PDF preview"></iframe>
+                                <iframe
+                                    src={showFull}
+                                    width="100%"
+                                    height="100%"
+                                    title="PDF preview"
+                                ></iframe>
                             </object>
                         </div>
                     ) : (

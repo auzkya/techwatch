@@ -3,23 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image;
 use App\Models\Item;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Intervention\Image\Facades\Image;
 
 class TechController extends Controller
 {
-
     // Pomocná metoda pro transformaci cest na URL (přidej ji na konec třídy)
     private function transformImages($item)
     {
-        if (!$item->images)
+        if (! $item->images) {
             return [];
+        }
 
         // Pokud máš v modelu Item.php protected $casts = ['images' => 'array']
         // tak už je to pole, jinak bys musel udělat json_decode
@@ -53,7 +53,7 @@ class TechController extends Controller
             'title.required' => 'Název je povinný.',
             'description.required' => 'Popis je povinný.',
             'quantity.required' => 'Množství je povinné.',
-            'quantity.numeric'  => 'Zadejte prosím platné číslo.',
+            'quantity.numeric' => 'Zadejte prosím platné číslo.',
             'quantity.min' => 'Množství musí být alespoň 1.',
             'quantity.max' => 'Zadané množství je příliš vysoké.',
             'images.required' => 'Musíte nahrát alespoň jeden obrázek.',
@@ -69,7 +69,7 @@ class TechController extends Controller
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $imgFile) {
                 // Sjednocená cesta: items/id_timestamp_webp.jpg
-                $filename = 'items/' . $user_id . '_' . time() . '_' . $index . '.webp';
+                $filename = 'items/'.$user_id.'_'.time().'_'.$index.'.webp';
 
                 // Optimalizace pomocí Intervention Image
                 $optimizedImage = Image::make($imgFile)
@@ -93,12 +93,12 @@ class TechController extends Controller
             'location' => $request->location,
             'purpose' => $request->purpose,
             'quantity' => $request->quantity,
-            'images' => $imagePaths
+            'images' => $imagePaths,
         ]);
 
         return response()->json([
             'message' => 'Technika byla úspěšně přidána.',
-            'item' => $item
+            'item' => $item,
         ]);
     }
 
@@ -106,10 +106,10 @@ class TechController extends Controller
     {
         // Místo findOrFail použijeme where, abychom ověřili vlastníka
         $item = Item::where('id', $id)
-                    ->where('user_id', Auth::id())
-                    ->first();
+            ->where('user_id', Auth::id())
+            ->first();
 
-        if (!$item) {
+        if (! $item) {
             // Pokud item neexistuje NEBO patří někomu jinému, vrátíme 403
             return response()->json(['message' => 'Přístup odepřen.'], 403);
         }
@@ -131,7 +131,7 @@ class TechController extends Controller
             'title.required' => 'Název je povinný.',
             'description.required' => 'Popis je povinný.',
             'quantity.required' => 'Množství je povinné.',
-            'quantity.numeric'  => 'Zadejte prosím platné číslo.',
+            'quantity.numeric' => 'Zadejte prosím platné číslo.',
             'quantity.min' => 'Množství musí být alespoň 1.',
             'quantity.max' => 'Zadané množství je příliš vysoké.',
             'images.required' => 'Musíte nahrát alespoň jeden obrázek.',
@@ -149,8 +149,8 @@ class TechController extends Controller
         foreach ($existingRaw as $url) {
             if (str_contains($url, 'items/')) {
                 $parts = explode('items/', $url);
-                $imagePaths[] = 'items/' . end($parts);
-            } elseif (is_string($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
+                $imagePaths[] = 'items/'.end($parts);
+            } elseif (is_string($url) && ! filter_var($url, FILTER_VALIDATE_URL)) {
                 $imagePaths[] = $url;
             }
         }
@@ -158,7 +158,7 @@ class TechController extends Controller
         // 2. Smazání z R2 těch, které uživatel odstranil
         $oldImages = is_array($item->images) ? $item->images : json_decode($item->images, true) ?? [];
         foreach ($oldImages as $oldPath) {
-            if (!in_array($oldPath, $imagePaths)) {
+            if (! in_array($oldPath, $imagePaths)) {
                 Storage::disk('r2')->delete($oldPath);
             }
         }
@@ -166,7 +166,7 @@ class TechController extends Controller
         // 3. Přidání a konverze NOVÝCH obrázků
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $imgFile) {
-                $filename = 'items/' . $user_id . '_' . time() . '_upd_' . $index . '.webp';
+                $filename = 'items/'.$user_id.'_'.time().'_upd_'.$index.'.webp';
 
                 $optimizedImage = Image::make($imgFile)
                     ->resize(1200, null, function ($constraint) {
@@ -209,22 +209,22 @@ class TechController extends Controller
         $item = $query->find($id);
 
         // Kontrola existence a oprávnění pro ne-adminy
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Nenalezeno'], 404);
         }
 
         // Pokud je položka smazaná (soft-deleted) a uživatel není admin vrátíme 404
-        if ($item->trashed() && !$isAdmin){
+        if ($item->trashed() && ! $isAdmin) {
             return response()->json(['message' => 'Nenalezeno'], 404);
         }
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Nenalezeno'], 404);
         }
 
         // Pokud request obsahuje parametr 'for_edit', zkontrolujeme majitele
         if (request()->has('for_edit')) {
-            if ((int)$item->user_id !== (int)auth()->id()) {
+            if ((int) $item->user_id !== (int) auth()->id()) {
                 return response()->json(['message' => 'Na editaci nemáte právo.'], 403);
             }
         }
@@ -241,7 +241,7 @@ class TechController extends Controller
         $item->images = $this->transformImages($item);
 
         return response()->json([
-            'item' => $item
+            'item' => $item,
         ]);
     }
 
@@ -291,7 +291,7 @@ class TechController extends Controller
 
         // Vyhledávání
         if ($request->filled('search')) {
-            $searchTerm = '%' . $request->search . '%';
+            $searchTerm = '%'.$request->search.'%';
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'LIKE', $searchTerm)
                     ->orWhere('description', 'LIKE', $searchTerm);
@@ -342,20 +342,23 @@ class TechController extends Controller
             $query->where('category', $request->subcategory);
         }
         if ($request->filled('search')) {
-            $query->where('title', 'LIKE', '%' . $request->search . '%');
+            $query->where('title', 'LIKE', '%'.$request->search.'%');
         }
 
         if ($isOwner) {
             // Vlastník: filtruje podle stavu (Aktivní/Neaktivní)
-            if ($request->status === 'active')
+            if ($request->status === 'active') {
                 $query->where('active_item', true);
-            if ($request->status === 'inactive')
+            }
+            if ($request->status === 'inactive') {
                 $query->where('active_item', false);
+            }
         } else {
             // Cizí: vidí pouze aktivní a může filtrovat lokalitu/účel
             $query->where('active_item', true);
-            if ($request->filled('location'))
+            if ($request->filled('location')) {
                 $query->where('location', $request->location);
+            }
             if ($request->filled('purpose') && $request->purpose !== 'all') {
                 $query->where('purpose', $request->purpose);
             }
@@ -366,13 +369,14 @@ class TechController extends Controller
 
         $items->transform(function ($item) {
             $item->images = $this->transformImages($item);
+
             return $item;
         });
 
         return response()->json([
             'items' => $items,
-            'owner_name' => $owner ? $owner->first_name . ' ' . $owner->last_name : 'Uživatel',
-            'is_owner' => $isOwner
+            'owner_name' => $owner ? $owner->first_name.' '.$owner->last_name : 'Uživatel',
+            'is_owner' => $isOwner,
         ]);
     }
 
@@ -382,22 +386,22 @@ class TechController extends Controller
         // Najdeme item, který patří přihlášenému uživateli
         $item = Item::where('id', $id)->first();
 
-        if (!$item || (int)$item->user_id !== (int)Auth::id()) {
+        if (! $item || (int) $item->user_id !== (int) Auth::id()) {
             return response()->json(['message' => 'Přístup odepřen.'], 403);
         }
 
         // Validujeme, že přišla nula nebo jednička
         $request->validate([
-            'active_item' => 'required|in:0,1'
+            'active_item' => 'required|in:0,1',
         ]);
 
         $item->update([
-            'active_item' => (int) $request->active_item
+            'active_item' => (int) $request->active_item,
         ]);
 
         return response()->json([
             'message' => $item->active_item == 1 ? 'Inzerát byl aktivován.' : 'Inzerát byl skryt.',
-            'active_item' => $item->active_item
+            'active_item' => $item->active_item,
         ]);
     }
 
@@ -405,10 +409,10 @@ class TechController extends Controller
     public function destroy($id)
     {
         $item = Item::where('id', $id)
-                    ->where('user_id', Auth::id())
-                    ->first();
+            ->where('user_id', Auth::id())
+            ->first();
 
-        if (!$item) {
+        if (! $item) {
             return response()->json(['message' => 'Přístup odepřen.'], 403);
         }
 

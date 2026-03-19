@@ -1,4 +1,4 @@
-const CDN_URL = 'https://pub-263296a03d7d4d0fad026af20f628ecb.r2.dev';
+const CDN_URL = "https://pub-263296a03d7d4d0fad026af20f628ecb.r2.dev";
 
 export const ASSETS = {
     icon: `${CDN_URL}/website/techwatch_icon.png`,

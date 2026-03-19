@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Spec;
+use Illuminate\Database\Seeder;
 
 class SpecSeeder extends Seeder
 {
@@ -12,9 +12,9 @@ class SpecSeeder extends Seeder
         // Definujeme pole dvojic: Název -> Tvůj React Slug
         $categories = [
             'Osvětlovač' => 'light_technician',
-            'Zvukař'     => 'sound_technician',
-            'AV technik'  => 'av_technician',
-            'Rigger'     => 'rigger',
+            'Zvukař' => 'sound_technician',
+            'AV technik' => 'av_technician',
+            'Rigger' => 'rigger',
             'Stagehands' => 'stagehands',
         ];
 

@@ -1,4 +1,4 @@
-.button-homepage{
+.button-homepage {
     width: 240px;
     text-decoration: none;
     cursor: pointer;
@@ -13,6 +13,6 @@
     border-radius: 15px;
 }
 
-.button-homepage span{
+.button-homepage span {
     margin: 0 5px;
 }

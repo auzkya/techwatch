@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import AdminCharts from "../../components/AdminCharts";
 import AdminReportTable from "../../components/AdminReportTable";
@@ -17,7 +17,7 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
     const [resolvedReports, setResolvedReports] = useState([]); // State pro historii
     const [activeTab, setActiveTab] = useState(() => {
-        return localStorage.getItem('adminActiveTab') || 'stats';
+        return localStorage.getItem("adminActiveTab") || "stats";
     });
     const [selectedReport, setSelectedReport] = useState(null);
     const [revertReport, setRevertReport] = useState(null);
@@ -27,37 +27,48 @@ const AdminDashboard = () => {
     const { user, setUser } = useAuth();
     const { showAlert } = useAlert();
 
-    const canViewStats = ['admin_viewer', 'admin_moderator', 'super_admin'].includes(user?.role);
-    const canModerate = ['admin_moderator', 'super_admin'].includes(user?.role);
+    const canViewStats = [
+        "admin_viewer",
+        "admin_moderator",
+        "super_admin",
+    ].includes(user?.role);
+    const canModerate = ["admin_moderator", "super_admin"].includes(user?.role);
 
     useEffect(() => {
-        localStorage.setItem('adminActiveTab', activeTab);
+        localStorage.setItem("adminActiveTab", activeTab);
     }, [activeTab]);
 
     // Načítání dat (statistiky i historie)
-    const fetchStats = async (range = '6months') => {
-        setLoading(true);
-        try {
-            // Načtení základních statistik a pending reportů
-            const response = await axiosInstance.get(`/api/dashboard-stats?range=${range}`);
-            setStats(response.data);
+    const fetchStats = useCallback(
+        async (range = "6months") => {
+            setLoading(true);
+            try {
+                // Načtení základních statistik a pending reportů
+                const response = await axiosInstance.get(
+                    `/api/dashboard-stats?range=${range}`,
+                );
+                setStats(response.data);
 
-            // Načtení historie (vyřízených reportů)
-            const historyRes = await axiosInstance.get('/api/admin/resolved-reports');
-            setResolvedReports(historyRes.data);
-        } catch (error) {
-            console.error("Chyba při načítání dat dashboardu:", error);
-            showAlert("error", "Nepodařilo se synchronizovat data.");
-        } finally {
-            setLoading(false);
-        }
-    };
+                // Načtení historie (vyřízených reportů)
+                const historyRes = await axiosInstance.get(
+                    "/api/admin/resolved-reports",
+                );
+                setResolvedReports(historyRes.data);
+            } catch (error) {
+                console.error("Chyba při načítání dat dashboardu:", error);
+                showAlert("error", "Nepodařilo se synchronizovat data.");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [setLoading, showAlert],
+    );
 
     useEffect(() => {
         if (canViewStats) {
             fetchStats();
         }
-    }, [canViewStats]);
+    }, [canViewStats, fetchStats]);
 
     const handleLogout = async () => {
         try {
@@ -73,19 +84,23 @@ const AdminDashboard = () => {
 
     const getTargetDisplayName = (report) => {
         if (!report?.target) return "Neznámý cíl";
-        const model = report.target_type.split('\\').pop();
-        
+        const model = report.target_type.split("\\").pop();
+
         switch (model) {
-            case 'Item': return report.target.title;
-            case 'User': return `${report.target.first_name} ${report.target.last_name}`;
-            case 'ReviewUser':
-            case 'ReviewItem': return `Recenze od ${report.target.reviewer?.first_name || 'uživatele'}`;
-            default: return model;
+            case "Item":
+                return report.target.title;
+            case "User":
+                return `${report.target.first_name} ${report.target.last_name}`;
+            case "ReviewUser":
+            case "ReviewItem":
+                return `Recenze od ${report.target.reviewer?.first_name || "uživatele"}`;
+            default:
+                return model;
         }
     };
 
     const handleResolveReport = (report, type) => {
-        if (type === 'dismiss') {
+        if (type === "dismiss") {
             setDismissReport(report);
         } else {
             setSelectedReport(report);
@@ -94,7 +109,10 @@ const AdminDashboard = () => {
 
     const handleActionConfirm = async (reportId, payload) => {
         try {
-            await axiosInstance.post(`/api/admin/reports/${reportId}/resolve`, payload);
+            await axiosInstance.post(
+                `/api/admin/reports/${reportId}/resolve`,
+                payload,
+            );
             showAlert("success", "Nahlášení bylo úspěšně vyřešeno.");
             fetchStats(); // Osvěžíme všechna data (včetně historie)
             setSelectedReport(null);
@@ -114,7 +132,7 @@ const AdminDashboard = () => {
             // Payload obsahuje { notify, revertNote }
             await axiosInstance.post(`/api/admin/reports/${reportId}/revert`, {
                 notify: payload.notify,
-                revert_note: payload.revertNote
+                revert_note: payload.revertNote,
             });
 
             showAlert("success", "Akce byla úspěšně zvrácena.");
@@ -140,8 +158,8 @@ const AdminDashboard = () => {
                 <div className="admin-tabs">
                     {/* 1. TLAČÍTKO - STATISTIKY */}
                     <button
-                        className={activeTab === 'stats' ? 'active' : ''}
-                        onClick={() => setActiveTab('stats')}
+                        className={activeTab === "stats" ? "active" : ""}
+                        onClick={() => setActiveTab("stats")}
                     >
                         <i className="fa-solid fa-chart-line"></i> Statistiky
                     </button>
@@ -149,12 +167,17 @@ const AdminDashboard = () => {
                     {/* 2. TLAČÍTKO - MODERACE */}
                     {canModerate && (
                         <button
-                            className={activeTab === 'moderation' ? 'active' : ''}
-                            onClick={() => setActiveTab('moderation')}
+                            className={
+                                activeTab === "moderation" ? "active" : ""
+                            }
+                            onClick={() => setActiveTab("moderation")}
                         >
-                            <i className="fa-solid fa-shield-halved"></i> Moderace
+                            <i className="fa-solid fa-shield-halved"></i>{" "}
+                            Moderace
                             {stats?.pending_reports_count > 0 && (
-                                <span className="badge">{stats.pending_reports_count}</span>
+                                <span className="badge">
+                                    {stats.pending_reports_count}
+                                </span>
                             )}
                         </button>
                     )}
@@ -162,10 +185,11 @@ const AdminDashboard = () => {
                     {/* 3. TLAČÍTKO - HISTORIE */}
                     {canModerate && (
                         <button
-                            className={activeTab === 'history' ? 'active' : ''}
-                            onClick={() => setActiveTab('history')}
+                            className={activeTab === "history" ? "active" : ""}
+                            onClick={() => setActiveTab("history")}
                         >
-                            <i className="fa-solid fa-clock-rotate-left"></i> Historie
+                            <i className="fa-solid fa-clock-rotate-left"></i>{" "}
+                            Historie
                         </button>
                     )}
                 </div>
@@ -173,20 +197,26 @@ const AdminDashboard = () => {
 
             <div className="admin-content">
                 {/* SEKCE STATISTIKY */}
-                {activeTab === 'stats' && (
+                {activeTab === "stats" && (
                     <div className="fade-in">
                         <div className="admin-summary-cards">
                             <div className="stat-card">
                                 <span className="label">Celkem uživatelů</span>
-                                <strong className="value">{stats.users_count.toLocaleString()}</strong>
+                                <strong className="value">
+                                    {stats.users_count.toLocaleString()}
+                                </strong>
                             </div>
                             <div className="stat-card">
                                 <span className="label">Inzeráty techniky</span>
-                                <strong className="value">{stats.items_count.toLocaleString()}</strong>
+                                <strong className="value">
+                                    {stats.items_count.toLocaleString()}
+                                </strong>
                             </div>
                             <div className="stat-card">
                                 <span className="label">K vyřízení</span>
-                                <strong className="value">{stats.pending_reports_count}</strong>
+                                <strong className="value">
+                                    {stats.pending_reports_count}
+                                </strong>
                             </div>
                         </div>
                         <AdminCharts data={stats} onRangeChange={fetchStats} />
@@ -195,9 +225,8 @@ const AdminDashboard = () => {
             </div>
 
             <div className="admin-content2">
-
                 {/* SEKCE MODERACE */}
-                {activeTab === 'moderation' && canModerate && (
+                {activeTab === "moderation" && canModerate && (
                     <div className="fade-in">
                         <div className="section-header">
                             <h3>Aktuální nahlášení</h3>
@@ -210,14 +239,19 @@ const AdminDashboard = () => {
                         ) : (
                             <div className="empty-state">
                                 <i className="fa-solid fa-check-circle"></i>
-                                <p className="body_base" style={{ textAlign: 'center' }}>Všechna nahlášení jsou vyřízena.</p>
+                                <p
+                                    className="body_base"
+                                    style={{ textAlign: "center" }}
+                                >
+                                    Všechna nahlášení jsou vyřízena.
+                                </p>
                             </div>
                         )}
                     </div>
                 )}
 
                 {/* SEKCE HISTORIE */}
-                {activeTab === 'history' && canModerate && (
+                {activeTab === "history" && canModerate && (
                     <div className="fade-in">
                         <div className="section-header">
                             <h3>Historie rozhodnutí</h3>
@@ -229,7 +263,12 @@ const AdminDashboard = () => {
                             />
                         ) : (
                             <div className="empty-state">
-                                <p className="body_base" style={{ textAlign: 'center' }}>Historie je prázdná.</p>
+                                <p
+                                    className="body_base"
+                                    style={{ textAlign: "center" }}
+                                >
+                                    Historie je prázdná.
+                                </p>
                             </div>
                         )}
                     </div>

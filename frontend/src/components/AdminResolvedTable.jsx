@@ -1,38 +1,68 @@
 import {
-    faBan, faCheckDouble, faCircleExclamation,
-    faEyeSlash, faGears, faPeopleGroup, faStar, faTrash
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import './AdminReportTable.css';
+    faBan,
+    faCheckDouble,
+    faCircleExclamation,
+    faEyeSlash,
+    faGears,
+    faPeopleGroup,
+    faStar,
+    faTrash,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import "./AdminReportTable.css";
 
 const AdminResolvedTable = ({ reports, onRevert }) => {
-
     const typeTranslations = {
-        'Item': 'Inzerát',
-        'User': 'Uživatel',
-        'ReviewUser': 'Recenze uživatele',
-        'ReviewItem': 'Recenze inzerátu'
+        Item: "Inzerát",
+        User: "Uživatel",
+        ReviewUser: "Recenze uživatele",
+        ReviewItem: "Recenze inzerátu",
     };
 
     // Definice vzhledu pilulek podle resolution_action z DB
     const actionMap = {
-        'delete_content': { label: 'Smazáno', icon: faTrash, class: 'action-delete' },
-        'strike_user': { label: 'Strike', icon: faCircleExclamation, class: 'action-warning' },
-        'ban_user': { label: 'Ban uživatele', icon: faBan, class: 'action-critical' },
-        'dismissed': { label: 'Ignorováno', icon: faEyeSlash, class: 'action-info' },
-        'dismiss': { label: 'Ignorováno', icon: faEyeSlash, class: 'action-info' }
+        delete_content: {
+            label: "Smazáno",
+            icon: faTrash,
+            class: "action-delete",
+        },
+        strike_user: {
+            label: "Strike",
+            icon: faCircleExclamation,
+            class: "action-warning",
+        },
+        ban_user: {
+            label: "Ban uživatele",
+            icon: faBan,
+            class: "action-critical",
+        },
+        dismissed: {
+            label: "Ignorováno",
+            icon: faEyeSlash,
+            class: "action-info",
+        },
+        dismiss: {
+            label: "Ignorováno",
+            icon: faEyeSlash,
+            class: "action-info",
+        },
     };
 
     const getTargetLink = (report) => {
         const target = report.target;
         if (!target) return "#";
-        const model = report.target_type.split('\\').pop();
+        const model = report.target_type.split("\\").pop();
         switch (model) {
-            case 'User': return `/user/${target.id}/${target.first_name?.toLowerCase()}-${target.last_name?.toLowerCase()}`;
-            case 'Item': return `/tech/item/${target.id}`;
-            case 'ReviewUser': return `/user/${target.reviewed_user_id}/profile#review-${target.id}`;
-            case 'ReviewItem': return `/tech/item/${target.item_id}#review-${target.id}`;
-            default: return "#";
+            case "User":
+                return `/user/${target.id}/${target.first_name?.toLowerCase()}-${target.last_name?.toLowerCase()}`;
+            case "Item":
+                return `/tech/item/${target.id}`;
+            case "ReviewUser":
+                return `/user/${target.reviewed_user_id}/profile#review-${target.id}`;
+            case "ReviewItem":
+                return `/tech/item/${target.item_id}#review-${target.id}`;
+            default:
+                return "#";
         }
     };
 
@@ -41,12 +71,12 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
         // Pokud target neexistuje vůbec (např. byl smazán natvrdo z DB), pak teprve "Smazáno"
         if (!target) return "Obsah nenávratně smazán";
 
-        const model = report.target_type.split('\\').pop();
+        const model = report.target_type.split("\\").pop();
 
-        if (model === 'Item') return target.title;
-        if (model === 'User') return `${target.first_name} ${target.last_name}`;
+        if (model === "Item") return target.title;
+        if (model === "User") return `${target.first_name} ${target.last_name}`;
 
-        if (model.includes('Review')) {
+        if (model.includes("Review")) {
             // Použijeme data z reviewer, který by měl být načten přes withTrashed
             const reviewer = target.reviewer;
             return reviewer
@@ -75,10 +105,18 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                 <tbody>
                     {reports?.map((report) => {
                         // Priorita: resolution_action z DB -> status dismissed -> fallback
-                        const actionKey = report.resolution_action || (report.status === 'dismissed' ? 'dismissed' : 'default');
-                        const actionData = actionMap[actionKey] || { label: 'Vyřešeno', icon: faCheckDouble, class: '' };
+                        const actionKey =
+                            report.resolution_action ||
+                            (report.status === "dismissed"
+                                ? "dismissed"
+                                : "default");
+                        const actionData = actionMap[actionKey] || {
+                            label: "Vyřešeno",
+                            icon: faCheckDouble,
+                            class: "",
+                        };
 
-                        const model = report.target_type.split('\\').pop();
+                        const model = report.target_type.split("\\").pop();
                         const isSoftDeleted = report.target?.deleted_at != null;
 
                         return (
@@ -86,47 +124,85 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                                 <td className="col-date">
                                     <div className="date-wrapper">
                                         <span className="date-main">
-                                            {report.resolved_at ? new Date(report.resolved_at).toLocaleDateString('cs-CZ') : '---'}
+                                            {report.resolved_at
+                                                ? new Date(
+                                                      report.resolved_at,
+                                                  ).toLocaleDateString("cs-CZ")
+                                                : "---"}
                                         </span>
-                                        <small className="resolved-by">Admin ID: {report.resolved_by}</small>
+                                        <small className="resolved-by">
+                                            Admin ID: {report.resolved_by}
+                                        </small>
                                     </div>
                                 </td>
 
                                 <td className="col-type">
                                     <div className="type-badge">
-                                        <FontAwesomeIcon icon={model === 'User' ? faPeopleGroup : (model === 'Item' ? faGears : faStar)} />
-                                        <span>{typeTranslations[model] || model}</span>
+                                        <FontAwesomeIcon
+                                            icon={
+                                                model === "User"
+                                                    ? faPeopleGroup
+                                                    : model === "Item"
+                                                      ? faGears
+                                                      : faStar
+                                            }
+                                        />
+                                        <span>
+                                            {typeTranslations[model] || model}
+                                        </span>
                                     </div>
                                 </td>
 
                                 <td className="col-target">
-                                    <div className={`target-container ${report.target?.deleted_at ? 'is-deleted' : ''}`}>
-                                        <a href={getTargetLink(report)} target="_blank" rel="noreferrer" className="target-link">
+                                    <div
+                                        className={`target-container ${report.target?.deleted_at ? "is-deleted" : ""}`}
+                                    >
+                                        <a
+                                            href={getTargetLink(report)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="target-link"
+                                        >
                                             {report.target?.deleted_at && (
-                                                <span className="reason-content">SMAZÁNO</span>
+                                                <span className="reason-content">
+                                                    SMAZÁNO
+                                                </span>
                                             )}
-                                            <strong>{getTargetName(report)}</strong>
+                                            <strong>
+                                                {getTargetName(report)}
+                                            </strong>
                                         </a>
                                         <small>
                                             {report.target?.email ||
-                                                report.target?.reviewer?.email ||
+                                                report.target?.reviewer
+                                                    ?.email ||
                                                 report.target?.user?.email ||
-                                                'E-mail nedostupný'}
+                                                "E-mail nedostupný"}
                                         </small>
                                     </div>
                                 </td>
 
                                 <td className="col-report-reason reason-content">
-                                    <span>{report.reason || <i>Bez důvodu</i>}</span>
+                                    <span>
+                                        {report.reason || <i>Bez důvodu</i>}
+                                    </span>
                                 </td>
 
                                 <td className="col-reporter">
-                                    <span>{report.reporter ? `${report.reporter.first_name} ${report.reporter.last_name}` : 'Systém'}</span>
+                                    <span>
+                                        {report.reporter
+                                            ? `${report.reporter.first_name} ${report.reporter.last_name}`
+                                            : "Systém"}
+                                    </span>
                                 </td>
 
                                 <td className="col-status">
-                                    <div className={`status-pill ${actionData.class}`}>
-                                        <FontAwesomeIcon icon={actionData.icon} />
+                                    <div
+                                        className={`status-pill ${actionData.class}`}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={actionData.icon}
+                                        />
                                         <span>{actionData.label}</span>
                                     </div>
                                 </td>
@@ -134,11 +210,15 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                                 <td className="col-notes">
                                     <div className="notes-stack">
                                         {!report.admin_note ? (
-                                            <i className="no-note">Bez poznámky</i>
+                                            <i className="no-note">
+                                                Bez poznámky
+                                            </i>
                                         ) : (
                                             <>
                                                 {report.admin_note && (
-                                                    <div className="note-item admin">{report.admin_note}</div>
+                                                    <div className="note-item admin">
+                                                        {report.admin_note}
+                                                    </div>
                                                 )}
                                             </>
                                         )}
@@ -146,7 +226,10 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                                 </td>
 
                                 <td className="col-actions">
-                                    <button className="btn-revert" onClick={() => onRevert(report)}>
+                                    <button
+                                        className="btn-revert"
+                                        onClick={() => onRevert(report)}
+                                    >
                                         Zvrátit
                                     </button>
                                 </td>

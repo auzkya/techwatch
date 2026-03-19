@@ -5,16 +5,32 @@ import axiosInstance from "../../src/api/axiosInstance.js";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
 import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
 
-import { faHeart as faHeartSolid, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart, faFlag, faShareFromSquare, faPenToSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons';
+import {
+    faHeart as faHeartSolid,
+    faChevronLeft,
+    faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    faHeart,
+    faFlag,
+    faShareFromSquare,
+    faPenToSquare,
+    faTrashCan,
+} from "@fortawesome/free-regular-svg-icons";
 
-import "./TechPhoto.css"
+import "./TechPhoto.css";
 import { useAlert } from "../context/AlertContext";
 import { useFavourites } from "../hooks/useFavourites";
 import PopupReport from "./PopupReport";
 
-const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, onDeleteClick }) => {
+const TechPhoto = ({
+    images = [],
+    isLoggedUser,
+    itemId,
+    isFavouriteInitially,
+    onDeleteClick,
+}) => {
     const { showAlert } = useAlert();
 
     const navigate = useNavigate(); // Hook pro přesměrování
@@ -29,15 +45,23 @@ const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, on
     const closeGallery = () => setCurrentIndex(null);
 
     // Obsluha klávesnice
-    const nextImg = useCallback((e) => {
-        if (e) e.stopPropagation();
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, [images.length]); // Funkce se změní jen když se změní počet fotek
+    const nextImg = useCallback(
+        (e) => {
+            if (e) e.stopPropagation();
+            setCurrentIndex((prev) => (prev + 1) % images.length);
+        },
+        [images.length],
+    ); // Funkce se změní jen když se změní počet fotek
 
-    const prevImg = useCallback((e) => {
-        if (e) e.stopPropagation();
-        setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-    }, [images.length]);
+    const prevImg = useCallback(
+        (e) => {
+            if (e) e.stopPropagation();
+            setCurrentIndex(
+                (prev) => (prev - 1 + images.length) % images.length,
+            );
+        },
+        [images.length],
+    );
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (currentIndex === null) return;
@@ -71,7 +95,7 @@ const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, on
         setIsFav(!previous); // Optimistický update
 
         try {
-            await toggleFavourite('item', itemId);
+            await toggleFavourite("item", itemId);
         } catch (err) {
             setIsFav(previous); // Rollback při chybě
             showAlert("error", "Nepodařilo se uložit do oblíbených.");
@@ -130,7 +154,6 @@ const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, on
     };
 
     return (
-
         <div className="tech_photo_container">
             <PopupReport
                 isOpen={isReportPopupOpen}
@@ -139,20 +162,33 @@ const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, on
                 type={"items"}
             />
             <div className="tech_photo_container_main_photo">
-                <img src={images[0] || "placeholder.jpg"} alt="main" onClick={() => openGallery(0)} />
+                <img
+                    src={images[0] || "placeholder.jpg"}
+                    alt="main"
+                    onClick={() => openGallery(0)}
+                />
             </div>
 
             <div className="tech_photo_container_other_photos_placeholder">
                 {images.slice(1).map((img, index) => (
-                    <div className="tech_photo_container_other_photo" key={index}>
-                        <img src={img} alt={`tech_${index}`} onClick={() => openGallery(index + 1)} />
+                    <div
+                        className="tech_photo_container_other_photo"
+                        key={index}
+                    >
+                        <img
+                            src={img}
+                            alt={`tech_${index}`}
+                            onClick={() => openGallery(index + 1)}
+                        />
                     </div>
                 ))}
             </div>
 
             {currentIndex !== null && (
-                <div className="loader_container gallery_overlay" onClick={closeGallery}>
-
+                <div
+                    className="loader_container gallery_overlay"
+                    onClick={closeGallery}
+                >
                     {/* Navigační šipky */}
                     {images.length > 1 && (
                         <>
@@ -174,7 +210,11 @@ const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, on
                         </>
                     )}
 
-                    <QuickPinchZoom onUpdate={onUpdate} key={currentIndex} maxZoom={5}>
+                    <QuickPinchZoom
+                        onUpdate={onUpdate}
+                        key={currentIndex}
+                        maxZoom={5}
+                    >
                         <img
                             ref={imgRef}
                             src={images[currentIndex]}
@@ -191,43 +231,93 @@ const TechPhoto = ({ images = [], isLoggedUser, itemId, isFavouriteInitially, on
                 {isLoggedUser ? (
                     /* SEKCE PRO VLASTNÍKA */
                     <>
-                        <span className="options_span clickable" onClick={() => console.log("Edit")}>
-                            <Link to={buildRoute(ROUTES.EDIT_TECH, { id: itemId })}>
+                        <span
+                            className="options_span clickable"
+                            onClick={() => console.log("Edit")}
+                        >
+                            <Link
+                                to={buildRoute(ROUTES.EDIT_TECH, {
+                                    id: itemId,
+                                })}
+                            >
                                 <>
-                                    <FontAwesomeIcon icon={faPenToSquare} className="options_icon" />
-                                    <p className="options_text">Upravit nabídku</p>
+                                    <FontAwesomeIcon
+                                        icon={faPenToSquare}
+                                        className="options_icon"
+                                    />
+                                    <p className="options_text">
+                                        Upravit nabídku
+                                    </p>
                                 </>
                             </Link>
-                        </span><br></br>
-                        <span className="options_span clickable" onClick={() => copyToClipboard()}>
-                            <FontAwesomeIcon icon={faShareFromSquare} className="options_icon" />
+                        </span>
+                        <br></br>
+                        <span
+                            className="options_span clickable"
+                            onClick={() => copyToClipboard()}
+                        >
+                            <FontAwesomeIcon
+                                icon={faShareFromSquare}
+                                className="options_icon"
+                            />
                             <p className="options_text">Sdílet</p>
-                        </span><br></br>
-                        <span className="options_span clickable" onClick={onDeleteClick}>
-                            <FontAwesomeIcon icon={faTrashCan} className="options_icon" />
+                        </span>
+                        <br></br>
+                        <span
+                            className="options_span clickable"
+                            onClick={onDeleteClick}
+                        >
+                            <FontAwesomeIcon
+                                icon={faTrashCan}
+                                className="options_icon"
+                            />
                             <p className="options_text">Smazat</p>
                         </span>
                     </>
                 ) : (
                     /* SEKCE PRO OSTATNÍ */
                     <>
-                        <span className="options_span clickable" onClick={handleToggleFav}>
-                            <FontAwesomeIcon icon={isFav ? faHeartSolid : faHeart} className={`options_icon ${isFav ? 'fav-active' : ''}`} />
-                            <p className="options_text">{isFav ? "Nabídka je uložena" : "Uložit nabídku"}</p>
-                        </span><br></br>
-                        <span className="options_span clickable" onClick={() => copyToClipboard()}>
-                            <FontAwesomeIcon icon={faShareFromSquare} className="options_icon" />
+                        <span
+                            className="options_span clickable"
+                            onClick={handleToggleFav}
+                        >
+                            <FontAwesomeIcon
+                                icon={isFav ? faHeartSolid : faHeart}
+                                className={`options_icon ${isFav ? "fav-active" : ""}`}
+                            />
+                            <p className="options_text">
+                                {isFav
+                                    ? "Nabídka je uložena"
+                                    : "Uložit nabídku"}
+                            </p>
+                        </span>
+                        <br></br>
+                        <span
+                            className="options_span clickable"
+                            onClick={() => copyToClipboard()}
+                        >
+                            <FontAwesomeIcon
+                                icon={faShareFromSquare}
+                                className="options_icon"
+                            />
                             <p className="options_text">Sdílet</p>
-                        </span><br></br>
-                        <span className="options_span clickable danger" onClick={() => setIsReportPopupOpen(true)}>
-                            <FontAwesomeIcon icon={faFlag} className="options_icon" />
+                        </span>
+                        <br></br>
+                        <span
+                            className="options_span clickable danger"
+                            onClick={() => setIsReportPopupOpen(true)}
+                        >
+                            <FontAwesomeIcon
+                                icon={faFlag}
+                                className="options_icon"
+                            />
                             <p className="options_text">Nahlásit</p>
                         </span>
                     </>
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default TechPhoto;

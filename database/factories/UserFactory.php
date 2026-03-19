@@ -3,8 +3,6 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -29,9 +27,9 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'password' => bcrypt('password'),
             'is_active' => true,
-            'profile_image' => 'https://i.pravatar.cc/150?u=' . fake()->uuid(),
+            'profile_image' => 'https://i.pravatar.cc/150?u='.fake()->uuid(),
             'bio' => fake()->sentence(),
-            'location' => fake()->randomElement(["praha", "brno", "ostrava", "plzensky"]), // Slugs pro tvůj select
+            'location' => fake()->randomElement(['praha', 'brno', 'ostrava', 'plzensky']), // Slugs pro tvůj select
             'review_value' => fake()->randomFloat(1, 1, 5),
             // Nastavíme aktivitu na 1 měsíc dopředu, aby byli vidět v seznamu
             'active_worker_till' => now()->addMonths(1),
@@ -44,7 +42,7 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
     }

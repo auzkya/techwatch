@@ -17,13 +17,13 @@ export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
     const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
         console.log(croppedArea, croppedAreaPixels);
         setCroppedAreaPixels(croppedAreaPixels);
-    }, [])
+    }, []);
 
     const onSelectFile = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        e.target.value = '';
+        e.target.value = "";
 
         const objectUrl = URL.createObjectURL(file);
         setSrc(objectUrl);
@@ -54,12 +54,11 @@ export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
             0,
             0,
             croppedAreaPixels.width,
-            croppedAreaPixels.height
+            croppedAreaPixels.height,
         );
 
-
         const blob = await new Promise((resolve) =>
-            canvas.toBlob(resolve, "image/jpeg", 0.9)
+            canvas.toBlob(resolve, "image/jpeg", 0.9),
         );
 
         const compressed = await imageCompression(blob, {
@@ -81,13 +80,13 @@ export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
 
     useEffect(() => {
         const handleEsc = (event) => {
-            if (event.key === 'Escape' && showCrop) {
+            if (event.key === "Escape" && showCrop) {
                 handleClose();
             }
         };
-        window.addEventListener('keydown', handleEsc);
+        window.addEventListener("keydown", handleEsc);
         return () => {
-            window.removeEventListener('keydown', handleEsc);
+            window.removeEventListener("keydown", handleEsc);
         };
     }, [showCrop]);
 
@@ -98,10 +97,7 @@ export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
                 onClick={() => fileInputRef.current?.click()}
             >
                 <img
-                    src={
-                        avatarPreview ||
-                        ASSETS.default_avatar
-                    }
+                    src={avatarPreview || ASSETS.default_avatar}
                     alt="avatar"
                 />
                 <div className="avatar_overlay">
@@ -133,16 +129,16 @@ export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
                             onCropComplete={onCropComplete}
                         />
                     </div>
-                        <div className="zoom_slider">
-                            <input
-                                type="range"
-                                min={1}
-                                max={3}
-                                step={0.01}
-                                value={zoom}
-                                onChange={(e) => setZoom(Number(e.target.value))}
-                            />
-                        </div>
+                    <div className="zoom_slider">
+                        <input
+                            type="range"
+                            min={1}
+                            max={3}
+                            step={0.01}
+                            value={zoom}
+                            onChange={(e) => setZoom(Number(e.target.value))}
+                        />
+                    </div>
                     <div className="crop_actions">
                         <button
                             type="button"

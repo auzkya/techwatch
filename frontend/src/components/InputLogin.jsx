@@ -1,6 +1,17 @@
 import "./InputLogin.css";
 
-const InputLogin = ({ type, name, placeholder, autoComplete, required, error_message, value, onChange, extraClass, disabled }) => {
+const InputLogin = ({
+    type,
+    name,
+    placeholder,
+    autoComplete,
+    required,
+    error_message,
+    value,
+    onChange,
+    extraClass,
+    disabled,
+}) => {
     return (
         <input
             type={type}
@@ -8,12 +19,12 @@ const InputLogin = ({ type, name, placeholder, autoComplete, required, error_mes
             placeholder={placeholder}
             autoComplete={autoComplete}
             required={required ? true : undefined}
-            value={value || ""}      // ← přidej
+            value={value || ""} // ← přidej
             onChange={onChange} // ← přidej
             disabled={disabled}
             className={`input-login ${extraClass ? extraClass : ""}`}
         />
-    )
-}
+    );
+};
 
-export default InputLogin
+export default InputLogin;

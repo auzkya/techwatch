@@ -1,54 +1,54 @@
 .popover-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 9000;
-  /* zajisti, že zachytí kliknutí */
-  pointer-events: auto;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 9000;
+    /* zajisti, že zachytí kliknutí */
+    pointer-events: auto;
 }
 
 .notification-popup {
-  position: fixed;             /* FIXED (pevně vůči viewportu) */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: var(--background);
-  border: 2px solid var(--primary);
-  border-radius: 20px;
-  padding: 30px 40px;
-  color: var(--text);
-  z-index: 1100;           /* nad backdropem */
-  max-width: 90vw;
-  max-height: 90vh;
-  overflow: auto;
-  min-width: 600px;
+    position: fixed; /* FIXED (pevně vůči viewportu) */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--background);
+    border: 2px solid var(--primary);
+    border-radius: 20px;
+    padding: 30px 40px;
+    color: var(--text);
+    z-index: 1100; /* nad backdropem */
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    min-width: 600px;
 }
 
-.notification-popup .left-right-container{
+.notification-popup .left-right-container {
     width: 100%;
     display: flex;
     column-gap: 50px;
 }
 
-.notification-popup .left.full{
+.notification-popup .left.full {
     width: 100%;
 }
 
-.notification-popup .date{
+.notification-popup .date {
     margin: 0 0 -3px 25px;
 }
 
-.notification-popup h2{
+.notification-popup h2 {
     margin: 0 0 30px 0;
     display: inline-block;
 }
 
-.notification-popup .profile{
+.notification-popup .profile {
     margin-left: -5px;
     cursor: pointer;
 }
 
-.notification-popup .profile_img{
+.notification-popup .profile_img {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -57,30 +57,30 @@
     vertical-align: middle;
 }
 
-.notification-popup .profile_info{
+.notification-popup .profile_info {
     display: inline-block;
     vertical-align: middle;
     margin: 5px 0 0 20px;
 }
 
-.notification-popup .profile_info h3{
+.notification-popup .profile_info h3 {
     margin: 0;
     color: var(--text);
 }
 
-.notification-popup .profile_info p{
+.notification-popup .profile_info p {
     margin: 0;
     color: var(--text3);
 }
 
-.notification-popup .left .body_base{
+.notification-popup .left .body_base {
     margin-top: 15px;
     margin-bottom: 26px;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-.notification-popup .right img{
+.notification-popup .right img {
     width: 200px;
     height: 200px;
     border-radius: 20%;
@@ -88,16 +88,16 @@
     object-fit: cover;
 }
 
-.notification-popup .contact{
+.notification-popup .contact {
     width: 100%;
 }
 
-.notification-popup .contact p{
+.notification-popup .contact p {
     text-align: center;
     margin-bottom: 8px;
 }
 
-.notification-popup .contact_info{
+.notification-popup .contact_info {
     display: flex;
     position: relative;
     margin: 0 auto;
@@ -105,13 +105,13 @@
     width: 100%;
 }
 
-.notification-popup .contact a{
+.notification-popup .contact a {
     text-decoration: none;
     color: var(--text);
     display: inline;
 }
 
-.notification-popup .contact_info p{
+.notification-popup .contact_info p {
     display: inline;
     vertical-align: top;
     margin-left: 4px;

@@ -1,6 +1,10 @@
-import { faFlag, faPenToSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons';
-import { faCircleMinus, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+    faFlag,
+    faPenToSquare,
+    faTrashCan,
+} from "@fortawesome/free-regular-svg-icons";
+import { faCircleMinus, faCirclePlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ASSETS } from "../config/assets";
@@ -22,13 +26,20 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
     const reportType = reviewData.item_id ? "reviews_items" : "reviews_users";
 
     // Formátování data (např. "5. června")
-    const formattedDate = new Date(reviewData.created_at).toLocaleDateString('cs-CZ', {
-        day: 'numeric',
-        month: 'long'
-    });
+    const formattedDate = new Date(reviewData.created_at).toLocaleDateString(
+        "cs-CZ",
+        {
+            day: "numeric",
+            month: "long",
+        },
+    );
 
     const handleProfileClick = () => {
-        if (reviewData.reviewer?.id && reviewData.reviewer?.first_name && reviewData.reviewer?.last_name) {
+        if (
+            reviewData.reviewer?.id &&
+            reviewData.reviewer?.first_name &&
+            reviewData.reviewer?.last_name
+        ) {
             // Vytvoříme slug ze jména a příjmení
             const fullName = `${reviewData.reviewer?.first_name}-${reviewData.reviewer?.last_name}`;
             // Pokud tvůj makeSlug dělá podtržítka, tady je přepíšeme na pomlčky
@@ -38,7 +49,9 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
             navigate(`/user/${reviewData.reviewer?.id}/${slug}`);
         } else if (reviewData.reviewer?.id) {
             // Fallback pro jistotu
-            navigate(buildRoute(ROUTES.USER_DETAIL, { id: reviewData.reviewer?.id }));
+            navigate(
+                buildRoute(ROUTES.USER_DETAIL, { id: reviewData.reviewer?.id }),
+            );
         }
     };
 
@@ -50,21 +63,31 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
                 targetId={reviewData.id} // ID samotné recenze
                 type={reportType}
             />
-            <div className="review_component_profile" onClick={handleProfileClick}>
+            <div
+                className="review_component_profile"
+                onClick={handleProfileClick}
+            >
                 <div className="left">
                     <img
                         alt="avatar"
                         className="review_component_avatar"
-                        src={reviewData.reviewer?.profile_image_url || ASSETS.default_avatar}
+                        src={
+                            reviewData.reviewer?.profile_image_url ||
+                            ASSETS.default_avatar
+                        }
                     />
                 </div>
                 <div className="right">
                     <h3 className="strong">
-                        {reviewData.reviewer?.first_name} {reviewData.reviewer?.last_name}
+                        {reviewData.reviewer?.first_name}{" "}
+                        {reviewData.reviewer?.last_name}
                     </h3>
                     <p className="role">
-                        {reviewData.reviewer?.specs && reviewData.reviewer.specs.length > 0
-                            ? reviewData.reviewer.specs.map(s => s.name).join(' | ')
+                        {reviewData.reviewer?.specs &&
+                        reviewData.reviewer.specs.length > 0
+                            ? reviewData.reviewer.specs
+                                  .map((s) => s.name)
+                                  .join(" | ")
                             : "Uživatel TechWatch"}
                     </p>
                 </div>
@@ -78,17 +101,35 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
             <div className="review_component_main">
                 <div className="review_component_plus-minus">
                     <div className="review_component_plus-container">
-                        {(Array.isArray(reviewData.pros) ? reviewData.pros : []).map((point, i) => (
-                            <div key={i} className="review_component_point plus">
-                                <FontAwesomeIcon icon={faCirclePlus} className="icon" />
+                        {(Array.isArray(reviewData.pros)
+                            ? reviewData.pros
+                            : []
+                        ).map((point, i) => (
+                            <div
+                                key={i}
+                                className="review_component_point plus"
+                            >
+                                <FontAwesomeIcon
+                                    icon={faCirclePlus}
+                                    className="icon"
+                                />
                                 <p className="text">{point}</p>
                             </div>
                         ))}
                     </div>
                     <div className="review_component_minus-container">
-                        {(Array.isArray(reviewData.cons) ? reviewData.cons : []).map((point, i) => (
-                            <div key={i} className="review_component_point minus">
-                                <FontAwesomeIcon icon={faCircleMinus} className="icon" />
+                        {(Array.isArray(reviewData.cons)
+                            ? reviewData.cons
+                            : []
+                        ).map((point, i) => (
+                            <div
+                                key={i}
+                                className="review_component_point minus"
+                            >
+                                <FontAwesomeIcon
+                                    icon={faCircleMinus}
+                                    className="icon"
+                                />
                                 <p className="text">{point}</p>
                             </div>
                         ))}
@@ -100,22 +141,40 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
                 <div className="review_options">
                     {isAuthor ? (
                         <>
-                            <span className="options_span" onClick={() => onEdit({
-                                ...reviewData,
-                                rating: reviewData.review_value, // Mapování pro PopupReview
-                                text: reviewData.review          // Mapování pro PopupReview
-                            })}>
-                                <FontAwesomeIcon icon={faPenToSquare} className="options_icon" />
+                            <span
+                                className="options_span"
+                                onClick={() =>
+                                    onEdit({
+                                        ...reviewData,
+                                        rating: reviewData.review_value, // Mapování pro PopupReview
+                                        text: reviewData.review, // Mapování pro PopupReview
+                                    })
+                                }
+                            >
+                                <FontAwesomeIcon
+                                    icon={faPenToSquare}
+                                    className="options_icon"
+                                />
                                 <p className="options_text">Upravit recenzi</p>
-                            </span><br />
+                            </span>
+                            <br />
                             <span className="options_span" onClick={onDelete}>
-                                <FontAwesomeIcon icon={faTrashCan} className="options_icon" />
+                                <FontAwesomeIcon
+                                    icon={faTrashCan}
+                                    className="options_icon"
+                                />
                                 <p className="options_text">Smazat recenzi</p>
                             </span>
                         </>
                     ) : (
-                        <span className="options_span" onClick={() => setIsReportPopupOpen(true)}>
-                            <FontAwesomeIcon icon={faFlag} className="options_icon" />
+                        <span
+                            className="options_span"
+                            onClick={() => setIsReportPopupOpen(true)}
+                        >
+                            <FontAwesomeIcon
+                                icon={faFlag}
+                                className="options_icon"
+                            />
                             <p className="options_text">Nahlásit recenzi</p>
                         </span>
                     )}
@@ -125,4 +184,4 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
     );
 };
 
-export default Review
+export default Review;

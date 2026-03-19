@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import InputLogin from "./InputLogin";
 
@@ -26,8 +25,8 @@ const FormConfirmName = ({ setLoading, setError }) => {
         setLoading(true);
 
         // ⚠️ KLÍČOVÁ ZMĚNA: Vytvoř normální HTML form a submitni ho
-        const form = document.createElement('form');
-        form.method = 'POST';
+        const form = document.createElement("form");
+        form.method = "POST";
         form.action = `${apiUrl}/api/oauth-registration`;
 
         // Přidej všechna data jako hidden inputy
@@ -36,14 +35,14 @@ const FormConfirmName = ({ setLoading, setError }) => {
             fname,
             lname,
             provider,
-            provider_id: providerId
+            provider_id: providerId,
         };
 
         Object.entries(fields).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
+            const input = document.createElement("input");
+            input.type = "hidden";
             input.name = key;
-            input.value = value || '';
+            input.value = value || "";
             form.appendChild(input);
         });
 
@@ -75,7 +74,11 @@ const FormConfirmName = ({ setLoading, setError }) => {
                 value={lname}
                 onChange={(e) => setLname(e.target.value)}
             />
-            <button type="submit" className="form-submit extra_space" disabled={false}>
+            <button
+                type="submit"
+                className="form-submit extra_space"
+                disabled={false}
+            >
                 <p className="strong">Dokončit registraci</p>
             </button>
         </form>

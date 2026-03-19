@@ -1,5 +1,4 @@
-
-import "./NotFound.css"
+import "./NotFound.css";
 
 const NotFound = () => {
     return (
@@ -9,7 +8,7 @@ const NotFound = () => {
                 <h2 className="coming_soon">PŘÍSTUP ODEPŘEN</h2>
             </div>
         </>
-    )
-}
+    );
+};
 
-export default NotFound
+export default NotFound;

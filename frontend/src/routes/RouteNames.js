@@ -42,9 +42,6 @@ export const ROUTES = {
     USER_DETAIL: "/user/:id/:slug?",
     EDIT_PROFILE: "/edit-profile",
 
-    // Nastavení profilu
-    SETTINGS: "/profile/settings",
-
     // Oblíbené položky
     FAVOURITES: "/favourites",
     FAVOURITES_CATEGORY: "/favourites/category/:subcategory",

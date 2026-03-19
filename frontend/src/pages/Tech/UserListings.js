@@ -7,11 +7,9 @@ import ItemSkeleton from "../../components/ItemSkeleton";
 import Path from "../../components/Path";
 import { ASSETS } from "../../config/assets";
 import { useAlert } from "../../context/AlertContext";
-import { useAuth } from "../../context/AuthContext";
 
 const UserListings = () => {
     const { id } = useParams();
-    const { user } = useAuth();
     const navigate = useNavigate();
     const { showAlert } = useAlert();
     const location = useLocation();
@@ -23,8 +21,8 @@ const UserListings = () => {
     const [isOwner, setIsOwner] = useState(false);
 
     // Stavy filtrů
-    const [searchTerm, setSearchTerm] = useState("");
-    const [activeSubcategory, setActiveSubcategory] = useState(null);
+    const [searchTerm] = useState("");
+    const [activeSubcategory] = useState(null);
     const [statusFilter, setStatusFilter] = useState("all");
 
     // --- POPUP LOGIKA ---
@@ -58,15 +56,17 @@ const UserListings = () => {
         const previousItems = [...items];
         const statusForBe = newStatus ? 1 : 0;
 
-        setItems(prevItems =>
-            prevItems.map(item =>
-                item.id === itemId ? { ...item, active_item: statusForBe } : item
-            )
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === itemId
+                    ? { ...item, active_item: statusForBe }
+                    : item,
+            ),
         );
 
         try {
             await axiosInstance.patch(`/api/items/${itemId}/status`, {
-                active_item: statusForBe
+                active_item: statusForBe,
             });
         } catch (err) {
             setItems(previousItems);
@@ -83,7 +83,9 @@ const UserListings = () => {
 
         try {
             await axiosInstance.delete(`/api/items/${idToDel}`);
-            setItems(prevItems => prevItems.filter(item => item.id !== idToDel));
+            setItems((prevItems) =>
+                prevItems.filter((item) => item.id !== idToDel),
+            );
             showAlert("success", "Nabídka byla úspěšně smazána.");
         } catch (err) {
             showAlert("error", "Nabídku se nepodařilo smazat.");
@@ -98,9 +100,16 @@ const UserListings = () => {
             // Pokud jde o filtr (search/status), loading zapneme, ale initialLoad už ne
             setLoading(true);
             try {
-                const response = await axiosInstance.get(`/api/user-listings/${id}`, {
-                    params: { search: searchTerm, subcategory: activeSubcategory, status: statusFilter }
-                });
+                const response = await axiosInstance.get(
+                    `/api/user-listings/${id}`,
+                    {
+                        params: {
+                            search: searchTerm,
+                            subcategory: activeSubcategory,
+                            status: statusFilter,
+                        },
+                    },
+                );
                 setItems(response.data.items);
                 setOwnerName(response.data.owner_name);
                 setIsOwner(response.data.is_owner);
@@ -126,7 +135,9 @@ const UserListings = () => {
     if (initialLoad) {
         return (
             <>
-                <div className="loader_container"><div className="loader"></div></div>
+                <div className="loader_container">
+                    <div className="loader"></div>
+                </div>
             </>
         );
     }
@@ -135,8 +146,12 @@ const UserListings = () => {
     return (
         <>
             <Path
-                mode={isOwner ? "direct" : (location.state?.fromMode || "tech")}
-                category={isOwner ? null : (location.state?.fromCategory || activeSubcategory)}
+                mode={isOwner ? "direct" : location.state?.fromMode || "tech"}
+                category={
+                    isOwner
+                        ? null
+                        : location.state?.fromCategory || activeSubcategory
+                }
                 userName={isOwner ? null : ownerName} // Předáme jméno majitele
                 customLabel={isOwner ? "Moje nabídky" : "TECHNIKA"} // Poslední článek cesty
             />
@@ -148,7 +163,10 @@ const UserListings = () => {
             {/* --- MAZACÍ POPUP --- */}
             {showDeletePopup && (
                 <div className="popup_container" onClick={handleClosePopup}>
-                    <div className="popup_small" onClick={(e) => e.stopPropagation()}>
+                    <div
+                        className="popup_small"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <h3>Opravdu chcete tuto nabídku trvale smazat?</h3>
                         <div className="cropped">
                             <button
@@ -156,7 +174,12 @@ const UserListings = () => {
                                 className="form-submit"
                                 onClick={confirmDeleteAction}
                             >
-                                <p className="strong" style={{ color: 'white' }}>Ano</p>
+                                <p
+                                    className="strong"
+                                    style={{ color: "white" }}
+                                >
+                                    Ano
+                                </p>
                             </button>
                             <button
                                 type="button"
@@ -172,7 +195,7 @@ const UserListings = () => {
 
             {!isOwner ? null : (
                 <div className="status-filter-container">
-                    {['all', 'active', 'inactive'].map((s) => (
+                    {["all", "active", "inactive"].map((s) => (
                         <label key={s} className="checkbox">
                             <input
                                 type="radio"
@@ -181,7 +204,11 @@ const UserListings = () => {
                                 onChange={() => setStatusFilter(s)}
                             />
                             <span className="body_base">
-                                {s === 'all' ? 'Vše' : s === 'active' ? 'Aktivní' : 'Neaktivní'}
+                                {s === "all"
+                                    ? "Vše"
+                                    : s === "active"
+                                      ? "Aktivní"
+                                      : "Neaktivní"}
                             </span>
                         </label>
                     ))}
@@ -195,7 +222,7 @@ const UserListings = () => {
                             <ItemSkeleton key={index} />
                         ))
                     ) : items.length > 0 ? (
-                        items.map(item => (
+                        items.map((item) => (
                             <div key={item.id} className="item-admin-card">
                                 <Item
                                     id={item.id}
@@ -206,29 +233,44 @@ const UserListings = () => {
                                     quantity={item.quantity}
                                     activeItem={item.active_item}
                                     isOwner={isOwner}
-                                    onEdit={(id) => navigate(`/tech/edit/${id}`)}
+                                    onEdit={(id) =>
+                                        navigate(`/tech/edit/${id}`)
+                                    }
                                     onDelete={(id) => openDeletePopup(id)} // Voláme popup
                                     onStatusChange={handleStatusChange}
                                     onShare={(id) => {
-                                        navigator.clipboard.writeText(`${window.location.origin}/tech/item/${id}`);
-                                        showAlert("success", "Odkaz zkopírován do schránky!");
+                                        navigator.clipboard.writeText(
+                                            `${window.location.origin}/tech/item/${id}`,
+                                        );
+                                        showAlert(
+                                            "success",
+                                            "Odkaz zkopírován do schránky!",
+                                        );
                                     }}
-                                    onClick={() => navigate(`/tech/item/${item.id}`, {
-                                        state: {
-                                            fromMode: "direct",
-                                            customLabel: isOwner ? "Moje nabídky" : "TECHNIKA",
-                                            userName: isOwner ? null : ownerName, // <--- TADY: Pokud jsem majitel, jméno vynulujeme
-                                            userId: id,
-                                            fromCategory: activeSubcategory,
-                                            ...location.state
-                                        }
-                                    })}
+                                    onClick={() =>
+                                        navigate(`/tech/item/${item.id}`, {
+                                            state: {
+                                                fromMode: "direct",
+                                                customLabel: isOwner
+                                                    ? "Moje nabídky"
+                                                    : "TECHNIKA",
+                                                userName: isOwner
+                                                    ? null
+                                                    : ownerName, // <--- TADY: Pokud jsem majitel, jméno vynulujeme
+                                                userId: id,
+                                                fromCategory: activeSubcategory,
+                                                ...location.state,
+                                            },
+                                        })
+                                    }
                                 />
                             </div>
                         ))
                     ) : (
                         <div className="no-results_listing-container">
-                            <h2 className="no-results_listing">Nebyly nalezeny žádné nabídky.</h2>
+                            <h2 className="no-results_listing">
+                                Nebyly nalezeny žádné nabídky.
+                            </h2>
                         </div>
                     )}
                 </div>

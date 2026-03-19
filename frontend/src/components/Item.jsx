@@ -1,4 +1,8 @@
-import { faHeart as faHeartEmpty, faStar as faStarEmpty, faTrashCan } from '@fortawesome/free-regular-svg-icons';
+import {
+    faHeart as faHeartEmpty,
+    faStar as faStarEmpty,
+    faTrashCan,
+} from "@fortawesome/free-regular-svg-icons";
 import {
     faEye,
     faEyeSlash,
@@ -6,29 +10,43 @@ import {
     faPenToSquare,
     faShareFromSquare,
     faStar as faStarFull,
-    faStarHalfStroke
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+    faStarHalfStroke,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { forwardRef, memo, useEffect, useState } from "react";
 import { useAlert } from "../context/AlertContext";
-import { useFavourites } from '../hooks/useFavourites';
+import { useFavourites } from "../hooks/useFavourites";
 import "./Item.css";
 
 // Memoizujeme hvězdičky, aby se nepřekreslovaly zbytečně
 export const Stars = memo(({ rating = 0, max = 5 }) => {
     const safeRating = Math.min(Math.max(Number(rating) || 0, 0), max);
     const fullStars = Math.floor(safeRating);
-    const halfStar = (safeRating - fullStars) >= 0.5;
+    const halfStar = safeRating - fullStars >= 0.5;
     const emptyStars = Math.max(0, max - fullStars - (halfStar ? 1 : 0));
 
     return (
         <div className="stars_container">
             {[...Array(fullStars)].map((_, i) => (
-                <FontAwesomeIcon key={"f" + i} icon={faStarFull} style={{ marginRight: 2 }} />
+                <FontAwesomeIcon
+                    key={"f" + i}
+                    icon={faStarFull}
+                    style={{ marginRight: 2 }}
+                />
             ))}
-            {halfStar && <FontAwesomeIcon key="h" icon={faStarHalfStroke} style={{ marginRight: 2 }} />}
+            {halfStar && (
+                <FontAwesomeIcon
+                    key="h"
+                    icon={faStarHalfStroke}
+                    style={{ marginRight: 2 }}
+                />
+            )}
             {[...Array(emptyStars)].map((_, i) => (
-                <FontAwesomeIcon key={"e" + i} icon={faStarEmpty} style={{ marginRight: 2 }} />
+                <FontAwesomeIcon
+                    key={"e" + i}
+                    icon={faStarEmpty}
+                    style={{ marginRight: 2 }}
+                />
             ))}
         </div>
     );
@@ -37,9 +55,22 @@ export const Stars = memo(({ rating = 0, max = 5 }) => {
 // Definujeme hlavní tělo komponenty
 const ItemBase = forwardRef((props, ref) => {
     const {
-        id, profile_picture, name, rating, role, onClick,
-        isFavouriteInitially, price, purpose, quantity,
-        isOwner, activeItem, onEdit, onDelete, onStatusChange, onShare
+        id,
+        profile_picture,
+        name,
+        rating,
+        role,
+        onClick,
+        isFavouriteInitially,
+        price,
+        purpose,
+        quantity,
+        isOwner,
+        activeItem,
+        onEdit,
+        onDelete,
+        onStatusChange,
+        onShare,
     } = props;
 
     const { showAlert } = useAlert();
@@ -56,7 +87,7 @@ const ItemBase = forwardRef((props, ref) => {
         const previousState = isFav;
         setIsFav(!previousState);
         try {
-            await toggleFavourite(isTech ? 'item' : 'user', id);
+            await toggleFavourite(isTech ? "item" : "user", id);
         } catch (error) {
             setIsFav(previousState);
             showAlert("error", "Nepodařilo se uložit do oblíbených.");
@@ -64,20 +95,21 @@ const ItemBase = forwardRef((props, ref) => {
     };
 
     const renderTechInfo = () => {
-        const typeText = purpose === 'sell' ? 'Prodej' : 'Rentál';
+        const typeText = purpose === "sell" ? "Prodej" : "Rentál";
         if (!price || price === 0) return `${typeText} dohodou`;
-        const formattedPrice = new Intl.NumberFormat('cs-CZ').format(price);
-        const unit = purpose === 'rental' ? ' / den' : '';
-        return <>{typeText} <span className="light-weight-text">za</span> {formattedPrice} Kč{unit}</>;
+        const formattedPrice = new Intl.NumberFormat("cs-CZ").format(price);
+        const unit = purpose === "rental" ? " / den" : "";
+        return (
+            <>
+                {typeText} <span className="light-weight-text">za</span>{" "}
+                {formattedPrice} Kč{unit}
+            </>
+        );
     };
 
     const renderQuantityInfo = () => {
         if (quantity === undefined || quantity === null) return null;
-        return (
-            <>
-               {quantity} ks
-            </>
-        );
+        return <>{quantity} ks</>;
     };
 
     return (
@@ -87,7 +119,12 @@ const ItemBase = forwardRef((props, ref) => {
             ref={ref}
         >
             <div className="item_image_container">
-                <img className="item_profile_img" alt={name} src={profile_picture} loading="lazy" />
+                <img
+                    className="item_profile_img"
+                    alt={name}
+                    src={profile_picture}
+                    loading="lazy"
+                />
                 {!activeItem && isOwner && (
                     <div className="item_hidden_overlay">
                         <FontAwesomeIcon icon={faEyeSlash} />
@@ -99,7 +136,7 @@ const ItemBase = forwardRef((props, ref) => {
                 {!isOwner && (
                     <FontAwesomeIcon
                         icon={isFav ? faHeartFull : faHeartEmpty}
-                        className={`heart ${isFav ? 'fav-active' : ''}`}
+                        className={`heart ${isFav ? "fav-active" : ""}`}
                         onClick={handleFavClick}
                     />
                 )}
@@ -107,7 +144,9 @@ const ItemBase = forwardRef((props, ref) => {
                 <div className="rating_row">
                     {rating && rating > 0 ? (
                         <>
-                            <div className="stars"><Stars rating={rating} /></div>
+                            <div className="stars">
+                                <Stars rating={rating} />
+                            </div>
                             <p className="stars_number">{rating}</p>
                         </>
                     ) : (
@@ -116,13 +155,16 @@ const ItemBase = forwardRef((props, ref) => {
                 </div>
 
                 <p className="name body_base strong">{name}</p>
-                {!isTech && <p className="role">{role?.replace(/;/g, " | ")}</p>}
+                {!isTech && (
+                    <p className="role">{role?.replace(/;/g, " | ")}</p>
+                )}
 
-                {isTech &&
+                {isTech && (
                     <>
                         <p className="role2">{renderTechInfo()}</p>
                         <p className="role2">{renderQuantityInfo()}</p>
-                    </>}
+                    </>
+                )}
 
                 {isOwner && (
                     <div className="item-edit-menu">
@@ -131,10 +173,15 @@ const ItemBase = forwardRef((props, ref) => {
                             <FontAwesomeIcon
                                 icon={activeItem ? faEyeSlash : faEye}
                                 className="icon"
-                                onClick={(e) => { e.stopPropagation(); onStatusChange(id, !activeItem); }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onStatusChange(id, !activeItem);
+                                }}
                             />
                             <span className="tooltip-bubble">
-                                {activeItem ? "Skrýt nabídku" : "Zveřejnit nabídku"}
+                                {activeItem
+                                    ? "Skrýt nabídku"
+                                    : "Zveřejnit nabídku"}
                             </span>
                         </div>
 
@@ -143,9 +190,14 @@ const ItemBase = forwardRef((props, ref) => {
                             <FontAwesomeIcon
                                 icon={faPenToSquare}
                                 className="icon"
-                                onClick={(e) => { e.stopPropagation(); onEdit(id); }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(id);
+                                }}
                             />
-                            <span className="tooltip-bubble">Upravit nabídku</span>
+                            <span className="tooltip-bubble">
+                                Upravit nabídku
+                            </span>
                         </div>
 
                         {/* Tooltip: Sdílet */}
@@ -153,7 +205,10 @@ const ItemBase = forwardRef((props, ref) => {
                             <FontAwesomeIcon
                                 icon={faShareFromSquare}
                                 className="icon"
-                                onClick={(e) => { e.stopPropagation(); onShare(id); }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onShare(id);
+                                }}
                             />
                             <span className="tooltip-bubble">Sdílet</span>
                         </div>
@@ -163,7 +218,10 @@ const ItemBase = forwardRef((props, ref) => {
                             <FontAwesomeIcon
                                 icon={faTrashCan}
                                 className="icon delete-icon"
-                                onClick={(e) => { e.stopPropagation(); onDelete(id); }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(id);
+                                }}
                             />
                             <span className="tooltip-bubble">Smazat</span>
                         </div>

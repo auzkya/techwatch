@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Item;
 
 class Notification extends Model
 {
@@ -20,13 +19,13 @@ class Notification extends Model
         'is_read',
         'target_id',
         'target_sub_id',
-        'target_slug'
+        'target_slug',
     ];
 
     // Důležité: automaticky převede JSON na pole a zpět
     protected $casts = [
         'data' => 'array',
-        'is_read' => 'boolean'
+        'is_read' => 'boolean',
     ];
 
     protected $appends = ['tech_info'];
@@ -47,8 +46,9 @@ class Notification extends Model
     public function getTechInfoAttribute()
     {
         $techId = $this->data['tech_id'] ?? null;
-        if (!$techId)
+        if (! $techId) {
             return null;
+        }
 
         $item = Item::find($techId);
         if ($item) {
@@ -56,14 +56,14 @@ class Notification extends Model
                 'id' => $item->id,
                 'title' => $item->title,
                 'image' => $item->image_urls[0] ?? null,
-                'exists' => true
+                'exists' => true,
             ];
         }
 
         return [
             'title' => 'Inzerát již neexistuje',
             'image' => null,
-            'exists' => false
+            'exists' => false,
         ];
     }
 }

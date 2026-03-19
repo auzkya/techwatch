@@ -25,7 +25,7 @@
     margin: 5px auto 0 auto;
 }
 
-.item_specs .stars_container{
+.item_specs .stars_container {
     display: flex;
     align-items: center;
 }
@@ -55,7 +55,7 @@
     height: 16px;
 }
 
-.listing_skeleton p{
+.listing_skeleton p {
     margin: 0;
 }
 

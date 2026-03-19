@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\NotificationSent;
 use App\Http\Controllers\Controller;
+use App\Models\Item;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Item;
-use App\Models\User;
-use App\Models\Notification;
-use App\Events\NotificationSent;
 
 class FavouriteController extends Controller
 {
@@ -28,13 +28,14 @@ class FavouriteController extends Controller
                 ->where('user_id', $user->id)
                 ->where('favourite_user_id', $id)
                 ->delete();
+
             return response()->json(['status' => 'removed', 'message' => 'Odstraněno z oblíbených']);
         }
 
         DB::table('favourites_users')->insert([
             'user_id' => $user->id,
             'favourite_user_id' => $id,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         // ODESLÁNÍ NOTIFIKACE (jen když přidává do oblíbených)
@@ -73,13 +74,14 @@ class FavouriteController extends Controller
                 ->where('user_id', $user->id)
                 ->where('item_id', $id)
                 ->delete();
+
             return response()->json(['status' => 'removed']);
         }
 
         DB::table('favourites_items')->insert([
             'user_id' => $user->id,
             'item_id' => $id,
-            'created_at' => now()
+            'created_at' => now(),
         ]);
 
         // ODESLÁNÍ NOTIFIKACE majiteli položky
@@ -107,7 +109,7 @@ class FavouriteController extends Controller
     {
         $currentUser = auth('sanctum')->user();
 
-        if (!$currentUser) {
+        if (! $currentUser) {
             return response()->json(['message' => 'Uživatel nenalezen'], 404);
         }
 
@@ -127,10 +129,11 @@ class FavouriteController extends Controller
             });
         }
 
-        $workers = $workersQuery->get()->map(function ($user) use ($currentUser) {
+        $workers = $workersQuery->get()->map(function ($user) {
             $user->append('profile_image_url');
             $user->formatted_specs = $user->specs->pluck('name')->implode(' | ');
             $user->is_favourite = true; // Jsme v seznamu oblíbených
+
             return $user;
         });
 
@@ -138,7 +141,7 @@ class FavouriteController extends Controller
         $techQuery = Item::whereHas('favouritedBy', function ($q) use ($currentUser) {
             $q->where('user_id', $currentUser->id);
         })
-        ->where('active_item', true);
+            ->where('active_item', true);
 
         if ($request->filled('search')) {
             $techQuery->where('title', 'LIKE', "%{$searchTerm}%"); // V TechControlleru máš 'title', ne 'name'
@@ -150,7 +153,7 @@ class FavouriteController extends Controller
             // Použijeme tvou logiku pro obrázky z TechControlleru
             if ($item->images) {
                 $images = is_array($item->images) ? $item->images : json_decode($item->images, true);
-                $item->main_image_url = !empty($images) ? \Storage::disk('r2')->url($images[0]) : null;
+                $item->main_image_url = ! empty($images) ? \Storage::disk('r2')->url($images[0]) : null;
             }
 
             // V TechControlleru máš sloupec 'category', ne vztah
@@ -163,7 +166,7 @@ class FavouriteController extends Controller
 
         return response()->json([
             'workers' => $workers,
-            'tech' => $tech
+            'tech' => $tech,
         ]);
     }
 }

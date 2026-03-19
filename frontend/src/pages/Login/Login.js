@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { faFacebookF, faGoogle } from '@fortawesome/free-brands-svg-icons';
-import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFacebookF, faGoogle } from "@fortawesome/free-brands-svg-icons";
+import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import "./Page.css";
 
@@ -13,7 +13,6 @@ import { useAlert } from "../../context/AlertContext";
 import { useAuth } from "../../context/AuthContext";
 import { useScrollLock } from "../../hooks/useScrollLock";
 import { ROUTES } from "../../routes/RouteNames";
-
 
 import { ASSETS } from "../../config/assets";
 
@@ -26,7 +25,6 @@ const Login = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { showAlert } = useAlert();
-    const shownRef = useRef(false);
 
     useEffect(() => {
         if (!isAuthReady) {
@@ -40,7 +38,7 @@ const Login = () => {
                 navigate(origin, { replace: true });
             }
         }
-    }, [isAuthReady, user, navigate]);
+    }, [isAuthReady, user, navigate, location.state?.from?.pathname]);
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -48,18 +46,14 @@ const Login = () => {
         const reason = params.get("reason"); // důvod banu, pokud existuje
 
         if (location.state?.success) {
-            showAlert(
-                "success",
-                location.state.success,
-                "login-success"
-            );
+            showAlert("success", location.state.success, "login-success");
         }
 
         if (error === "expired") {
             showAlert(
                 "error",
                 "Ověření e-mailu vypršelo. Registrujte se prosím znovu.",
-                "verify-expired"
+                "verify-expired",
             );
         }
 
@@ -67,7 +61,7 @@ const Login = () => {
             showAlert(
                 "error",
                 "Neplatný nebo již použitý ověřovací odkaz.",
-                "verify-invalid"
+                "verify-invalid",
             );
         }
 
@@ -77,18 +71,14 @@ const Login = () => {
                 ? `Váš účet byl zablokován. Důvod: ${decodeURIComponent(reason)}`
                 : "Váš účet byl zablokován pro porušení pravidel.";
 
-            showAlert(
-                "error",
-                message,
-                "auth-banned"
-            );
+            showAlert("error", message, "auth-banned");
         }
 
         if (error === "deleted") {
             showAlert(
                 "error",
                 "Tento účet byl zrušen. Pokud si ho přejete obnovit, kontaktujte podporu.",
-                "auth-banned"
+                "auth-banned",
             );
         }
 
@@ -96,10 +86,16 @@ const Login = () => {
             params.delete("error");
             navigate(
                 { pathname: location.pathname, search: params.toString() },
-                { replace: true }
+                { replace: true },
             );
         }
-    }, [location.search, location.pathname, navigate, showAlert, location.state]);
+    }, [
+        location.search,
+        location.pathname,
+        navigate,
+        showAlert,
+        location.state,
+    ]);
 
     if (!isAuthReady || user) return null;
 
@@ -109,43 +105,92 @@ const Login = () => {
         <>
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={ASSETS.logo_top} />
+                    <img
+                        className="login_logo"
+                        alt="logo"
+                        src={ASSETS.logo_top}
+                    />
                     <div className="login_section">
                         <h2 className="strong">PŘIHLÁŠENÍ</h2>
-                        {errorTop && <div className="error_all error_all_center"><FontAwesomeIcon icon={faCircleXmark} className="error_icon" /><p className="error_text strong" dangerouslySetInnerHTML={{ __html: errorTop }} /><FontAwesomeIcon icon={faCircleXmark} className="error_icon_right" /></div>}
-                        <LoginForm setLoading={setLoading} setErrorTop={setErrorTop}></LoginForm>
-                        <div className="oauth_divider"><span className="body_base">nebo</span></div>
+                        {errorTop && (
+                            <div className="error_all error_all_center">
+                                <FontAwesomeIcon
+                                    icon={faCircleXmark}
+                                    className="error_icon"
+                                />
+                                <p
+                                    className="error_text strong"
+                                    dangerouslySetInnerHTML={{
+                                        __html: errorTop,
+                                    }}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faCircleXmark}
+                                    className="error_icon_right"
+                                />
+                            </div>
+                        )}
+                        <LoginForm
+                            setLoading={setLoading}
+                            setErrorTop={setErrorTop}
+                        ></LoginForm>
+                        <div className="oauth_divider">
+                            <span className="body_base">nebo</span>
+                        </div>
                         <div className="oauth_container">
-                            <button className="oauth_button"
+                            <button
+                                className="oauth_button"
                                 onClick={() => {
-                                    const origin = location.state?.from?.pathname || "/app";
+                                    const origin =
+                                        location.state?.from?.pathname ||
+                                        "/app";
                                     window.location.href = `${apiUrl}/auth/google/redirect?redirect=${encodeURIComponent(origin)}`;
                                 }}
                             >
-                                <FontAwesomeIcon icon={faGoogle} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Google</p>
+                                <FontAwesomeIcon
+                                    icon={faGoogle}
+                                    className="oauth_icon"
+                                />
+                                <p className="oauth_text strong">
+                                    Pokračovat přes Google
+                                </p>
                             </button>
-                            <button className="oauth_button"
+                            <button
+                                className="oauth_button"
                                 onClick={() => {
-                                    const origin = location.state?.from?.pathname || "/app";
+                                    const origin =
+                                        location.state?.from?.pathname ||
+                                        "/app";
                                     window.location.href = `${apiUrl}/auth/facebook/redirect?redirect=${encodeURIComponent(origin)}`;
                                 }}
                             >
-                                <FontAwesomeIcon icon={faFacebookF} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Facebook</p>
+                                <FontAwesomeIcon
+                                    icon={faFacebookF}
+                                    className="oauth_icon"
+                                />
+                                <p className="oauth_text strong">
+                                    Pokračovat přes Facebook
+                                </p>
                             </button>
                         </div>
                     </div>
                 </div>
-                <p className="login_link">Ještě nemáte účet?
-                    <Link to={ROUTES.REGISTER} className="login_a strong"> Zaregistrujte se!</Link>
+                <p className="login_link">
+                    Ještě nemáte účet?
+                    <Link to={ROUTES.REGISTER} className="login_a strong">
+                        {" "}
+                        Zaregistrujte se!
+                    </Link>
                 </p>
 
                 <footer className="login-footer">
-                    <Link to="/privacy" className="body_smallest">Privacy Policy</Link>
+                    <Link to="/privacy" className="body_smallest">
+                        Privacy Policy
+                    </Link>
                 </footer>
             </div>
-
         </>
-    )
-}
+    );
+};
 
-export default Login
+export default Login;

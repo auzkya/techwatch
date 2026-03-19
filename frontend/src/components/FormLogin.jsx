@@ -22,12 +22,11 @@ const LoginForm = ({ setLoading, setError, setErrorTop }) => {
 
     const SENSITIVE_PATHS = [
         ROUTES.ADMIN,
-        "/tech/edit",      // Stačí začátek cesty
+        "/tech/edit", // Stačí začátek cesty
         ROUTES.ADD_TECH,
         ROUTES.EDIT_PROFILE,
-        ROUTES.SETTINGS,
         ROUTES.FAVOURITES,
-        ROUTES.FAVOURITES_CATEGORY
+        ROUTES.FAVOURITES_CATEGORY,
     ];
 
     const handleSubmit = async (e) => {
@@ -41,7 +40,9 @@ const LoginForm = ({ setLoading, setError, setErrorTop }) => {
             const origin = location.state?.from?.pathname || "/app"; // Pokud není informace o původu, přesměrujeme na home
 
             // Kontrola, zda původní cesta nezačíná některou z citlivých cest
-            const isSensitive = SENSITIVE_PATHS.some(path => origin.startsWith(path));
+            const isSensitive = SENSITIVE_PATHS.some((path) =>
+                origin.startsWith(path),
+            );
 
             if (isSensitive || origin === ROUTES.LOGIN) {
                 // Pokud je cesta citlivá, pošli ho raději na základní HOME
@@ -61,7 +62,6 @@ const LoginForm = ({ setLoading, setError, setErrorTop }) => {
         } finally {
             setLoading(false);
         }
-
     };
 
     return (
@@ -85,12 +85,23 @@ const LoginForm = ({ setLoading, setError, setErrorTop }) => {
                         value={password || ""}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <span className="password-toggle-icon" onClick={togglePassword}><FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /></span>
+                    <span
+                        className="password-toggle-icon"
+                        onClick={togglePassword}
+                    >
+                        <FontAwesomeIcon
+                            icon={showPassword ? faEyeSlash : faEye}
+                        />
+                    </span>
                 </div>
             </div>
 
             <div className="reset_password_link">
-                <p className="error_text"><a className="login_a" href="/forgot-password">Zapomenuté heslo?</a></p>
+                <p className="error_text">
+                    <a className="login_a" href="/forgot-password">
+                        Zapomenuté heslo?
+                    </a>
+                </p>
             </div>
 
             <button type="submit" className="form-submit" disabled={false}>

@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import axiosInstance from '../api/axiosInstance';
-import { useAuth } from './AuthContext';
-import { useLoading } from './LoadingContext';
+import { createContext, useContext, useEffect, useState } from "react";
+import axiosInstance from "../api/axiosInstance";
+import { useAuth } from "./AuthContext";
+import { useLoading } from "./LoadingContext";
 
 const NotificationContext = createContext();
 
@@ -14,8 +14,14 @@ export const NotificationProvider = ({ children }) => {
     const [isInitialLoaded, setIsInitialLoaded] = useState(false); // Klíč k optimalizaci
 
     const updateCounts = (data) => {
-        setUnreadMessagesCount(data.filter(n => n.type === 'direct_message' && !n.is_read).length);
-        setUnreadNotifsCount(data.filter(n => n.type !== 'direct_message' && !n.is_read).length);
+        setUnreadMessagesCount(
+            data.filter((n) => n.type === "direct_message" && !n.is_read)
+                .length,
+        );
+        setUnreadNotifsCount(
+            data.filter((n) => n.type !== "direct_message" && !n.is_read)
+                .length,
+        );
     };
 
     useEffect(() => {
@@ -28,7 +34,7 @@ export const NotificationProvider = ({ children }) => {
                 window.Echo.connector.options.auth.headers.Authorization = `Bearer ${accessToken}`;
 
                 // 2. Načteme existující data z API
-                const res = await axiosInstance.get('/api/notifications');
+                const res = await axiosInstance.get("/api/notifications");
                 setNotifications(res.data);
                 updateCounts(res.data);
                 setIsInitialLoaded(true);
@@ -38,51 +44,55 @@ export const NotificationProvider = ({ children }) => {
                 console.log("📡 Připojuji NotificationContext k:", channelName);
 
                 // private() teď použije aktualizované headers pro POST /broadcasting/auth
-                window.Echo.private(channelName)
-                    .listen('.notification.sent', (e) => {
+                window.Echo.private(channelName).listen(
+                    ".notification.sent",
+                    (e) => {
                         console.log("🔔 Nová notifikace přijata realtime:", e);
 
                         const newNotif = e.notification;
 
-                        setNotifications(prev => {
+                        setNotifications((prev) => {
                             // Zabráníme duplicitám (pokud by se náhodou event poslal dvakrát)
-                            if (prev.find(n => n.id === newNotif.id)) return prev;
+                            if (prev.find((n) => n.id === newNotif.id))
+                                return prev;
 
                             // Přidáme novou notifikaci na začátek seznamu
                             const updated = [newNotif, ...prev];
 
-                            // ZDE JE KLÍČ: Musíš zavolat updateCounts s novými daty, 
+                            // ZDE JE KLÍČ: Musíš zavolat updateCounts s novými daty,
                             // aby se změnila čísla u ikon v Headeru
                             updateCounts(updated);
 
                             return updated;
                         });
-                    })
+                    },
+                );
+            } catch (err) {
+                console.error("Chyba inicializace notifikací:", err);
+            }
+        };
 
-                    } catch (err) {
-                        console.error("Chyba inicializace notifikací:", err);
-                    }
-            };
+        initNotifications();
 
-            initNotifications();
-
-            return () => {
-                if (window.Echo && user) {
-                    window.Echo.leave(`user.${user.id}`);
-                }
-            };
-        }, [user, accessToken]); // Odstraňte updateCounts z dependencí, pokud je definována uvnitř
+        return () => {
+            if (window.Echo && user) {
+                window.Echo.leave(`user.${user.id}`);
+            }
+        };
+    }, [user, accessToken]); // Odstraňte updateCounts z dependencí, pokud je definována uvnitř
 
     const markAsRead = async (idOrAll, type = null) => {
         // 1. Uložíme si původní stav pro případný rollback
         const originalNotifications = [...notifications];
 
         // 2. OPTIMISTICKÝ UPDATE: Okamžitě změníme stav v Reactu
-        setNotifications(prev => {
-            const updated = prev.map(n => {
-                if (idOrAll === 'all') {
-                    if (type === 'messages' && n.type === 'direct_message') return { ...n, is_read: true };
-                    if (type === 'notifications' && n.type !== 'direct_message') return { ...n, is_read: true };
+        setNotifications((prev) => {
+            const updated = prev.map((n) => {
+                if (idOrAll === "all") {
+                    if (type === "messages" && n.type === "direct_message")
+                        return { ...n, is_read: true };
+                    if (type === "notifications" && n.type !== "direct_message")
+                        return { ...n, is_read: true };
                     return n;
                 }
                 return n.id === idOrAll ? { ...n, is_read: true } : n;
@@ -93,9 +103,10 @@ export const NotificationProvider = ({ children }) => {
 
         // 3. ASYNCHRONNÍ VOLÁNÍ BACKENDU
         try {
-            const endpoint = idOrAll === 'all'
-                ? `/api/notifications/all/mark-as-read?type=${type === 'messages' ? 'direct_message' : 'notifications'}`
-                : `/api/notifications/${idOrAll}/mark-as-read`;
+            const endpoint =
+                idOrAll === "all"
+                    ? `/api/notifications/all/mark-as-read?type=${type === "messages" ? "direct_message" : "notifications"}`
+                    : `/api/notifications/${idOrAll}/mark-as-read`;
 
             await axiosInstance.post(endpoint);
         } catch (err) {
@@ -108,7 +119,14 @@ export const NotificationProvider = ({ children }) => {
     };
 
     return (
-        <NotificationContext.Provider value={{ notifications, unreadMessagesCount, unreadNotifsCount, markAsRead }}>
+        <NotificationContext.Provider
+            value={{
+                notifications,
+                unreadMessagesCount,
+                unreadNotifsCount,
+                markAsRead,
+            }}
+        >
             {children}
         </NotificationContext.Provider>
     );

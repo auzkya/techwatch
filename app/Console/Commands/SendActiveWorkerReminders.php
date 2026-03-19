@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\ActiveWorkerReminderMail;
+use App\Models\User;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
 class SendActiveWorkerReminders extends Command

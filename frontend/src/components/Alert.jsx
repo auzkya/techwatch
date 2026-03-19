@@ -2,7 +2,7 @@ import {
     faCircleCheck,
     faCircleExclamation,
     faInfoCircle,
-    faXmark
+    faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import DOMPurify from "dompurify";
@@ -13,7 +13,7 @@ export default function Alert({
     type = "success",
     message,
     onClose,
-    duration = 5000
+    duration = 5000,
 }) {
     const [visible, setVisible] = useState(true);
     const timerRef = useRef(null);
@@ -71,7 +71,7 @@ export default function Alert({
                 color,
                 borderColor: color,
                 opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(20px)"
+                transform: visible ? "translateY(0)" : "translateY(20px)",
             }}
             onMouseEnter={pauseTimer}
             onMouseLeave={startTimer}
@@ -84,8 +84,12 @@ export default function Alert({
             <div className="alert-title">
                 <FontAwesomeIcon icon={icon} />
                 <p className="alert-message">
-                    {typeof message === 'string' ? (
-                        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message) }} />
+                    {typeof message === "string" ? (
+                        <span
+                            dangerouslySetInnerHTML={{
+                                __html: DOMPurify.sanitize(message),
+                            }}
+                        />
                     ) : (
                         // Pokud je to JSX (objekt React elementu), prostě ho vyrenderuj
                         message

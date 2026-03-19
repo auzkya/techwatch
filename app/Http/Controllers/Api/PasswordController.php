@@ -2,30 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 use App\Models\User;
-use App\Models\Item;
-use App\Mail\VerifyEmail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class PasswordController extends Controller
 {
-
     public function passwordResetRequest(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Uživatel s tímto emailem neexistuje.'], 404);
         }
 
@@ -60,14 +54,14 @@ class PasswordController extends Controller
             ->where('token', $request->token)
             ->first();
 
-        if (!$reset) {
+        if (! $reset) {
             return response()->json(['message' => 'Neplatný nebo vypršelý token.'], 400);
         }
 
         // ověříme uživatele
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Uživatel nenalezen.'], 404);
         }
 
@@ -80,12 +74,11 @@ class PasswordController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        //sSmažeme záznam resetu
+        // sSmažeme záznam resetu
         DB::table('password_resets')->where('email', $request->email)->delete();
 
         return response()->json([
             'message' => 'Heslo bylo úspěšně změněno.',
         ]);
     }
-
 }

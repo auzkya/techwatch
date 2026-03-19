@@ -2,23 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 use App\Models\User;
-use App\Models\Item;
-use App\Mail\VerifyEmail;
+use Illuminate\Http\Request;
 
 class OAuthController extends Controller
 {
-
     public function oauthLogin(Request $request)
     {
         $request->validate([
@@ -27,22 +16,22 @@ class OAuthController extends Controller
             'provider_id' => 'required|string',
         ]);
 
-        $providerColumn = $request->provider . '_id';
+        $providerColumn = $request->provider.'_id';
 
         $user = User::withTrashed()->where('email', $request->email)->first();
 
-        if (!$user || $user->{$providerColumn} !== $request->provider_id) {
+        if (! $user || $user->{$providerColumn} !== $request->provider_id) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         // Ověření, zda není uživatel zablokovaný
         if ($user->is_banned) {
-            return redirect(config('app.frontend_url') . "/login?error=banned");
+            return redirect(config('app.frontend_url').'/login?error=banned');
         }
 
         // Ověření, zda není uživatel smazaný
         if ($user->trashed()) {
-            return redirect(config('app.frontend_url') . "/login?error=deleted");
+            return redirect(config('app.frontend_url').'/login?error=deleted');
         }
 
         // smaž staré refresh tokeny
@@ -63,19 +52,19 @@ class OAuthController extends Controller
         )->plainTextToken;
 
         $redirectTo = $request->query('redirect', '/');
-        
-        return redirect(config('app.frontend_url') . "/oauth-callback?token=$accessToken&redirect=" . urlencode($redirectTo))
-        ->cookie(
-            'refresh_token',
-            $refreshToken,
-            60 * 24 * 14,
-            '/',
-            null,
-            false,
-            true,
-            false,
-            'Lax'
-        );
+
+        return redirect(config('app.frontend_url')."/oauth-callback?token=$accessToken&redirect=".urlencode($redirectTo))
+            ->cookie(
+                'refresh_token',
+                $refreshToken,
+                60 * 24 * 14,
+                '/',
+                null,
+                false,
+                true,
+                false,
+                'Lax'
+            );
 
         /*return response()
             ->json([
@@ -105,7 +94,7 @@ class OAuthController extends Controller
             'provider_id' => 'required|string',
         ]);
 
-        $providerColumn = $request->provider . '_id';
+        $providerColumn = $request->provider.'_id';
 
         $user = User::create([
             'first_name' => strip_tags($request->fname),
@@ -131,18 +120,18 @@ class OAuthController extends Controller
 
         $redirectTo = $request->query('redirect', '/');
 
-        // Redirect s cookie a odkazem na případný link 
-        return redirect(config('app.frontend_url') . "/oauth-callback?token=$accessToken&redirect=" . urlencode($redirectTo))
-                ->cookie(
-                    'refresh_token',
-                    $refreshToken,
-                    60 * 24 * 14,
-                    '/',
-                    null,
-                    false,
-                    true,
-                    false,
-                    'Lax'
-                );
-            }
+        // Redirect s cookie a odkazem na případný link
+        return redirect(config('app.frontend_url')."/oauth-callback?token=$accessToken&redirect=".urlencode($redirectTo))
+            ->cookie(
+                'refresh_token',
+                $refreshToken,
+                60 * 24 * 14,
+                '/',
+                null,
+                false,
+                true,
+                false,
+                'Lax'
+            );
+    }
 }

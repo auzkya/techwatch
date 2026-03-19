@@ -1,1 +1,1 @@
-<?php echo 'Ahoj, Laravel funguje'; ?>
+<?php echo 'Ahoj, Laravel funguje';
