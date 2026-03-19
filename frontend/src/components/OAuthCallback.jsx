@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { useAlert } from "../context/AlertContext";
+import { useAuth } from "../context/AuthContext";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
 
 const OAuthCallback = () => {
@@ -16,6 +16,8 @@ const OAuthCallback = () => {
 
         const params = new URLSearchParams(window.location.search);
         const token = params.get("token");
+        // 1. Získáme cílovou adresu (defaultně "/app")
+        const redirectTo = params.get("redirect") || "/app";
 
         if (!token) {
             showAlert("error", "Nepodařilo se přihlásit přes OAuth.");
@@ -27,7 +29,9 @@ const OAuthCallback = () => {
             try {
                 // 🔑 TADY JE KLÍČ
                 await loginUser(token);
-                navigate("/", { replace: true });
+                // 2. Použijeme získanou adresu pro navigaci
+                // decodeURIComponent zajistí správné přečtení znaků jako / : @
+                navigate(decodeURIComponent(redirectTo), { replace: true });
             } catch (e) {
                 showAlert("error", "Nepodařilo se přihlásit přes OAuth.");
                 navigate(buildRoute(ROUTES.LOGIN), { replace: true });

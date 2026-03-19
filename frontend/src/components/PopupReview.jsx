@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
-import ReactStars from "react-rating-stars-component";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar as faStarEmpty } from '@fortawesome/free-regular-svg-icons';
-import { faStar as faStarFull, faStarHalfStroke, faCirclePlus, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
+import { faCircleMinus, faCirclePlus, faStar as faStarFull, faStarHalfStroke } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect, useState } from "react";
+import ReactStars from "react-rating-stars-component";
+import { useAlert } from "../context/AlertContext";
+import { useScrollLock } from "../hooks/useScrollLock";
 import InputLogin from "./InputLogin";
 import TextArea from "./TextArea";
-import { useScrollLock } from "../hooks/useScrollLock";
-import { useAlert } from "../context/AlertContext";
 
 const PopupReview = ({ isOpen, onClose, onSubmit, targetName, initialData, type }) => {
     const { showAlert } = useAlert();
@@ -20,27 +20,30 @@ const PopupReview = ({ isOpen, onClose, onSubmit, targetName, initialData, type 
 
     // Načtení dat při editaci
     useEffect(() => {
-        if (initialData && isOpen) {
-            // Pokud pros/cons přijdou jako prázdné nebo null, dáme [""]
-            const initialPros = Array.isArray(initialData.pros) && initialData.pros.length > 0
-                ? [...initialData.pros, ""]
-                : [""];
-            const initialCons = Array.isArray(initialData.cons) && initialData.cons.length > 0
-                ? [...initialData.cons, ""]
-                : [""];
+        if (isOpen) {
+            if (initialData) {
+                // EDITACE: Nastavíme data z props
+                const initialPros = Array.isArray(initialData.pros) && initialData.pros.length > 0
+                    ? [...initialData.pros, ""]
+                    : [""];
+                const initialCons = Array.isArray(initialData.cons) && initialData.cons.length > 0
+                    ? [...initialData.cons, ""]
+                    : [""];
 
-            setPros(initialPros);
-            setCons(initialCons);
-            setText(initialData.text || "");
-            setRating(Number(initialData.rating) || 0);
-        } else if (isOpen) {
-            // Reset při psaní nové recenze
-            setPros([""]);
-            setCons([""]);
-            setText("");
-            setRating(0);
+                setPros(initialPros);
+                setCons(initialCons);
+                setText(initialData.text || initialData.review || ""); // Přidáno initialData.review kvůli DB názvu
+                setRating(Number(initialData.rating) || Number(initialData.review_value) || 0);
+            } else {
+                // NOVÁ RECENZE: Reset
+                setPros([""]);
+                setCons([""]);
+                setText("");
+                setRating(0);
+            }
         }
-    }, [initialData, isOpen]);
+        // DŮLEŽITÉ: Odebrali jsme initialData ze závislostí, aby se state nepřepisoval během psaní
+    }, [isOpen]);
 
     // Logika pro přidávání dynamických polí
     const handleDynamicChange = (index, value, setter, currentArray) => {
@@ -69,9 +72,9 @@ const PopupReview = ({ isOpen, onClose, onSubmit, targetName, initialData, type 
             return;
         }
         if (text.length > 500) {
-        showAlert("error", "Zpráva je příliš dlouhá. Zkraťte ji prosím.");
-        return; // Zastaví odesílání
-    }
+            showAlert("error", "Slovní recenze je příliš dlouhá. Zkraťte ji prosím.");
+            return; // Zastaví odesílání
+        }
         // Odfiltrovat prázdné položky z polí
         const cleanPros = pros.filter(p => p.trim() !== "");
         const cleanCons = cons.filter(c => c.trim() !== "");

@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
+import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import intlTelInput from "intl-tel-input";
+import "intl-tel-input/build/css/intlTelInput.css";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { useAlert } from "../context/AlertContext";
+import { useAuth } from "../context/AuthContext";
+import { cache, CACHE_KEYS } from "../utils/cacheManager";
+import AvatarUpload from "./AvatarUpload";
 import "./GeneralForm.css";
 import InputLogin from "./InputLogin";
 import TextArea from "./TextArea";
-import { useAlert } from "../context/AlertContext";
-import { useAuth } from "../context/AuthContext";
-import intlTelInput from "intl-tel-input";
-import "intl-tel-input/build/css/intlTelInput.css";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck } from '@fortawesome/free-regular-svg-icons';
-import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from "react-router-dom";
-import AvatarUpload from "./AvatarUpload";
-import { cache, CACHE_KEYS } from "../utils/cacheManager";
 
 const FormEditProfile = ({ setLoading }) => {
     const { user, setUser } = useAuth();
@@ -46,6 +46,37 @@ const FormEditProfile = ({ setLoading }) => {
     const [countdown, setCountdown] = useState(0);
     const [alreadyTried, setAlreadyTried] = useState(false);
 
+    // Data pro select
+    const locationOptions = [
+        { value: "", label: "-- Vyberte lokalitu --" },
+        { value: "praha", label: "Praha" },
+        { value: "brno", label: "Brno" },
+        { value: "ostrava", label: "Ostrava" },
+        { value: "stredocesky", label: "Středočeský kraj" },
+        { value: "jihocesky", label: "Jihočeský kraj" },
+        { value: "plzensky", label: "Plzeňský kraj" },
+        { value: "karlovarsky", label: "Karlovarský kraj" },
+        { value: "ustecky", label: "Ústecký kraj" },
+        { value: "liberecky", label: "Liberecký kraj" },
+        { value: "kralovehradecky", label: "Královéhradecký kraj" },
+        { value: "vysocina", label: "Vysočina" },
+        { value: "jihomoravsky", label: "Jihomoravský kraj" },
+        { value: "olomoucky", label: "Olomoucký kraj" },
+        { value: "zlinsky", label: "Zlínský kraj" },
+        { value: "moravskoslezsky", label: "Moravskoslezský kraj" },
+    ];
+    // Select logika
+    const [isLocOpen, setIsLocOpen] = useState(false);
+    const locRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isLocOpen && !locRef.current?.contains(event.target)) setIsLocOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isLocOpen]);
+
     // Načtení dat uživatele
     useEffect(() => {
         if (!user) return;
@@ -62,16 +93,21 @@ const FormEditProfile = ({ setLoading }) => {
         setCurrentPhone(userPhone);
         setPhoneVisible(user.phone_visible || false);
 
-        // Načtení specializací
-        if (user.specs && Array.isArray(user.specs)) {
-            setCategory(user.specs.map(spec => spec.slug));
-        }
-
         // Načtení avataru
         if (user.profile_image_url) {
             setAvatarPreview(user.profile_image_url);
         }
     }, [user]);
+
+    // 2. ⚠️ OPRAVA SPECIALIZACÍ: Tento efekt zajistí, že se checkboxy zaškrtnou 
+    // i po reloadu, jakmile se načte user z API/Contextu
+    useEffect(() => {
+        if (user && user.specs) {
+            const userSlugs = user.specs.map(s => s.slug);
+            // Porovnáme, jestli se data skutečně liší, abychom se vyhnuli nekonečnému loopu
+            setCategory(userSlugs);
+        }
+    }, [user?.specs]); // Sledujeme přímo vnořené pole specs
 
     // Inicializace hlavního phone inputu
     useEffect(() => {
@@ -137,7 +173,6 @@ const FormEditProfile = ({ setLoading }) => {
 
     // ⚠️ NOVÁ LOGIKA: Kontrola změny telefonu při onBlur
     const handlePhoneBlur = () => {
-
         const iti = phoneFormInstance.current;
         const input = phoneFormRef.current;
 
@@ -145,10 +180,11 @@ const FormEditProfile = ({ setLoading }) => {
 
         const raw = input.value.trim();
 
-        // Pokud je pole prázdné
+        // 1. Pokud je pole prázdné
         if (!raw) {
             setCurrentPhone("");
-            setPhoneChanged("");
+            // Pokud předtím v savedPhone něco bylo, označíme to jako změnu
+            setPhoneChanged(savedPhone !== "");
             return;
         }
 
@@ -157,8 +193,6 @@ const FormEditProfile = ({ setLoading }) => {
         const fullNumber = `+${dialCode}${digits}`;
 
         setCurrentPhone(fullNumber);
-
-        // ⚠️ Srovnání s uloženým číslem
         setPhoneChanged(fullNumber !== savedPhone);
     };
 
@@ -316,7 +350,7 @@ const FormEditProfile = ({ setLoading }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (phoneChanged) {
+        if (phoneChanged && currentPhone !== "") {
             showAlert("error", "Telefonní číslo bylo změněno a musí být ověřeno");
             return;
         }
@@ -329,9 +363,7 @@ const FormEditProfile = ({ setLoading }) => {
             formData.append("bio", bio);
             formData.append("location", location);
 
-            if (currentPhone) {
-                formData.append("phone", currentPhone);
-            }
+            formData.append("phone", currentPhone || "");
 
             formData.append("phone_visible", phoneVisible ? "1" : "0");
 
@@ -348,6 +380,7 @@ const FormEditProfile = ({ setLoading }) => {
             }
 
             if (bio.length > 700) {
+                setLoading(false);
                 showAlert("error", "Bio je příliš dlouhé. Zkraťte jej prosím.");
                 return; // Zastaví odesílání
             }
@@ -358,25 +391,30 @@ const FormEditProfile = ({ setLoading }) => {
                 },
             });
 
-            // Aktualizujeme user v AuthContext
+            // 1. Aktualizace dat
             setUser(response.data.user);
+            cache.remove(CACHE_KEYS.PROFILE_ELIGIBLE);
 
-            navigate(`/user/${response.data.user.id}`);
-            cache.remove(CACHE_KEYS.PROFILE_ELIGIBLE); // Smaž starou cache, Header si ji znovu načte
-            showAlert("success", "Profil byl úspěšně aktualizován.");
+            // 2. LOGIKA ALERTU - Vezmeme zprávu z backendu
+            const isDeactivated = response.data.deactivated;
+            const msg = response.data.message || "Profil byl úspěšně aktualizován.";
+
+            // 3. Zobrazení alertu - pokud došlo k vypnutí módu, dáme "warning" nebo "info"
+            showAlert(isDeactivated ? "warning" : "success", msg);
+
+            // 4. NAVIGACE - Pokud chceš, aby uživatel viděl ten alert, 
+            // můžeš navigaci o vteřinu odložit, nebo se ujisti, že AlertContext přežije navigaci.
+            setTimeout(() => {
+                navigate(`/user/${response.data.user.id}`);
+            }, 100);
 
         } catch (err) {
-            console.error("❌ Update error:", err);
-            console.error("❌ Response data:", err.response?.data);
-
+            setLoading(false);
             const messages = err.response?.data?.errors
                 ? Object.values(err.response.data.errors).flat()
                 : [err.response?.data?.message || "Došlo k chybě"];
-            setLoading(false);
             messages.forEach(msg => showAlert("error", msg));
-        } /*finally {
-            //setLoading(false);
-        }*/
+        }
     };
 
     return (
@@ -527,25 +565,32 @@ const FormEditProfile = ({ setLoading }) => {
 
                 {/* Lokalita */}
                 <div className="location">
-                    <label htmlFor="location" className="body_base label-move">Lokalita</label>
-                    <select className="input-login" value={location} onChange={(e) => setLocation(e.target.value)}>
-                        <option value="">-- Vyberte lokalitu --</option>
-                        <option value="praha">Praha</option>
-                        <option value="brno">Brno</option>
-                        <option value="ostrava">Ostrava</option>
-                        <option value="stredocesky">Středočeský kraj</option>
-                        <option value="jihocesky">Jihočeský kraj</option>
-                        <option value="plzensky">Plzeňský kraj</option>
-                        <option value="karlovarsky">Karlovarský kraj</option>
-                        <option value="ustecky">Ústecký kraj</option>
-                        <option value="liberecky">Liberecký kraj</option>
-                        <option value="kralovehradecky">Královéhradecký kraj</option>
-                        <option value="vysocina">Vysočina</option>
-                        <option value="jihomoravsky">Jihomoravský kraj</option>
-                        <option value="olomoucky">Olomoucký kraj</option>
-                        <option value="zlinsky">Zlínský kraj</option>
-                        <option value="moravskoslezsky">Moravskoslezský kraj</option>
-                    </select>
+                    <label className="body_base label-move">Lokalita</label>
+                    <div className="custom-select-wrapper" ref={locRef}>
+                        <div
+                            className={`custom-select-up ${isLocOpen ? "open" : ""}`}
+                            onClick={() => setIsLocOpen(!isLocOpen)}
+                        >
+                            <span className={`selected ${location === "" ? "gray-text" : ""}`}>
+                                {locationOptions.find(opt => opt.value === location)?.label || "-- Vyberte lokalitu --"}
+                            </span>
+                            <span className={`arrow ${isLocOpen ? "rotate" : ""}`}>▼</span>
+                        </div>
+
+                        {isLocOpen && (
+                            <div className="options-up">
+                                {locationOptions.map((opt) => (
+                                    <div
+                                        key={opt.value}
+                                        className={`option ${location === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
+                                        onClick={() => { setLocation(opt.value); setIsLocOpen(false); }}
+                                    >
+                                        {opt.label}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Email */}
@@ -573,7 +618,7 @@ const FormEditProfile = ({ setLoading }) => {
                     />
 
                     {/* ⚠️ Ikona varování když se telefon změnil */}
-                    {phoneChanged && (
+                    {phoneChanged && currentPhone !== "" && (
                         <FontAwesomeIcon
                             icon={faCircleExclamation}
                             className="input_error"

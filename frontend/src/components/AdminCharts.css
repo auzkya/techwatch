@@ -1,0 +1,158 @@
+.admin-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding-bottom: 8px;
+}
+
+.admin-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+    padding-bottom: 200px;
+}
+
+/* Velký graf na celou šířku */
+.category-grid-activity{
+    grid-column-gap: 20px;
+    grid-row-gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    margin: 10px 0;
+}
+
+.category-grid-activity .checkbox {
+    position: relative;
+    cursor: pointer;
+}
+
+.category-grid-activity .checkbox input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.category-grid-activity .checkbox span {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    padding: 12px 12px 12px 22px;
+    border-radius: 8px;
+    background: #1e1e1e;
+    color: var(--text3);
+    transition: all 0.2s ease;
+}
+
+.category-grid-activity .checkbox input:checked+span {
+    background: var(--text);
+    font-weight: 500;
+    color: var(--background3);
+}
+
+.chart-container {
+    width: 100%;
+    height: 300px !important;
+    /* Zkus to na chvíli změnit na pevných 350px */
+    position: relative;
+}
+
+.chart-container.full-width {
+    height: 530px !important;
+    margin: 10px auto 30px auto;
+}
+
+.chart-card h3 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.chart-card.full-width {
+    grid-column: 1 / -1;
+}
+
+/* Pie karty */
+.stat-card {
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 1px #1f1f1f, 0 1px 4px #1f1f1f, 0 16px 16px -16px #1f1f1f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-card span {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.stat-card strong {
+    font-size: 2rem;
+    margin-top: 5px;
+}
+
+/* TOOLTIP*/
+.custom-tooltip {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+}
+
+.tooltip-label {
+    margin: 0 0 8px 0;
+    font-weight: bold;
+    color: #2d3748;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 4px;
+}
+
+.tooltip-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tooltip-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    gap: 8px;
+}
+
+.tooltip-item .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.tooltip-item .name {
+    color: #718096;
+    flex-grow: 1;
+}
+
+.tooltip-item .value {
+    font-weight: 600;
+}
+
+
+
+/* Vynutíme, aby SVG tvary nebyly přebíjeny globálním stylem */
+.recharts-pie-sector path {
+    transition: filter 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+.recharts-pie-sector path:hover {
+    filter: brightness(1.1);
+}
+
+.recharts-legend-item{
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}

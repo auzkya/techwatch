@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->timestamp('active_worker_reminder_sent_at')->nullable();
             $table->boolean('state_verified')->default(false);
             $table->float('review_value')->nullable();
-            $table->enum('role', ['user', 'admin', 'moderator'])->default('user');
+            $table->enum('role', ['user', 'admin_viewer', 'admin_moderator', 'super_admin'])->default('user');
             $table->index('created_at');
             $table->index('updated_at');
             $table->timestamp('last_login')->nullable();

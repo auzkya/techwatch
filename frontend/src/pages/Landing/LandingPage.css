@@ -1,0 +1,30 @@
+.landing {
+    text-align: center;
+    padding-top: 150px;
+}
+
+.landing h2 {
+    margin-top: 0px;
+    margin-bottom: 24px;
+}
+
+.landing p {
+    margin: 10px auto 16px auto;
+    width: 40%;
+}
+
+.enter-app-button {
+    background-color: var(--primary);
+    border: none;
+    border-radius: 18px;
+    color: var(--text);
+    cursor: pointer;
+    padding: 20px 32px;
+    text-decoration: none;
+    text-align: center;
+    margin-top: 16px;
+}
+
+.enter-app-button h3 {
+    margin: 0 auto;
+}

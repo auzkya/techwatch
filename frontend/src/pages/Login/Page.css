@@ -296,6 +296,23 @@ input[type="checkbox" i] {
 .oauth_text {
     vertical-align: middle;
     display: inline-block;
-    padding-top: 4px;
+    padding-top: 1px;
     margin: 0;
+}
+
+.login-footer {
+    left: 50%;
+    margin: 0 auto;
+    position: absolute;
+    text-align: center;
+    transform: translate(-50%);
+    bottom: 10px;
+    display: block;
+    opacity: .4;
+    text-align: center;
+}
+
+.login-footer a {
+    color: var(--text3);
+    text-decoration: none;
 }

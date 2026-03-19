@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
 use App\Models\Item;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -34,17 +35,31 @@ class TechController extends Controller
     {
         $user_id = Auth::id();
 
-        $validator = Validator::make($request->all(), [
+        // 1. Definice pravidel
+        $rules = [
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:700',
             'price' => 'nullable|numeric',
             'category' => 'required|string',
             'location' => 'required|string',
             'purpose' => 'required|string',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'bail|required|numeric|min:1|max:1000000', // Přidán rozumný limit
             'images' => 'required|array',
-            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp,avif|max:8192',
+        ];
+
+        // Definice vlastních českých hlášek
+        $messages = [
+            'title.required' => 'Název je povinný.',
+            'description.required' => 'Popis je povinný.',
+            'quantity.required' => 'Množství je povinné.',
+            'quantity.numeric'  => 'Zadejte prosím platné číslo.',
+            'quantity.min' => 'Množství musí být alespoň 1.',
+            'quantity.max' => 'Zadané množství je příliš vysoké.',
+            'images.required' => 'Musíte nahrát alespoň jeden obrázek.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
@@ -52,16 +67,19 @@ class TechController extends Controller
 
         $imagePaths = [];
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $img) {
-                // Sjednocená cesta: items/id_timestamp_index.jpg
-                $filename = 'items/' . $user_id . '_' . time() . '_' . $index . '.jpg';
+            foreach ($request->file('images') as $index => $imgFile) {
+                // Sjednocená cesta: items/id_timestamp_webp.jpg
+                $filename = 'items/' . $user_id . '_' . time() . '_' . $index . '.webp';
 
-                Storage::disk('r2')->put(
-                    $filename,
-                    file_get_contents($img),
-                    'public'
-                );
+                // Optimalizace pomocí Intervention Image
+                $optimizedImage = Image::make($imgFile)
+                    ->resize(1200, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 80);
 
+                Storage::disk('r2')->put($filename, $optimizedImage->stream(), 'public');
                 $imagePaths[] = $filename;
             }
         }
@@ -86,50 +104,78 @@ class TechController extends Controller
 
     public function update(Request $request, $id)
     {
-        $item = Item::findOrFail($id);
-        $user_id = Auth::id();
+        // Místo findOrFail použijeme where, abychom ověřili vlastníka
+        $item = Item::where('id', $id)
+                    ->where('user_id', Auth::id())
+                    ->first();
+
+        if (!$item) {
+            // Pokud item neexistuje NEBO patří někomu jinému, vrátíme 403
+            return response()->json(['message' => 'Přístup odepřen.'], 403);
+        }
 
         // Validace: images není required, protože uživatel může chtít nechat původní
-        $request->validate([
+        $rules = [
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:700',
             'price' => 'nullable|numeric',
             'category' => 'required|string',
             'location' => 'required|string',
             'purpose' => 'required|string',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'bail|required|numeric|min:1|max:1000000',
             'images' => 'nullable|array',
-            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp,avif|max:8192',
+        ];
 
-        // 1. Zpracování existujících obrázků
-        // Musíme z nich odstranit doménu, pokud tam je, abychom ukládali jen cesty
+        $messages = [
+            'title.required' => 'Název je povinný.',
+            'description.required' => 'Popis je povinný.',
+            'quantity.required' => 'Množství je povinné.',
+            'quantity.numeric'  => 'Zadejte prosím platné číslo.',
+            'quantity.min' => 'Množství musí být alespoň 1.',
+            'quantity.max' => 'Zadané množství je příliš vysoké.',
+            'images.required' => 'Musíte nahrát alespoň jeden obrázek.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // 1. Zpracování existujících obrázků (ty už jsou ve WebP z minula nebo zůstávají v orig.)
         $existingRaw = $request->has('existing_images') ? json_decode($request->input('existing_images'), true) : [];
         $imagePaths = [];
 
         foreach ($existingRaw as $url) {
-            // 1. Pokud je to URL, vytáhneme jen to, co začíná "items/"
             if (str_contains($url, 'items/')) {
                 $parts = explode('items/', $url);
                 $imagePaths[] = 'items/' . end($parts);
-            }
-            // 2. Pokud je to už jen čistá cesta, přidáme ji přímo
-            elseif (is_string($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
+            } elseif (is_string($url) && !filter_var($url, FILTER_VALIDATE_URL)) {
                 $imagePaths[] = $url;
             }
         }
 
-        // 2. Přidání nových obrázků
+        // 2. Smazání z R2 těch, které uživatel odstranil
+        $oldImages = is_array($item->images) ? $item->images : json_decode($item->images, true) ?? [];
+        foreach ($oldImages as $oldPath) {
+            if (!in_array($oldPath, $imagePaths)) {
+                Storage::disk('r2')->delete($oldPath);
+            }
+        }
+
+        // 3. Přidání a konverze NOVÝCH obrázků
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $index => $img) {
-                $filename = 'items/' . $user_id . '_' . time() . '_upd_' . $index . '.jpg';
+            foreach ($request->file('images') as $index => $imgFile) {
+                $filename = 'items/' . $user_id . '_' . time() . '_upd_' . $index . '.webp';
 
-                Storage::disk('r2')->put(
-                    $filename,
-                    file_get_contents($img),
-                    'public'
-                );
+                $optimizedImage = Image::make($imgFile)
+                    ->resize(1200, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode('webp', 80);
 
+                Storage::disk('r2')->put($filename, $optimizedImage->stream(), 'public');
                 $imagePaths[] = $filename;
             }
         }
@@ -150,16 +196,46 @@ class TechController extends Controller
 
     public function show($id)
     {
-        $item = Item::with(['user.specs'])->find($id);
+        $user = auth('sanctum')->user();
+        $isAdmin = $user && in_array($user->role, ['admin_moderator', 'super_admin']);
+
+        $query = Item::with(['user.specs']);
+
+        // Pokud je to admin, dovolíme mu vidět i smazané (soft-deleted) záznamy
+        if ($isAdmin) {
+            $query->withTrashed();
+        }
+
+        $item = $query->find($id);
+
+        // Kontrola existence a oprávnění pro ne-adminy
+        if (!$item) {
+            return response()->json(['message' => 'Nenalezeno'], 404);
+        }
+
+        // Pokud je položka smazaná (soft-deleted) a uživatel není admin vrátíme 404
+        if ($item->trashed() && !$isAdmin){
+            return response()->json(['message' => 'Nenalezeno'], 404);
+        }
 
         if (!$item) {
             return response()->json(['message' => 'Nenalezeno'], 404);
+        }
+
+        // Pokud request obsahuje parametr 'for_edit', zkontrolujeme majitele
+        if (request()->has('for_edit')) {
+            if ((int)$item->user_id !== (int)auth()->id()) {
+                return response()->json(['message' => 'Na editaci nemáte právo.'], 403);
+            }
         }
 
         $item->is_favourite = \DB::table('favourites_items')
             ->where('user_id', auth('sanctum')->id())
             ->where('item_id', $id)
             ->exists();
+
+        // Přidáme informaci o smazání, aby frontend mohl zobrazit varování pro adminy
+        $item->is_deleted = $item->trashed();
 
         // Transformace obrázků pro detail
         $item->images = $this->transformImages($item);
@@ -304,9 +380,11 @@ class TechController extends Controller
     public function updateStatus(Request $request, $id)
     {
         // Najdeme item, který patří přihlášenému uživateli
-        $item = Item::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $item = Item::where('id', $id)->first();
+
+        if (!$item || (int)$item->user_id !== (int)Auth::id()) {
+            return response()->json(['message' => 'Přístup odepřen.'], 403);
+        }
 
         // Validujeme, že přišla nula nebo jednička
         $request->validate([
@@ -327,8 +405,12 @@ class TechController extends Controller
     public function destroy($id)
     {
         $item = Item::where('id', $id)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+                    ->where('user_id', Auth::id())
+                    ->first();
+
+        if (!$item) {
+            return response()->json(['message' => 'Přístup odepřen.'], 403);
+        }
 
         // Smazání obrázků z R2 před smazáním záznamu
         if ($item->images) {

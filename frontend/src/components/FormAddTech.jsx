@@ -1,17 +1,23 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-import axiosInstance from "../api/axiosInstance";
 import imageCompression from "browser-image-compression";
+import axiosInstance from "../api/axiosInstance";
 
-import "./GeneralForm.css";
+import { useAlert } from "../context/AlertContext";
+import { useAuth } from "../context/AuthContext";
 import FormImgManager from "./FormImgManager";
+import "./GeneralForm.css";
 import InputLogin from "./InputLogin";
 import TextArea from "./TextArea";
-import { useAlert } from "../context/AlertContext";
+
+import { faCircleMinus, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 const FormAddTech = ({ setLoading, isEdit }) => {
     const { id } = useParams(); // ID z URL /tech/edit/:id
+    const { user } = useAuth();
+    const currentUser = user;
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -22,6 +28,63 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     const [purpose, setPurpose] = useState("");
     const [quantity, setQuantity] = useState(1);
     const [images, setImages] = useState([]);
+
+    // Data pro select
+    const categoryOptions = [
+        { value: "", label: "-- Vyberte kategorii --" },
+        { value: "light", label: "Světla" },
+        { value: "sound", label: "Zvuk" },
+        { value: "video", label: "Video" },
+        { value: "rigging_stage", label: "Rigging & stage" },
+        { value: "scenography", label: "Scénografie" },
+    ];
+
+    const locationOptions = [
+        { value: "", label: "-- Vyberte lokalitu --" },
+        { value: "praha", label: "Praha" },
+        { value: "brno", label: "Brno" },
+        { value: "ostrava", label: "Ostrava" },
+        { value: "stredocesky", label: "Středočeský kraj" },
+        { value: "jihocesky", label: "Jihočeský kraj" },
+        { value: "plzensky", label: "Plzeňský kraj" },
+        { value: "karlovarsky", label: "Karlovarský kraj" },
+        { value: "ustecky", label: "Ústecký kraj" },
+        { value: "liberecky", label: "Liberecký kraj" },
+        { value: "kralovehradecky", label: "Královéhradecký kraj" },
+        { value: "vysocina", label: "Vysočina" },
+        { value: "jihomoravsky", label: "Jihomoravský kraj" },
+        { value: "olomoucky", label: "Olomoucký kraj" },
+        { value: "zlinsky", label: "Zlínský kraj" },
+        { value: "moravskoslezsky", label: "Moravskoslezský kraj" },
+    ];
+
+    const purposeOptions = [
+        { value: "", label: "-- Vyberte dostupnost --" },
+        { value: "rental", label: "Rentál" },
+        { value: "sell", label: "Prodej" },
+    ];
+
+    // Select logika
+    // NOVÉ STAVY PRO CUSTOM SELECTY
+    const [isCatOpen, setIsCatOpen] = useState(false);
+    const [isLocOpen, setIsLocOpen] = useState(false);
+    const [isPurpOpen, setIsPurpOpen] = useState(false);
+
+    // REFY PRO DETEKCI KLIKNUTÍ MIMO
+    const catRef = useRef(null);
+    const locRef = useRef(null);
+    const purpRef = useRef(null);
+
+    // Upravený useEffect pro zavírání všech dropdownů při kliknuití mimo
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isCatOpen && !catRef.current?.contains(event.target)) setIsCatOpen(false);
+            if (isLocOpen && !locRef.current?.contains(event.target)) setIsLocOpen(false);
+            if (isPurpOpen && !purpRef.current?.contains(event.target)) setIsPurpOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isCatOpen, isLocOpen, isPurpOpen]);
 
     const [existingImages, setExistingImages] = useState([]); // Pro zobrazení původních fotek
     // Funkce pro odstranění existujícího obrázku z náhledu
@@ -48,7 +111,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             const fetchItem = async () => {
                 setLoading(true);
                 try {
-                    const res = await axiosInstance.get(`/api/tech/${id}`);
+                    const res = await axiosInstance.get(`/api/tech/${id}?for_edit=true`);
                     const item = res.data.item;
 
                     setTitle(item.title || "");
@@ -69,7 +132,12 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         setImages(item.image_urls);
                     }
                 } catch (err) {
-                    showAlert("error", "Inzerát nebyl nalezen.");
+                    // Pokud interceptor zachytí 403, window.location.href v axiosInstance.js 
+                    // uživatele okamžitě přesměruje. Zde řešíme jen ostatní chyby (např. 404).
+                    if (err.response?.status === 404) {
+                        showAlert("error", "Inzerát nebyl nalezen.");
+                        navigate("/tech");
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -80,6 +148,20 @@ const FormAddTech = ({ setLoading, isEdit }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Ruční validace vlastních selectů
+        if (!category) {
+            showAlert("error", "Prosím vyplňte kategorii.");
+            return;
+        }
+        if (!location) {
+            showAlert("error", "Prosím vyberte lokalitu.");
+            return;
+        }
+        if (!purpose) {
+            showAlert("error", "Prosím vyberte dostupnost.");
+            return;
+        }
 
         // Validace velikosti (přidaná kontrola pro případ, že images je prázdné)
         const totalSize = images.length > 0 ? images.reduce((sum, img) => sum + img.size, 0) : 0;
@@ -106,7 +188,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             formData.append("category", category);
             formData.append("location", location);
             formData.append("purpose", purpose);
-            formData.append("quantity", quantity);
+            formData.append("quantity", quantity || 1);
 
             // změna z POST na PUT pokud je to editace
             if (isEdit) {
@@ -140,7 +222,14 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             // 1. Získáme ID (u nového z res.data, u editace ho už máme)
             const itemId = isEdit ? id : res.data.item.id;
             // 2. OKAMŽITĚ přesměrujeme na detail inzerátu
-            navigate(`/tech/item/${itemId}`);
+            navigate(`/tech/item/${itemId}`, {
+                state: {
+                    fromMode: null, // Vymažeme mode, aby se necpal do cesty
+                    customLabel: "Moje nabídky",
+                    userId: user?.id || currentUser?.id, // ID právě přihlášeného uživatele
+                    userName: null // Aby se v cestě skrylo jméno
+                }
+            });
             // 3. Zobrazíme úspěšný alert, který se vykreslí už na nové stránce
             showAlert("success", isEdit ? "Inzerát byl úspěšně aktualizován." : "Inzerát byl úspěšně přidán.");
         } catch (err) {
@@ -184,55 +273,133 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                 />
             </div>
             <div className="div4">
-                <label htmlFor="category" className="body_base label-move">Kategorie</label><br></br>
-                <select className="input-login" value={category || ""} onChange={(e) => setCategory(e.target.value)} required>
-                    <option value="">-- Vyberte kategorii --</option>
-                    <option value="light">Světla</option>
-                    <option value="sound">Zvuk</option>
-                    <option value="video">Video</option>
-                    <option value="rigging_stage">Rigging & stage</option>
-                    <option value="scenography">Scénografie</option>
-                </select>
+                <label className="body_base label-move">Kategorie</label>
+                <div className="custom-select-wrapper" ref={catRef}>
+                    <div
+                        className={`custom-select-up ${isCatOpen ? "open" : ""}`}
+                        onClick={() => setIsCatOpen(!isCatOpen)}
+                    >
+                        <span className="selected">
+                            {categoryOptions.find(opt => opt.value === category)?.label || "-- Vyberte kategorii --"}
+                        </span>
+                        <span className={`arrow ${isCatOpen ? "rotate" : ""}`}>▼</span>
+                    </div>
+                    {isCatOpen && (
+                        <div className="options-up">
+                            {categoryOptions.map((opt) => (
+                                <div
+                                    key={opt.value}
+                                    className={`option ${category === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
+                                    onClick={() => { setCategory(opt.value); setIsCatOpen(false); }}
+                                >
+                                    {opt.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="div5">
-                <label htmlFor="location" className="body_base label-move">Lokalita</label><br></br>
-                <select className="input-login" value={location || ""} onChange={(e) => setLocation(e.target.value)} required>
-                    <option value="">-- Vyberte lokalitu --</option>
-                    <option value="praha">Praha</option>
-                    <option value="brno">Brno</option>
-                    <option value="ostrava">Ostrava</option>
-                    <option value="stredocesky">Středočeský kraj</option>
-                    <option value="jihocesky">Jihočeský kraj</option>
-                    <option value="plzensky">Plzeňský kraj</option>
-                    <option value="karlovarsky">Karlovarský kraj</option>
-                    <option value="ustecky">Ústecký kraj</option>
-                    <option value="liberecky">Liberecký kraj</option>
-                    <option value="kralovehradecky">Královéhradecký kraj</option>
-                    <option value="vysocina">Vysočina</option>
-                    <option value="jihomoravsky">Jihomoravský kraj</option>
-                    <option value="olomoucky">Olomoucký kraj</option>
-                    <option value="zlinsky">Zlínský kraj</option>
-                    <option value="moravskoslezsky">Moravskoslezský kraj</option>
-                </select>
+                <label className="body_base label-move">Lokalita</label>
+                <div className="custom-select-wrapper" ref={locRef}>
+                    <div
+                        className={`custom-select-up ${isLocOpen ? "open" : ""}`}
+                        onClick={() => setIsLocOpen(!isLocOpen)}
+                    >
+                        <span className={`selected ${location === "" ? "gray-text" : ""}`}>
+                            {locationOptions.find(opt => opt.value === location)?.label || "-- Vyberte lokalitu --"}
+                        </span>
+                        <span className={`arrow ${isLocOpen ? "rotate" : ""}`}>▼</span>
+                    </div>
+
+                    {isLocOpen && (
+                        <div className="options-up">
+                            {locationOptions.map((opt) => (
+                                <div
+                                    key={opt.value}
+                                    className={`option ${location === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
+                                    onClick={() => { setLocation(opt.value); setIsLocOpen(false); }}
+                                >
+                                    {opt.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="div6">
-                <label htmlFor="purpose" className="body_base label-move">Dostupnost</label><br></br>
-                <select className="input-login" value={purpose} onChange={(e) => setPurpose(e.target.value)} required>
-                    <option value="">-- Vyberte dostupnost --</option>
-                    <option value="rental">Rentál</option>
-                    <option value="sell">Prodej</option>
-                </select>
+                <label className="body_base label-move">Dostupnost</label>
+                <div className="custom-select-wrapper" ref={purpRef}>
+                    <div
+                        className={`custom-select-up ${isPurpOpen ? "open" : ""}`}
+                        onClick={() => setIsPurpOpen(!isPurpOpen)}
+                    >
+                        <span className="selected">
+                            {purposeOptions.find(opt => opt.value === purpose)?.label || "-- Vyberte dostupnost --"}
+                        </span>
+                        <span className={`arrow ${isPurpOpen ? "rotate" : ""}`}>▼</span>
+                    </div>
+                    {isPurpOpen && (
+                        <div className="options-up">
+                            {/* Už tu není ten fixní div navíc, bere se jen z pole purposeOptions */}
+                            {purposeOptions.map((opt) => (
+                                <div
+                                    key={opt.value}
+                                    className={`option ${purpose === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
+                                    onClick={() => { setPurpose(opt.value); setIsPurpOpen(false); }}
+                                >
+                                    {opt.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="div7">
-                <label htmlFor="quantity" className="body_base label-move">Počet</label><br></br>
-                <InputLogin
-                    type="number"
-                    name="quantity"
-                    value={quantity || 1}
-                    required
-                    onChange={(e) => setQuantity(e.target.value)}
-                    extraClass={`price-input`}
-                />
+                <label htmlFor="quantity" className="body_base label-move">Množství</label>
+                <div className="quantity-stepper add-tech-stepper">
+                    <div className="stepper-input-wrapper">
+                        <input
+                            id="quantity"
+                            name="quantity"
+                            type="text"
+                            inputMode="numeric"
+                            className="input-login input-inline price-input"
+                            value={quantity}
+                            required // Důležité pro validaci formuláře
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                // Povoli jen čísla a limit 7 znaků (pro tvých 1 000 000)
+                                if (val === "" || (/^[0-9\b]+$/.test(val) && val.length <= 7)) {
+                                    const numVal = val === "" ? "" : parseInt(val);
+                                    // Kontrola horního limitu
+                                    if (numVal === "" || numVal <= 1000000) {
+                                        setQuantity(numVal);
+                                    }
+                                }
+                            }}
+                            onBlur={() => {
+                                // Pokud uživatel odejde a pole je prázdné, nastavíme 1
+                                if (quantity === "" || quantity < 1) setQuantity(1);
+                            }}
+                        />
+                        <div className="stepper-input-wrapper-btn-container">
+                            <FontAwesomeIcon
+                                icon={faCircleMinus}
+                                className={`stepper-btn ${quantity <= 1 ? "button_disabled" : ""}`}
+                                onClick={() => setQuantity(prev => Math.max(1, (parseInt(prev) || 1) - 1))}
+                            />
+                            <FontAwesomeIcon
+                                icon={faCirclePlus}
+                                className={`stepper-btn ${quantity >= 1000000 ? "button_disabled" : ""}`}
+                                onClick={() => setQuantity(prev => {
+                                    const next = (parseInt(prev) || 0) + 1;
+                                    return next <= 1000000 ? next : prev;
+                                })}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
             <div className="div8">
                 <label htmlFor="price" className="body_base label-move">Cena ( Kč / ks )</label><br></br>

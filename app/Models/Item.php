@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Item extends Model
 {
+    // aby nahlášené položky při smazání adminem úplně nezmizely z historie
+    use SoftDeletes;
+    
     protected $fillable = [
         'user_id', 'title', 'description', 'price', 'category',
         'location', 'purpose', 'quantity', 'images', 'active_item', 'review_value'

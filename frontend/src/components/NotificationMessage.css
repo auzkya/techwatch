@@ -27,7 +27,7 @@
 
 .button-notification_message .left .icon_wrapper {
     display: block;
-    font-size: 25px;
+    font-size: 22px;
     border-radius: 50%;
     height: 40px;
     width: 40px;
@@ -67,8 +67,11 @@
     float: left;
     max-width: 65%;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.no_wrap{
+    text-wrap: auto;
 }
 
 .button-notification_message .right .date {
@@ -79,14 +82,20 @@
 .button-notification_message .right .text {
     float: left;
     display: -webkit-box;
-    line-clamp: 3;
     box-orient: vertical;
-    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 
     word-break: break-word;
     overflow-wrap: break-word;
+
+    width: 100%;
+    text-align: left;
+}
+
+.notification_clamp {
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
 }
 
 .notification-date-separator {
@@ -95,7 +104,7 @@
     color: var(--text2);
 }
 
-.empty-notifications p{
+.empty-notifications p {
     text-align: center;
     margin: 20px 0;
     color: var(--text2);

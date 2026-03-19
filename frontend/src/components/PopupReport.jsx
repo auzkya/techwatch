@@ -1,14 +1,35 @@
-import React, { useState, useEffect } from "react";
-import TextArea from "./TextArea";
-import { useScrollLock } from "../hooks/useScrollLock";
+import { useEffect, useRef, useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useAlert } from "../context/AlertContext";
+import { useScrollLock } from "../hooks/useScrollLock";
+import TextArea from "./TextArea";
 
 const PopupReport = ({ isOpen, onClose, targetId, type }) => {
     const { showAlert } = useAlert();
     const [reason, setReason] = useState("");
     const [category, setCategory] = useState(""); // Nové: Kategorie důvodu
     const [loading, setLoading] = useState(false);
+
+    // Hodnoty pro custom select
+    const [isCatOpen, setIsCatOpen] = useState(false);
+    const catRef = useRef(null);
+
+    const reportOptions = [
+        { value: "", label: "-- Vyberte důvod --" },
+        { value: "spam", label: "Spam / Podvod" },
+        { value: "inappropriate", label: "Nevhodný obsah" },
+        { value: "wrong_category", label: "Špatná kategorie" },
+        { value: "other", label: "Jiné" },
+    ];
+    // Select logika
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isCatOpen && !catRef.current?.contains(event.target)) setIsCatOpen(false);
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isCatOpen]);
+
 
     useScrollLock(isOpen);
 
@@ -31,11 +52,11 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
 
     const handleSubmit = async () => {
         if (!category) {
-            showAlert("error", "Prosím, vyberte kategorii nahlášení.");
+            showAlert("error", "Vyberte kategorii nahlášení.");
             return;
         }
         if (!reason.trim()) {
-            showAlert("error", "Prosím, vyplňte doplňující informace.");
+            showAlert("error", "Vyplňte doplňující informace.");
             return;
         }
         if (reason.length > 500) {
@@ -76,18 +97,31 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
                 <div className="form-review">
                     <div className="review-fuller">
                         <label className="body_base label-move">Důvod nahlášení</label>
-                        <select
-                            className="form_textarea" // Použijeme stejný styl jako u inputů
-                            style={{ marginBottom: "15px", height: "45px" }}
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                        >
-                            <option value="">-- Vyberte důvod --</option>
-                            <option value="spam">Spam / Podvod</option>
-                            <option value="inappropriate">Nevhodný obsah / vulgarismy</option>
-                            <option value="wrong_category">Špatná kategorie / informace</option>
-                            <option value="other">Jiné</option>
-                        </select>
+                        <div className="custom-select-wrapper" ref={catRef}>
+                            <div
+                                className={`custom-select-down ${isCatOpen ? "open" : ""}`}
+                                onClick={() => setIsCatOpen(!isCatOpen)}
+                            >
+                                <span className={`selected ${category === "" ? "gray-text" : ""}`}>
+                                    {reportOptions.find(opt => opt.value === category)?.label || "-- Vyberte důvod --"}
+                                </span>
+                                <span className={`arrow ${isCatOpen ? "rotate" : ""}`}>▼</span>
+                            </div>
+
+                            {isCatOpen && (
+                                <div className="options-down">
+                                    {reportOptions.map((opt) => (
+                                        <div
+                                            key={opt.value}
+                                            className={`option ${category === opt.value ? "selected" : ""} ${opt.value === "" ? "gray-text" : ""}`}
+                                            onClick={() => { setCategory(opt.value); setIsCatOpen(false); }}
+                                        >
+                                            {opt.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
                         <label className="body_base label-move">Doplňující informace</label>
                         <TextArea

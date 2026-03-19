@@ -1,12 +1,12 @@
 import { useState } from "react";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 
-import "./Page.css"
+import "./Page.css";
 
-import ForgotPasswordForm from "../../components/FormForgotPassword"
+import ForgotPasswordForm from "../../components/FormForgotPassword";
 
 import { ASSETS } from "../../config/assets";
 import { useScrollLock } from "../../hooks/useScrollLock";
@@ -36,7 +36,7 @@ const ForgotPassword = () => {
 
             <div className="login_page">
                 <div className="login_page_child">
-                    <img className="login_logo" alt="logo" src={ASSETS.logo} />
+                    <img className="login_logo" alt="logo" src={ASSETS.logo_top} />
                     <div className="login_section">
                         <h2 className="strong">ZAPOMENUTÉ HESLO</h2>
                         <p className="login_section_info body_base" dangerouslySetInnerHTML={{ __html: infoText }} />

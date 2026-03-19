@@ -1,5 +1,5 @@
 .tech_container{
-    width: 60%;
+    width: 80%;
     margin: 30px auto 0 auto;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 0.7fr);

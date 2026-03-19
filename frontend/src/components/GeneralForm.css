@@ -43,6 +43,14 @@
     grid-area: 5 / 3 / 6 / 5;
 }
 
+.form_add_tech .div7 .stepper-input-wrapper{
+    gap: 6px;
+}
+
+.form_add_tech .div7 .stepper-input-wrapper-btn-container{
+    gap: 0px;
+}
+
 .form_add_tech .div8 {
     grid-area: 5 / 5 / 6 / 7;
 }
@@ -373,7 +381,7 @@ option::-webkit-scrollbar-thumb {
 }
 
 .price-input {
-    width: auto !important;
+    /*width: auto !important;*/
     flex-shrink: 10;
 }
 

@@ -125,6 +125,7 @@ const Favourites = () => {
                                     role={isWorker ? item.formatted_specs : null}
                                     price={item.price}
                                     purpose={item.purpose}
+                                    quantity={item.quantity}
                                     onClick={() => {
                                         if (isWorker) {
                                             navigate(`/user/${item.id}/${workerSlug}`, {

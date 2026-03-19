@@ -1,0 +1,340 @@
+.report-table-wrapper {
+    background: var(--background2);
+    border: 1px solid var(--background3);
+    border-radius: 12px;
+    overflow-y: hidden;
+    overflow-x: scroll;
+}
+
+.admin-custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-color);
+    /* Důležité pro zarovnání: */
+    table-layout: auto;
+}
+
+.admin-custom-table th {
+    background: var(--background3);
+    padding: 1.2rem 1rem;
+    text-align: left;
+    font-size: 14px;
+    color: #888;
+    border-bottom: 2px solid var(--background1);
+}
+
+.admin-custom-table td {
+    padding: 1.2rem 1rem;
+    border-bottom: 1px solid var(--background3);
+    /* Fix výškového zarovnání: */
+    vertical-align: middle;
+}
+
+/* Odkazy v tabulce */
+.target-link,
+.reporter-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: 0.2s;
+}
+
+.target-link:hover strong,
+.reporter-link:hover span {
+    color: var(--primary);
+}
+
+.target-link strong {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.target-link small,
+.reporter-link small {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.reporter-info span {
+    display: block;
+}
+
+/* Zarovnání Typu */
+.type-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+/* Fix výšky pro sloupec s textem */
+.col-reason {
+    max-width: 350px;
+    min-width: 250px;
+}
+
+.reason-content {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #bbb;
+    word-break: break-word;
+    /* Zabrání rozbití tabulky dlouhým slovem */
+    max-height: 100px;
+    /* Limit výšky, aby řádek nebyl přes celou obrazovku */
+    overflow-y: auto;
+    /* Pokud je text moc dlouhý, dá se v buňce scrollovat */
+    padding-right: 5px;
+}
+
+/* Akce vedle sebe nebo pod sebou */
+.actions-stack {
+    display: flex;
+    gap: 8px;
+}
+
+/* Preview zpráv tlačítko */
+.msg-preview-btn {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--primary);
+    background: rgba(74, 144, 226, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    cursor: pointer;
+}
+
+/* Badge Kategorie */
+.badge-category {
+    background: var(--background3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    border: 1px solid #444;
+}
+
+/* Sloupec s dlouhým důvodem */
+.col-reason {
+    max-width: 400px;
+}
+
+.reason-text {
+    white-space: pre-line;
+    /* Zachová zalomení řádků z textarea */
+    line-height: 1.4;
+    color: #ccc;
+}
+
+/* Akce */
+.col-actions {
+    white-space: nowrap;
+}
+
+.btn-resolve,
+.btn-dismiss {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    margin-right: 5px;
+}
+
+.btn-resolve {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-resolve:hover {
+    filter: brightness(1.2);
+}
+
+.btn-dismiss {
+    background: transparent;
+    border: 1px solid #555;
+    color: #bbb;
+}
+
+.btn-dismiss:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+/* Datum a čas */
+.col-date {
+    white-space: nowrap;
+    min-width: 130px;
+}
+
+.date-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-main {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.date-relative {
+    font-size: 0.7rem;
+    color: #666;
+}
+
+/* Vizuální urgence řádků */
+.urgency-high {
+    border-left: 4px solid #ff4d4d !important;
+    background: rgba(255, 77, 77, 0.02);
+}
+
+.urgency-medium {
+    border-left: 4px solid #ffa500 !important;
+}
+
+/* Varování o strikech */
+.strike-warning {
+    color: #ff4d4d;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 2px 0;
+}
+
+/* Styl pro zobrazení striků */
+.strike-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #888;
+    width: fit-content;
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid transparent;
+}
+
+.strike-badge.has-strikes {
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+    border-color: rgba(255, 77, 77, 0.2);
+    font-weight: bold;
+}
+
+.strike-badge i {
+    font-size: 0.65rem;
+}
+
+/* Naléhavost řádků */
+.urgency-high {
+    border-left: 4px solid #d0021b;
+}
+
+.urgency-medium {
+    border-left: 4px solid #f5a623;
+}
+
+/* Oprava zarovnání pro cílové informace */
+.target-info {
+    display: flex;
+    flex-direction: column;
+}
+
+/* PRO RESOLVED TABULKU */
+.status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    width: fit-content;
+}
+
+.notes-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+}
+
+.action-critical { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; border: 1px solid #ff4d4d44; }
+.action-warning { background: rgba(255, 165, 0, 0.2); color: #ffa500; border: 1px solid #ffa50044; }
+.action-delete { background: rgba(200, 200, 200, 0.1); color: #eee; border: 1px solid #ffffff22; }
+.action-info { background: rgba(0, 123, 255, 0.2); color: #5dade2; border: 1px solid #5dade244; }
+
+.btn-revert {
+    background: #576574;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.btn-revert:hover {
+    background: #222f3e;
+}
+
+.admin-note {
+    font-style: italic;
+    color: #ecf0f1;
+}
+
+.no-note {
+    opacity: 0.5;
+}
+
+/* Kontejner pro pilulky v popupu */
+.action-pill-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Interaktivní chování pilulky */
+.action-pill-group .status-pill {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent; /* Aby nepodskakovalo při aktivaci */
+    opacity: 0.4; /* Neaktivní pilulky budou tlumené */
+    filter: grayscale(0.3);
+    letter-spacing: 0.5px;
+}
+
+.action-pill-group .status-pill.pill-active {
+    opacity: 1;
+    filter: grayscale(0);
+    transform: scale(1.05);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+    /* Zvýraznění aktivní pilulky - využije tvou barvu z .action-X */
+    border-width: 1px; 
+}
+
+.action-pill-group .status-pill:hover {
+    opacity: 1;
+    filter: grayscale(0);
+}
+
+.pill-dot {
+    font-size: 0.6rem;
+    margin-right: 4px;
+}
+
+/* Pokud chceš, aby ignorování vypadalo jako tvoje šedá varianta */
+.action-delete { 
+    background: rgba(200, 200, 200, 0.1); 
+    color: #999; 
+    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+}

@@ -78,27 +78,3 @@
     animation: shimmer 1.5s infinite linear;
     border-radius: 10px;
 }
-
-/* Definice animace shimmeru */
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
-/* Definice animace pulse */
-@keyframes pulse {
-    0% {
-        opacity: 0.6;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        opacity: 0.6;
-    }
-}

@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import "./Reviews.css";
-import { Stars } from "./Item";
-import { ASSETS } from "../config/assets";
+import { faFlag, faPenToSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons';
+import { faCircleMinus, faCirclePlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ASSETS } from "../config/assets";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
 import makeSlug from "../utils/makeSlug";
+import { Stars } from "./Item";
 import PopupReport from "./PopupReport";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCirclePlus, faCircleMinus } from '@fortawesome/free-solid-svg-icons';
-import { faFlag, faPenToSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons';
+import "./Reviews.css";
 
 const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
     const navigate = useNavigate();
@@ -100,7 +100,11 @@ const Review = ({ reviewData, currentUser, onEdit, onDelete }) => {
                 <div className="review_options">
                     {isAuthor ? (
                         <>
-                            <span className="options_span" onClick={onEdit}>
+                            <span className="options_span" onClick={() => onEdit({
+                                ...reviewData,
+                                rating: reviewData.review_value, // Mapování pro PopupReview
+                                text: reviewData.review          // Mapování pro PopupReview
+                            })}>
                                 <FontAwesomeIcon icon={faPenToSquare} className="options_icon" />
                                 <p className="options_text">Upravit recenzi</p>
                             </span><br />

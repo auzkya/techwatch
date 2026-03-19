@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import axiosInstance, { setAccessToken as setAxiosToken } from "../api/axiosInstance";
 import { cache } from '../utils/cacheManager';
 import { useLoading } from "./LoadingContext";
@@ -11,6 +11,41 @@ export const AuthProvider = ({ children }) => {
     const [accessToken, setAccessTokenState] = useState(null);
     const initializationAttempted = useRef(false);
     const isRefreshing = useRef(false);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+
+    // HLÍDAČ ZMĚNY UŽIVATELE V JINÉM TABU
+    useEffect(() => {
+        const handleStorageChange = (e) => {
+            // Hledáme klíč 'user_data' (koresponduje s CACHE_KEYS.USER_DATA)
+            if (e.key === 'user_data') {
+                try {
+                    // Rozbalíme data z formátu CacheManageru {value, timestamp, ttl}
+                    const newCacheEntry = e.newValue ? JSON.parse(e.newValue) : null;
+                    const newUser = newCacheEntry ? newCacheEntry.value : null;
+                    const oldUser = user;
+
+                    // 1. SCÉNÁŘ: Přihlášení jiného uživatele v jiném tabu
+                    if (newUser && oldUser && newUser.id !== oldUser.id) {
+                        console.warn("Změna uživatele detekována. Obnovuji stránku...");
+                        window.location.reload();
+                    }
+
+                    // 2. SCÉNÁŘ: Odhlášení v jiném tabu
+                    if (!newUser && oldUser) {
+                        console.warn("Odhlášení detekováno v jiném tabu.");
+                        setUser(null);
+                        setAccessToken(null);
+                        window.location.href = "/login";
+                    }
+                } catch (err) {
+                    console.error("Chyba při synchronizaci tabů:", err);
+                }
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [user]);
 
     // Helper pro nastavení tokenu
     const setAccessToken = (token) => {
@@ -119,14 +154,15 @@ export const AuthProvider = ({ children }) => {
 
     // Odhlášení
     const logoutUser = async () => {
+        // 1. Okamžitě vymaž tokeny v paměti, aby interceptor už nerefreshoval
+        const currentToken = accessToken;
+        setAccessToken(null);
+        setUser(null);
+        cache.clear();
         try {
             await axiosInstance.post("/api/logout");
         } catch (error) {
             console.error("Chyba při odhlášení:", error);
-        } finally {
-            setAccessToken(null);
-            setUser(null);
-            cache.clear(); // ✅ Vyčisti cache při odhlášení
         }
     };
 
@@ -168,6 +204,7 @@ export const AuthProvider = ({ children }) => {
                 setUser(null);
                 cache.clear();
             } finally {
+                setIsAuthReady(true);
                 setTimeout(() => {
                     setLoading(false);
                 }, 50); // Přidáme malý timeout (např. 50ms), aby se React stihl usadit
@@ -186,6 +223,7 @@ export const AuthProvider = ({ children }) => {
             //loading,
             refreshAccessToken,
             setUser: updateUser, // ✅ Exportuj updateUser jako setUser
+            isAuthReady
         }}>
             {children}
         </AuthContext.Provider>

@@ -2,8 +2,14 @@
 // a.k.a zdroj pravdy pro cesty
 
 export const ROUTES = {
-    // Domovská stránka
-    HOME: "/",
+    // Veřejná úvodní stránka
+    LANDING: "/",
+
+    // Vnitřní domovská stránka (po přihlášení)
+    HOME: "/app",
+
+    // Admin sekce
+    ADMIN: "/admin",
 
     // Přihlašovací stránky
     LOGIN: "/login",
@@ -43,6 +49,8 @@ export const ROUTES = {
     FAVOURITES: "/favourites",
     FAVOURITES_CATEGORY: "/favourites/category/:subcategory",
 
+    // 403 stránka
+    FORBIDDEN: "/403",
     // 404 stránka
     NOT_FOUND: "*",
 };

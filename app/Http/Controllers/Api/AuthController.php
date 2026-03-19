@@ -22,12 +22,18 @@ class AuthController extends Controller
             'password' => 'required|string'
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::withTrashed()->where('email', $request->email)->first();
 
         if (!$user) {
             return response()->json([
                 'message' => 'Špatný email nebo heslo.'
             ], 401);
+        }
+
+        if ($user->is_banned) {
+            return response()->json([
+                'message' => 'Účet je zablokovaný.'
+            ], 403);
         }
 
         if (!$user->is_active) {
@@ -172,7 +178,7 @@ class AuthController extends Controller
             'email_verification_sent_at' => now(),
         ]);
 
-        $verificationLink = url("/verify/{$user->email_verification_token}");
+        $verificationLink = "https://api.techwatch.app/api/verify/{$user->email_verification_token}";
 
         Mail::send('emails.verify-email', [
             'link' => $verificationLink
@@ -205,7 +211,7 @@ class AuthController extends Controller
             'email_verification_sent_at' => now(),
         ]);
 
-        $verificationLink = url("/verify/{$user->email_verification_token}");
+        $verificationLink = "https://api.techwatch.app/api/verify/{$user->email_verification_token}";
 
         Mail::send('emails.verify-email', [
             'link' => $verificationLink

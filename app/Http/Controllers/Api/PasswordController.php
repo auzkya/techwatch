@@ -36,7 +36,7 @@ class PasswordController extends Controller
             ['token' => $token, 'created_at' => Carbon::now()]
         );
 
-        $frontendUrl = env('FRONTEND_URL', 'http://127.0.0.1:3000');
+        $frontendUrl = 'https://techwatch.app';
         $resetLink = "{$frontendUrl}/reset-password/{$token}?email={$user->email}";
 
         Mail::send('emails.reset-password', ['link' => $resetLink], function ($message) use ($user) {

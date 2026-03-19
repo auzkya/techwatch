@@ -19,6 +19,11 @@
 .path p {
     display: inline-block;
     margin: 0 5px;
+    font-weight: 400;
+}
+
+.path .home{
+    transform: translateY(-1px);
 }
 
 .path-a {

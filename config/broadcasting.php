@@ -40,13 +40,14 @@ return [
                 'port' => env('REVERB_PORT', 8080),
                 'scheme' => env('REVERB_SCHEME', 'https'),
                 'useTLS' => env('REVERB_SCHEME', 'https') === 'https',
+                'auth_guard' => 'sanctum',
             ],
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
             ],
-            'attributes' => [
+           /* 'attributes' => [
                 'guard' => 'sanctum', // Toto říká Laravelu: "Při autorizaci kanálu hledej Bearer token"
-            ],
+            ],*/
         ],
 
         'pusher' => [

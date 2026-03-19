@@ -23,7 +23,8 @@ class NewMessageMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Nová zpráva od: ' . $this->senderName)
+        return $this->from('info@techwatch.app', 'Váš TechWatch')
+                    ->subject('Nová zpráva od: ' . $this->senderName)
                     ->view('emails.new-message')
                     ->with([
                         'title' => $this->notification->title,

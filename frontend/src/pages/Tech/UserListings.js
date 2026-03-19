@@ -203,6 +203,7 @@ const UserListings = () => {
                                     name={item.title}
                                     price={item.price}
                                     purpose={item.purpose}
+                                    quantity={item.quantity}
                                     activeItem={item.active_item}
                                     isOwner={isOwner}
                                     onEdit={(id) => navigate(`/tech/edit/${id}`)}
@@ -214,11 +215,11 @@ const UserListings = () => {
                                     }}
                                     onClick={() => navigate(`/tech/item/${item.id}`, {
                                         state: {
-                                            fromMode: "workers",       // Chceme zůstat v sekci pracovníci
-                                            fromCategory: activeSubcategory, // Např. "light"
-                                            userName: ownerName,       // "Adam Auzký"
-                                            userId: id,                // ID uživatele pro případ, že URL neobsahuje user/:id
-                                            // location.state už může obsahovat fromCategory z předchozí úrovně
+                                            fromMode: "direct",
+                                            customLabel: isOwner ? "Moje nabídky" : "TECHNIKA",
+                                            userName: isOwner ? null : ownerName, // <--- TADY: Pokud jsem majitel, jméno vynulujeme
+                                            userId: id,
+                                            fromCategory: activeSubcategory,
                                             ...location.state
                                         }
                                     })}

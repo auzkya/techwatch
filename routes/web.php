@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Models\Notification;
 
-Route::get('/verify/{token}', [AuthController::class, 'verify']);
+//Route::get('/verify/{token}', [AuthController::class, 'verify']);
 
 // NOVÁ ROUTE pro prodloužení active_worker (HLEDÁM PRÁCI)
 Route::get('/extend-active-worker', [ProfileController::class, 'extendActiveWorker'])
@@ -22,7 +22,7 @@ Route::get('/open-notification/{notification}', function (Notification $notifica
 
     // 2. Přesměrujeme na FRONTEND (port 3000)
     // env('FRONTEND_URL') vytáhne tu správnou adresu z tvého souboru
-    $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+    $frontendUrl = env('FRONTEND_URL', 'https://techwatch.app/app');
 
     return Redirect::to($frontendUrl . '/?open_notif=' . $notification->id);
 })->name('notification.email.open');
@@ -30,13 +30,19 @@ Route::get('/open-notification/{notification}', function (Notification $notifica
 // ------------------------------------
 // OAuth Routes
 // ------------------------------------
-Route::get('/auth/{provider}/redirect', function ($provider) {
+Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
     $validProviders = ['google', 'facebook'];
     if (!in_array($provider, $validProviders)) {
         abort(404);
     }
 
-    return Socialite::driver($provider)->stateless()->redirect();
+    $target = $request->query('redirect', '/');
+
+    // Zakódujeme cíl do parametru state, který Google pošle zpět
+    return Socialite::driver($provider)
+        ->stateless()
+        ->with(['state' => 'redirect=' . $target])
+        ->redirect();
 });
 
 // callback URL, kam OAuth provider po přihlášení přesměruje uživatele
@@ -125,7 +131,7 @@ Route::get('/auth/{provider}/redirect', function ($provider) {
 });*/
 
 // OAuth callback
-Route::get('/auth/{provider}/callback', function ($provider) {
+Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
     $validProviders = ['google', 'facebook'];
     if (!in_array($provider, $validProviders))
         abort(404);
@@ -138,9 +144,28 @@ Route::get('/auth/{provider}/callback', function ($provider) {
 
     $email = $socialUser->getEmail();
     $providerId = $socialUser->getId();
-    $user = User::where('email', $email)->first();
+    $user = User::withTrashed()->where('email', $email)->first();
     $frontend = config('app.frontend_url');
 
+    // Vytáhneme redirect z parametru state, který se vrátil od Googlu
+    $state = $request->query('state');
+    parse_str($state, $result);
+    $targetRedirect = $result['redirect'] ?? '/';
+
+    if ($user) {
+        // Pokud má uživatel ban
+        if ($user->is_banned) {
+            $reason = $user->ban_reason ? "&reason=" . urlencode($user->ban_reason) : "";
+            return redirect($frontend . "/login?error=banned" . $reason);
+        }
+
+        // Pokud je uživatel smazaný (trashed)
+        if ($user->trashed()) {
+            return redirect($frontend . "/login?error=deleted");
+        }
+    }
+
+    // Pokud uživatel neexistuje vůbec, přesměruj na registraci s předvyplněnými údaji
     if (!$user) {
         $name = $socialUser->getName() ?? '';
         [$fname, $lname] = explode(' ', $name . ' ', 2);
@@ -152,6 +177,7 @@ Route::get('/auth/{provider}/callback', function ($provider) {
                 'lname' => $lname,
                 'provider' => $provider,
                 'provider_id' => $providerId,
+                'redirect' => $targetRedirect,
             ])
         );
     }
@@ -177,7 +203,7 @@ Route::get('/auth/{provider}/callback', function ($provider) {
         now()->addDays(14)
     )->plainTextToken;
 
-    return redirect($frontend . '/oauth-callback?token=' . $accessToken)
+    return redirect($frontend . '/oauth-callback?token=' . $accessToken . '&redirect=' . urlencode($targetRedirect))
         ->cookie(
             'refresh_token',
             $refreshToken,

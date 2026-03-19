@@ -54,8 +54,17 @@ axiosInstance.interceptors.response.use(
         if (
             originalRequest.url.includes('/refresh') ||
             originalRequest.url.includes('/login') ||
+            originalRequest.url.includes('/logout') ||
             originalRequest.url.includes('/registration')
         ) {
+            return Promise.reject(error);
+        }
+
+        if (error.response?.status === 403) {
+            console.warn("🚫 Přístup odepřen (403). Přesměrovávám...");
+            // Použijeme window.location pro okamžitý "vyhazov" na stránku 403
+            // Tato cesta musí existovat v RouteNames.js a AppRoutes.js
+            window.location.href = "/403";
             return Promise.reject(error);
         }
 
@@ -80,15 +89,9 @@ axiosInstance.interceptors.response.use(
 
                 // DŮLEŽITÉ: Použij čistý axios aby se nevyvolal interceptor znovu
                 const res = await axios.post(
-                    "http://127.0.0.1:8000/api/refresh",
+                    `${axiosInstance.defaults.baseURL}/api/refresh`,
                     {},
-                    {
-                        withCredentials: true,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        }
-                    }
+                    { withCredentials: true }
                 );
 
                 const newToken = res.data.access_token;
@@ -97,6 +100,7 @@ axiosInstance.interceptors.response.use(
                 setAccessToken(newToken);
                 processQueue(null, newToken);
 
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return axiosInstance(originalRequest);
             } catch (refreshError) {

@@ -1,67 +1,74 @@
 .form_images {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-gap: 16px;
-margin: 10px 0;
-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+    margin: 10px 0;
+    width: 100%;
 }
 
 
 .thumb_wrapper {
-position: relative;
+    position: relative;
 }
 
 
 .img_wrapper {
-position: relative;
-width: 100%;
-aspect-ratio: 1 / 1;
-border-radius: 12px;
-overflow: visible;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--background3);
+    position: relative;
 }
 
 .img_item {
-width: 100%;
-height: 100%;
-cursor: grab;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: none;
 }
 
 .img_item_undrag {
-width: 100%;
-height: 100%;
-cursor: pointer;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
 }
 
 .img_dragging {
-transform: scale(1.02);
-cursor: grabbing;
-opacity: 0;
+    transform: scale(1.02);
+    cursor: grabbing;
+    opacity: 0;
 }
 
 .img_item img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-border-radius: 12px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
 }
 
 .img_item_undrag img {
-width: 100%;
-height: 100%;
-object-fit: cover;
-border-radius: 12px;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
 }
 
 .unselectable {
-  user-drag: none;
-  user-select: none;
-  -moz-user-select: none;
-  -webkit-user-drag: none;
-  -webkit-user-select: none;
-  -ms-user-select: none;
+    user-drag: none;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
 }
 
 .delete_btn {
+    z-index: 3;
     position: absolute;
     top: 0px;
     right: 0px;
@@ -113,15 +120,15 @@ border-radius: 12px;
 
 
 .drag_handle {
-position: absolute;
-inset: 0;
-cursor: grab;
+    position: absolute;
+    inset: 0;
+    cursor: grab;
 }
 
 .drag_overlay {
-width: 140px;
-height: 140px;
-pointer-events: none;
+    width: 140px;
+    height: 140px;
+    pointer-events: none;
 }
 
 /* Pozadí modalu */
@@ -140,7 +147,7 @@ pointer-events: none;
 }*/
 
 .form_img_full {
-    max-width: 90vw;
+    max-width: 80vw;
     max-height: 75vh;
     cursor: grab;
     object-fit: contain;
@@ -150,97 +157,6 @@ pointer-events: none;
 .form_img_full:active {
     cursor: grabbing;
 }
-
-/*
-
-.form_images {
-    display: flex;
-    gap: 16px;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    margin: 10px 0;
-    width: 100%;
-    scroll-snap-stop: always;
-
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary) var(--background);
-}
-
-.form_img_container {
-    width: 170px;
-    height: 170px;
-    display: block;
-    border: none;
-    border-radius: 12px;
-    flex-shrink: 0;
-    position: relative;
-    overflow: hidden;
-}
-
-.form_img {
-    height: 100%;
-    width: 100%;
-    border: none;
-    background-color: var(--background2);
-    object-fit: cover;
-    cursor: pointer;
-}
-
-.form_img_delete {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    background-color: var(--text);
-    color: var(--background2);
-    border: none;
-    border-radius: 0 0 0 12px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    opacity: 0.9;
-    transition: 0.1s ease-in-out;
-}
-
-.form_img_delete:hover {
-    opacity: 1;
-}
-
-.form_img_delete svg {
-    text-align: center;
-    width: 100%;
-    font-size: 16px;
-    font-weight: 800;
-}
-
-.form_img_placeholder {
-    height: 100%;
-    width: 100%;
-    border: none;
-    border-radius: 12px;
-    background-color: var(--background2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    opacity: 0.8;
-    transition: 0.1s ease-in-out;
-}
-
-.form_img_placeholder:hover {
-    opacity: 1;
-}
-
-.form_img_placeholder svg {
-    text-align: center;
-    width: 100%;
-    font-size: 40px;
-    font-weight: 800;
-}
-
-.form_img_full {
-    width: 80%;
-}
-*/
 
 /* posouvání v galerii*/
 .gallery_overlay {
@@ -270,7 +186,8 @@ pointer-events: none;
     justify-content: center;
     cursor: pointer;
     font-size: 18px;
-    z-index: 10000; /* Musí být nad QuickPinchZoom */
+    z-index: 10000;
+    /* Musí být nad QuickPinchZoom */
     border-radius: 50%;
 }
 
@@ -285,6 +202,91 @@ pointer-events: none;
 
 /* Stav, kdy už není kam listovat */
 .gallery_nav.disabled {
-    opacity: 0.15;            /* Tlačítko bude jen velmi slabě vidět */
-    cursor:default;
+    opacity: 0.15;
+    /* Tlačítko bude jen velmi slabě vidět */
+    cursor: default;
+}
+
+/* PDF náhled */
+.pdf_preview_container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f0f0f0;
+}
+
+.pdf_thumbnail_embed {
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: none;
+    /* Důležité: embed nesmí krást kliknutí */
+}
+
+.pdf_overlay_clicker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    background: transparent;
+}
+
+.pdf_preview_full {
+    width: 80vw;
+    height: 80vh;
+    background: var(--background3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* SKELETON LOADER */
+.hidden-abs {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.skeleton_pulse {
+    animation: pulse 1.5s infinite ease-in-out;
+    background-color: var(--text3);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.skeleton_shimmer {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--text3) 25%,
+        var(--background3) 50%,
+        var(--text3) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+    z-index: 5;
+}
+
+/* Pomocné třídy pro plynulý přechod */
+.hidden {
+    opacity: 0;
+}
+
+.visible {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.img_item img, .pdf_thumbnail_embed {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }

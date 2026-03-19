@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { buildRoute, ROUTES } from "../routes/RouteNames";
 
 import { format, isSameYear, isToday, isYesterday } from 'date-fns';
@@ -11,8 +12,8 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationContext";
 import { cache, CACHE_KEYS } from "../utils/cacheManager";
 
-import { faBell as faBellRegular, faHeart as faHeartRegular, faMessage as faMessageRegular } from '@fortawesome/free-regular-svg-icons';
-import { faBell as faBellSolid, faCheckDouble, faHeart as faHeartSolid, faMessage as faMessageSolid, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faBell as faBellRegular, faMessage as faMessageRegular } from '@fortawesome/free-regular-svg-icons';
+import { faBan, faBell as faBellSolid, faCheckDouble, faCircleExclamation, faCircleUser, faClipboardList, faHeadset, faHeart, faMessage as faMessageSolid, faRightFromBracket, faStar, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import "./Header.css";
 
@@ -82,6 +83,27 @@ const Header = () => {
     }, [searchParams, notifications, handleNotificationClick, setSearchParams]);
 
     // --- LOGIKA: "HLEDÁM PRÁCI" & AVATAR ---
+    // Pomocná funkce pro Alert HLEDÁM PRÁCI
+    const showIncompleteProfileAlert = (data) => {
+        // Pokud by data byla null nebo prázdná, nastavíme fallback
+        if (!data) {
+            showAlert("error", "Váš profil není kompletní.");
+            return;
+        }
+
+        let message = "Váš profil není kompletní.";
+
+        // Důležité: Kontrolujeme explicitně false, aby undefined neházelo falešnou zprávu
+        if (data.profileComplete === false) {
+            message = <span>Vyplňte profil <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</span>;
+        } else if (data.hasSpecializations === false) {
+            message = <span>Přidejte alespoň jednu specializaci <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</span>;
+        } else if (data.hasAvatar === false) {
+            message = <span>Nastavte si svůj profilový obrázek <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</span>;
+        }
+
+        showAlert("error", message);
+    };
     // 1. STAV ODVOZENÝ PŘÍMO Z DAT (žádný extra useState)
     const isLookingForJob = user?.active_worker_till
         ? new Date(user.active_worker_till) > new Date()
@@ -123,16 +145,36 @@ const Header = () => {
             // Pokud to prošlo, můžeme smazat informaci o nekompletním profilu, protože teď už je asi ok
             cache.remove(CACHE_KEYS.PROFILE_ELIGIBLE);
 
+            // Hlášky o úspěchu
+            if (active_worker_till) {
+                showAlert("success", "Mód 'Hledám práci' byl aktivován na 14 dní.");
+            } else {
+                showAlert("info", "Mód 'Hledám práci' byl vypnut.");
+            }
+
         } catch (err) {
-            // 4. ROLLBACK - Pokud se něco nepovedlo, vrátíme stav zpět
+            // Vrátíme původní stav v UI
             setUser({ ...user, active_worker_till: previousDate });
 
-            if (err.response?.data?.error === 'incomplete_profile') {
-                const errorData = err.response.data;
-                cache.setProfileEligible(errorData); // Uložíme do cache, aby příště neproběhl ani ten optimistický update
-                showIncompleteProfileAlert(errorData);
+            const responseData = err.response?.data;
+
+            if (err.response?.status === 422 && responseData?.error === 'incomplete_profile') {
+                cache.setProfileEligible(responseData);
+                showIncompleteProfileAlert(responseData);
             } else {
-                showAlert("error", "Nepodařilo se změnit stav.");
+                // Tady je zakopaný pes. Pokud Laravel vrátí validační chyby, 
+                // message může být objekt nebo pole.
+                let errorMsg = "Nepodařilo se změnit stav.";
+
+                if (typeof responseData?.message === 'string') {
+                    errorMsg = responseData.message;
+                } else if (responseData?.errors) {
+                    // Pokud jsou tam validační chyby (např. od validatoru), vezmi první z nich
+                    const firstError = Object.values(responseData.errors)[0];
+                    errorMsg = Array.isArray(firstError) ? firstError[0] : "Chyba validace dat.";
+                }
+
+                showAlert("error", errorMsg);
             }
         }
     };
@@ -200,17 +242,8 @@ const Header = () => {
             cache.clear();
             // Místo reloadu jen navigujte a vyčistěte AuthContext (pokud to dělá setUser(null))
             setUser(null);
-            navigate(buildRoute(ROUTES.LOGIN));
+            window.location.href = buildRoute(ROUTES.LOGIN);
         }
-    };
-
-    const isFavouritesActive = location.pathname.startsWith(buildRoute(ROUTES.FAVOURITES));
-
-    // Pomocná funkce pro Alert HLEDÁM PRÁCI
-    const showIncompleteProfileAlert = (data) => {
-        if (!data.profileComplete) showAlert("error", <>Vyplňte profil <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</>);
-        else if (!data.hasSpecializations) showAlert("error", <>Přidejte specializace <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</>);
-        else if (!data.hasAvatar) showAlert("error", <>Nastavte avatar <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.</>);
     };
 
     // Pokud  uživatel není přihlášen, nic nevykresluj
@@ -286,8 +319,19 @@ const Header = () => {
                     <NotificationMessage
                         key={notif.id}
                         id={notif.id}
-                        // Ikona podle typu (srdíčko pro oblíbené, zvonek pro ostatní)
-                        icon={<FontAwesomeIcon icon={(notif.type === 'review_item' || notif.type === 'review_user') ? faStar : faBellSolid} />}
+                        // Ikona podle typu notifikace (s důrazem pro moderaci)
+                        icon={(() => {
+                            if (notif.type === 'moderation_action') {
+                                if (notif.data?.action === 'revert') return <FontAwesomeIcon icon={faHeadset} className="notif-icon-info" />;
+                                if (notif.data?.action === 'ban_user') return <FontAwesomeIcon icon={faBan} className="notif-icon-critical" />;
+                                if (notif.data?.action === 'strike_user') return <FontAwesomeIcon icon={faCircleExclamation} className="notif-icon-warning" />;
+                                return <FontAwesomeIcon icon={faTrash} className="notif-icon-warning" />;
+                            }
+                            if (notif.type === 'report_feedback') return <FontAwesomeIcon icon={faHeadset} className="notif-icon-info" />;
+
+                            // Původní logika pro recenze a ostatní
+                            return <FontAwesomeIcon icon={(notif.type === 'review_item' || notif.type === 'review_user') ? faStar : faBellSolid} />;
+                        })()}
                         name={notif.title}
                         // Stejná logika času jako u zpráv
                         date={format(new Date(notif.created_at), 'HH:mm')}
@@ -320,7 +364,7 @@ const Header = () => {
         <>
             <header>
                 <div className="left">
-                    <img className="header_logo" alt="logo" src={ASSETS.logo_side} onClick={() => navigate("/")} />
+                    <img className="header_logo" alt="logo" src={ASSETS.logo_side} onClick={() => navigate("/app")} />
                 </div>
 
                 <div className="right">
@@ -343,10 +387,6 @@ const Header = () => {
                     <button ref={notificationsRef} className="button-icon" onClick={() => toggleDropdown("notifications")}>
                         <FontAwesomeIcon icon={openNotifications ? faBellSolid : faBellRegular} className="header_icon" />
                         {unreadNotifsCount > 0 && <span className={`notification-badge notif-badge ${isAnimatingBell ? 'animate-badge' : ''}`}></span>}
-                    </button>
-
-                    <button className="button-icon" onClick={() => navigate(buildRoute(ROUTES.FAVOURITES, { type: "" }))}>
-                        <FontAwesomeIcon icon={isFavouritesActive ? faHeartSolid : faHeartRegular} className="header_icon" />
                     </button>
 
                     <button ref={moreRef} className="button-icon-profile" onClick={() => toggleDropdown("more")}>
@@ -410,7 +450,7 @@ const Header = () => {
                         }));
                         setOpenMore(false);
                     }}>
-                        <p>Profil</p>
+                        <FontAwesomeIcon icon={faCircleUser} className="profile_dropdown_button_icon" /><p>Profil</p>
                     </button>
 
                     <button className="profile_dropdown_button" onClick={() => {
@@ -418,11 +458,18 @@ const Header = () => {
                         navigate(buildRoute(ROUTES.USER_LISTINGS, { id: user.id }));
                         setOpenMore(false);
                     }}>
-                        <p>Moje nabídky</p>
+                        <FontAwesomeIcon icon={faClipboardList} className="profile_dropdown_button_icon" /><p>Moje nabídky</p>
+                    </button>
+
+                    <button className="profile_dropdown_button" onClick={() => {
+                        navigate(buildRoute(ROUTES.FAVOURITES, { type: "" }));
+                        setOpenMore(false);
+                    }}>
+                        <FontAwesomeIcon icon={faHeart} className="profile_dropdown_button_icon" /><p>Uložené nabídky</p>
                     </button>
 
                     <button className="profile_dropdown_button" onClick={handleLogout}>
-                        <p>Odhlásit se</p>
+                        <FontAwesomeIcon icon={faRightFromBracket} className="profile_dropdown_button_icon" /><p>Odhlásit se</p>
                     </button>
                 </div>
             )}

@@ -13,23 +13,20 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->statefulApi();
-        $middleware->api(append: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+        $middleware->statefulApi(); 
+        // 3. CSRF výjimky
         $middleware->validateCsrfTokens(except: [
-            'api/broadcasting/auth', // Výjimka pro auth socketů
+            'api/broadcasting/auth',
+            'api/refresh', // Přidej i refresh, pokud s ním máš potíže
         ]);
-        $middleware->web([
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-        $middleware->group('api', [
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        ]);
+        // 4. Cookies
         $middleware->encryptCookies(except: [
             'refresh_token',
         ]);
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        })
+        ->withExceptions(function (Exceptions $exceptions): void {
+            //
     })->create();

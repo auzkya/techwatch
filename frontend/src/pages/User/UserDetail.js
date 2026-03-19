@@ -25,6 +25,11 @@ const UserDetail = () => {
 
     const { showAlert } = useAlert();
 
+    // Kontrola oprávnění admina
+    const isAdmin = currentUser && ["admin_moderator", "super_admin"].includes(currentUser.role);
+
+    const isLoggedUser = currentUser && String(currentUser.id) === String(id);
+
     // Podmínka pro zobrazení tlačítka "Napsat recenzi"
     // Nesmím být majitel profilu A musím být přihlášený
     const canWriteReview = currentUser && String(currentUser.id) !== String(id);
@@ -103,7 +108,6 @@ const UserDetail = () => {
 
     // Teď už id máme přímo z useParams, není třeba splitovat
     const searchedUserID = id;
-    const isLoggedUser = currentUser && String(currentUser.id) === String(searchedUserID);
 
     const fetchUser = useCallback(async () => {
         if (!searchedUserID) return;
@@ -188,12 +192,24 @@ const UserDetail = () => {
     }, [location]);
 
     if (initialLoading) return <div className="loader_container"><div className="loader"></div></div>;
-    if (!profileData) return <div className="no-results_tech-container"><h2 className="no-results_tech">Uživatel nenalezen</h2></div>;
+    if (!profileData) {
+        return (
+            <div className="no-results_tech-container">
+                <h2 className="no-results_tech">Uživatel nenalezen</h2>
+            </div>
+        );
+    }
 
-    // ✅ Dynamicky počítej isActive
-    const isActive = profileData.active_worker_till
-        ? new Date(profileData.active_worker_till) > new Date()
-        : false;
+    const isBanned = profileData.is_banned; // Předpoklad pole v DB
+    const isActive = profileData.active_worker_till ? new Date(profileData.active_worker_till) > new Date() : false;
+
+    if (isBanned && !isAdmin) {
+        return (
+            <div className="no-results_tech-container">
+                <h2 className="no-results_tech">Tento uživatel je zabanován</h2>
+            </div>
+        );
+    }
 
     // Zkusíme zjistit, jestli nám předchozí stránka poslala informaci o kategorii
     // Pokud ne, nastavíme defaultní zobrazení (HOME -> JMÉNO)
@@ -210,6 +226,13 @@ const UserDetail = () => {
                 category={fromCategory}
                 userName={`${profileData.first_name} ${profileData.last_name}`}
             />
+
+            {isBanned && isAdmin && (
+                <div className="deleted-warning-bar strong">
+                    Tento uživatel je zabanován. Vidíte ho pouze jako administrátor.
+                </div>
+            )}
+
             <PopupReview
                 isOpen={isReviewPopupOpen}
                 onClose={() => setIsReviewPopupOpen(false)}
@@ -240,7 +263,7 @@ const UserDetail = () => {
                     </div>
                 </div>
             )}
-            <div className="user_container">
+            <div className="user_container" style={isBanned ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
                 {/* Předáváme data do komponent */}
                 <UserBasicInfo
                     currentUser={isLoggedUser}
@@ -274,7 +297,7 @@ const UserDetail = () => {
                 />
             </div>
 
-            <div className="reviews_container" id="reviews_href">
+            <div className="reviews_container" id="reviews_href" style={isBanned ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
                 <h2 className="strong">Pracovní recenze <span>({reviews.length})</span></h2>
                 {canWriteReview && (
                     <button

@@ -247,12 +247,12 @@ const Workers = () => {
                                 <div className="location">
                                     <div className="custom-select-wrapper">
                                         <label className="body_base label-move">Lokalita</label>
-                                        <div className={`custom-select ${isOpen ? "open" : ""}`} onClick={() => setIsOpen(!isOpen)}>
+                                        <div className={`custom-select-down ${isOpen ? "open" : ""}`} onClick={() => setIsOpen(!isOpen)}>
                                             <span className="selected">{selectedLocation.label}</span>
                                             <span className={`arrow ${isOpen ? "rotate" : ""}`}>▼</span>
                                         </div>
                                         {isOpen && (
-                                            <div className="options">
+                                            <div className="options-down">
                                                 {locationOptions.map((opt) => (
                                                     <div
                                                         key={opt.value}

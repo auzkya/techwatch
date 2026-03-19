@@ -5,11 +5,11 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -70%);
+    transform: translate(-50%, -80%);
 }
 
 .home_logo {
-    width: 400px;
+    width: 430px;
     display: block;
     margin: 0 auto 30px auto;
 }

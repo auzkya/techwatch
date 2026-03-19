@@ -35,30 +35,7 @@ const Tech = () => {
     const selectRef1 = useRef(null); // Pro Lokalitu (isOpen)
     const selectRef2 = useRef(null); // Pro Dostupnost (isOpen2)
     const selectRef3 = useRef(null); // Pro Řazení (isOpen3)
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            // Pokud je select otevřený A kliknutí nebylo uvnitř jeho refu, zavři ho
-            if (isOpen && selectRef1.current && !selectRef1.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-            if (isOpen2 && selectRef2.current && !selectRef2.current.contains(event.target)) {
-                setIsOpen2(false);
-            }
-            if (isOpen3 && selectRef3.current && !selectRef3.current.contains(event.target)) {
-                setIsOpen3(false);
-            }
-        };
-
-        // Přidáme listener na mousedown
-        document.addEventListener("mousedown", handleClickOutside);
-
-        // Vyčištění listeneru při unmountu komponenty
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isOpen, isOpen2, isOpen3]); // Důležité: sledovat stavy otevření
-
+    
     // STAVY FILTRŮ
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedLocation, setSelectedLocation] = useState({ value: "", label: "Celá ČR" });
@@ -316,12 +293,12 @@ const Tech = () => {
                         <div className="location" ref={selectRef3}>
                             <div className="custom-select-wrapper">
                                 <label className="body_base label-move">Řadit dle</label>
-                                <div className={`custom-select ${isOpen3 ? "open" : ""}`} onClick={() => setIsOpen3(!isOpen3)}>
+                                <div className={`custom-select-down ${isOpen3 ? "open" : ""}`} onClick={() => setIsOpen3(!isOpen3)}>
                                     <span className="selected">{selectedSorting.label}</span>
                                     <span className={`arrow ${isOpen3 ? "rotate" : ""}`}>▼</span>
                                 </div>
                                 {isOpen3 && (
-                                    <div className="options">
+                                    <div className="options-down">
                                         {sortingOptions.map((opt) => (
                                             <div key={opt.value} className={`option ${selectedSorting.value === opt.value ? "selected" : ""}`}
                                                 onClick={() => { setSelectedSorting(opt); setIsOpen3(false); }}>
@@ -337,12 +314,12 @@ const Tech = () => {
                         <div className="location">
                             <div className="custom-select-wrapper" ref={selectRef2}>
                                 <label className="body_base label-move">Dostupnost</label>
-                                <div className={`custom-select ${isOpen2 ? "open" : ""}`} onClick={() => setIsOpen2(!isOpen2)}>
+                                <div className={`custom-select-down ${isOpen2 ? "open" : ""}`} onClick={() => setIsOpen2(!isOpen2)}>
                                     <span className="selected">{selectedPurpose.label}</span>
                                     <span className={`arrow ${isOpen2 ? "rotate" : ""}`}>▼</span>
                                 </div>
                                 {isOpen2 && (
-                                    <div className="options">
+                                    <div className="options-down">
                                         {purposeOptions.map((opt) => (
                                             <div key={opt.value} className={`option ${selectedPurpose.value === opt.value ? "selected" : ""}`}
                                                 onClick={() => { setSelectedPurpose(opt); setIsOpen2(false); }}>
@@ -358,12 +335,12 @@ const Tech = () => {
                         <div className="location">
                             <div className="custom-select-wrapper" ref={selectRef1}>
                                 <label className="body_base label-move">Lokalita</label>
-                                <div className={`custom-select ${isOpen ? "open" : ""}`} onClick={() => setIsOpen(!isOpen)}>
+                                <div className={`custom-select-down ${isOpen ? "open" : ""}`} onClick={() => setIsOpen(!isOpen)}>
                                     <span className="selected">{selectedLocation.label}</span>
                                     <span className={`arrow ${isOpen ? "rotate" : ""}`}>▼</span>
                                 </div>
                                 {isOpen && (
-                                    <div className="options">
+                                    <div className="options-down">
                                         {locationOptions.map((opt) => (
                                             <div key={opt.value} className={`option ${selectedLocation.value === opt.value ? "selected" : ""}`}
                                                 onClick={() => { setSelectedLocation(opt); setIsOpen(false); }}>
@@ -432,6 +409,7 @@ const Tech = () => {
                             name={item.title}
                             price={item.price}
                             purpose={item.purpose}
+                            quantity={item.quantity}
                             onClick={() => navigate(`/tech/item/${item.id}`, {
                                 state: { fromCategory: subcategory, fromMode: "tech" }
                             })}

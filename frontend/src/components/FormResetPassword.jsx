@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
-import { useSearchParams, useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
 
 import InputLogin from "./InputLogin";
 
+import { faCircleXmark, faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleXmark } from '@fortawesome/free-regular-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-regular-svg-icons';
 
 
 const ResetPasswordForm = ({ setLoading, setSuccess, setError, setErrorTop }) => {
@@ -94,10 +93,16 @@ const ResetPasswordForm = ({ setLoading, setSuccess, setError, setErrorTop }) =>
                         value={password || ""}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <span class="password-toggle-icon" onClick={togglePassword}><FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} /></span>
-                    {password.length > 0 && password.length < 8 && (
-                        <div className="error_all"><FontAwesomeIcon icon={faCircleXmark} className="error_icon" /><p className="error_text">Heslo musí obsahovat minimálně 8 znaků</p></div>
-                    )}</div>
+                    <span class="password-toggle-icon" onClick={togglePassword}>
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                    </span>
+                </div>
+                {password.length > 0 && password.length < 8 && (
+                    <div className="error_all">
+                        <FontAwesomeIcon icon={faCircleXmark} className="error_icon" />
+                        <p className="error_text">Heslo musí obsahovat minimálně 8 znaků</p>
+                    </div>
+                )}
             </div>
             <InputLogin
                 type="password"

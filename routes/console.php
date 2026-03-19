@@ -8,7 +8,6 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-// ⚠️ PŘIDEJ TOTO:
 Schedule::command('users:delete-inactive')->hourly();
 Schedule::command('app:send-active-worker-reminders')->hourly();
 Schedule::command('app:deactivate-expired-workers')->daily();

@@ -23,9 +23,9 @@ const NotificationMessage = ({ id, icon, image, name, date, user, text, read, on
                 )}
             </div>
             <div className="right">
-                {read === false && <p className="middot">•</p>}<p className="name strong">{name}</p>
+                {read === false && <p className="middot">•</p>}<p className={`name strong ${icon ? "no_wrap" : ""}`}>{name}</p>
                 <p className="date body_smallest strong">{date}</p><br></br>
-                <p className="text"><span className="strong">{user}</span> {text}</p>
+                <p className={`text ${icon ? "" : "notification_clamp"}`}><span className="strong">{user}</span> {text}</p>
             </div>
         </button>
     )

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Intervention\Image\Facades\Image;
 use App\Models\User;
 use App\Models\UserRider;
 use Illuminate\Support\Facades\Auth;
@@ -30,39 +31,47 @@ class ProfileController extends Controller
             'phone_visible' => 'boolean',
             'spec' => 'nullable|array',
             'spec.*' => 'string|exists:specs,slug',
-            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp,avif|max:4096',
         ]);
 
-        // KONTROLA TELEFONU
-        if (
-            array_key_exists('phone', $validated) &&
-            !empty($validated['phone']) &&
-            $validated['phone'] !== $user->phone
-        ) {
-            // Zkontroluj jestli existuje platné ověření
-            $verification = \App\Models\PhoneVerification::where('user_id', $user->id)
-                ->where('phone', $validated['phone'])
-                ->latest()
-                ->first();
+        // --- LOGIKA TELEFONU ---
+        if (array_key_exists('phone', $validated)) {
+            $newPhone = $validated['phone'];
 
-            if (!$verification || !$verification->isValid()) {
-                return response()->json([
-                    'message' => 'Nové telefonní číslo musí být ověřeno'
-                ], 422);
+            // SCÉNÁŘ A: Uživatel telefon smazal
+            if (empty($newPhone)) {
+                $user->phone = null;
+                $user->phone_verified_at = null;
+            } 
+            // SCÉNÁŘ B: Uživatel telefon změnil na jiné číslo
+            elseif ($newPhone !== $user->phone) {
+                $verification = \App\Models\PhoneVerification::where('user_id', $user->id)
+                    ->where('phone', $newPhone)
+                    ->latest()
+                    ->first();
+
+                if (!$verification || !$verification->isValid()) {
+                    return response()->json([
+                        'message' => 'Nové telefonní číslo musí být ověřeno'
+                    ], 422);
+                }
+
+                $user->phone = $newPhone;
+                $user->phone_verified_at = $verification->verified_at;
+                $verification->delete();
             }
-
-            // ✅ Ulož telefon
-            $user->phone = $validated['phone'];
-            $user->phone_verified_at = $verification->verified_at;
-
-            // Smaž ověření (už není potřeba)
-            $verification->delete();
         }
 
-        // Update ostatních dat
-        $user->bio = isset($validated['bio']) ? strip_tags($validated['bio']) : $user->bio;
-        $user->location = strip_tags($validated['location'] ?? $user->location);
-        $user->phone_visible = $validated['phone_visible'] ?? $user->phone_visible;
+        // Update ostatních dat (zde jsem přidal ošetření, aby se nic nepřepsalo, pokud klíč chybí)
+        if (array_key_exists('bio', $validated)) {
+            $user->bio = $validated['bio'] ? strip_tags($validated['bio']) : null;
+        }
+        
+        if (array_key_exists('location', $validated)) {
+            $user->location = $validated['location'] ? strip_tags($validated['location']) : null;
+        }
+
+        $user->phone_visible = $request->boolean('phone_visible');
         $user->save();
 
         // Specializace
@@ -73,26 +82,61 @@ class ProfileController extends Controller
 
         // Avatar
         if ($request->hasFile('avatar')) {
+            // 1. Smazání starého avataru (pokud existuje)
             if ($user->profile_image && !filter_var($user->profile_image, FILTER_VALIDATE_URL)) {
                 Storage::disk('r2')->delete($user->profile_image);
             }
 
             $file = $request->file('avatar');
-            $filename = 'avatars/' . $user->id . '_' . time() . '.jpg';
+            
+            // 2. Definice názvu (vždy končí .webp)
+            $filename = 'avatars/' . $user->id . '_' . time() . '.webp';
 
+            // 3. Zpracování obrázku pomocí Intervention
+            // fit(400, 400) ořízne obrázek na čtverec (center crop)
+            // encode('webp', 80) převede formát a nastaví kvalitu na 80 %
+            $optimizedImage = Image::make($file)
+                ->fit(400, 400, function ($constraint) {
+                    $constraint->upsize(); // nezvětšovat, pokud je zdroj menší než 400px
+                })
+                ->encode('webp', 80);
+
+            // 4. Uložení streamu do Cloudflare R2
             Storage::disk('r2')->put(
                 $filename,
-                file_get_contents($file),
+                $optimizedImage->stream(),
                 'public'
             );
 
+            // 5. Uložení cesty do databáze
             $user->profile_image = $filename;
             $user->save();
         }
 
+        // Po uložení všech dat zkontrolujeme eligibilitu
+        $profileComplete = $user->first_name && $user->last_name && $user->email &&
+                        $user->bio && $user->location && $user->phone;
+        
+        // Načteme specs, pokud nejsou v modelu User přes $with
+        $hasSpecializations = $user->specs()->count() > 0;
+        $hasAvatar = !empty($user->profile_image);
+
+        $wasActive = $user->active_worker_till && $user->active_worker_till->isFuture();
+        $isStillEligible = $profileComplete && $hasSpecializations && $hasAvatar;
+
+        $extraMessage = null;
+
+        // Pokud byl aktivní a už není způsobilý, vypneme mu to
+        if ($wasActive && !$isStillEligible) {
+            $user->active_worker_till = null;
+            $user->save();
+            $extraMessage = 'Profil byl aktualizován, ale mód "Hledám práci" byl vypnut kvůli neúplným údajům.';
+        }
+
         return response()->json([
-            'message' => 'Profil byl aktualizován',
-            'user' => $user->fresh()->load('specs')->append('profile_image_url')
+            'message' => $extraMessage ?? 'Profil byl úspěšně aktualizován.',
+            'user' => $user->fresh()->load('specs')->append('profile_image_url'),
+            'deactivated' => ($wasActive && !$isStillEligible)
         ]);
     }
 
@@ -163,18 +207,32 @@ class ProfileController extends Controller
         $user->save();
 
         // redirect do FE
-        return redirect(config('app.frontend_url') . '/?extended=1');
+        return redirect(config('app.frontend_url') . '/app/?extended=1');
     }
 
     public function show($id)
     {
         // Zkusíme najít podle slugu, pokud selže, zkusíme ID (pro jistotu)
-        $user = User::with(['specs', 'riders'])
+        $user = User::withTrashed()
+            ->with(['specs', 'riders'])
             ->where('id', $id)
             ->first();
 
         if (!$user) {
             return response()->json(['message' => 'Uživatel nenalezen'], 404);
+        }
+
+        $visitor = auth('sanctum')->user();
+        $isPrivileged = $visitor && ($visitor->isAdmin() || $visitor->isModerator());
+
+        // Pokud je smazaný a nejsem privilegovaný, skryju citlivá data, ale pošlu zbytek
+        if ($user->trashed() && !$isPrivileged) {
+            $user->makeHidden(['bio', 'location', 'phone', 'email', 'specs', 'riders', 'created_at', 'last_login']);
+            return response()->json([
+                'user' => $user->append('profile_image_url'),
+                'rider_images' => [], // Smazaný uživatel pro běžné lidi nemá fotky techniky
+                'is_trashed_view' => true
+            ]);
         }
 
         $user->is_favourite = \DB::table('favourites_users')
@@ -190,7 +248,7 @@ class ProfileController extends Controller
         });
 
         return response()->json([
-            'user' => $user->append('profile_image_url'),
+            'user' => $user->append(['profile_image_url']),
             'rider_images' => $riderImages // Pole stringů (URL)
         ]);
     }
@@ -199,34 +257,57 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // 1. Získáme seznam aktuálních obrázků v DB
+        // 1. Získáme seznam aktuálních obrázků/souborů v DB
         $currentRiders = UserRider::where('user_id', $user->id)->get();
 
-        // 2. Seznam URL, které mají zůstat (přišlo z frontendu jako stringy)
+        // 2. Seznam URL, které mají zůstat
         $existingImages = $request->input('existing_images', []);
 
-        // 3. Smazání obrázků, které uživatel v UI odstranil
+        // 3. Smazání odstraněných souborů
         foreach ($currentRiders as $rider) {
-            // Vytvoříme si plnou URL pro porovnání, nebo porovnáme jen cestu
-            // Předpokládáme, že frontend posílá plnou URL
             $fullUrl = config('filesystems.disks.r2.url') . '/' . $rider->image_url;
 
             if (!in_array($fullUrl, $existingImages)) {
-                // Smazat z R2 storage
                 Storage::disk('r2')->delete($rider->image_url);
-                // Smazat z databáze
                 $rider->delete();
             }
         }
 
-        // 4. Přidání úplně nových (zkomprimovaných) obrázků
+        // 4. Přidání nových souborů
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
-                $path = $file->store("riders/{$user->id}", 'r2');
+                
+                $extension = strtolower($file->getClientOriginalExtension());
+                $uniqueName = uniqid() . '_' . time();
+                $folder = "riders/{$user->id}/";
 
+                if ($extension === 'pdf') {
+                    // --- LOGIKA PRO PDF ---
+                    $filename = $folder . $uniqueName . '.pdf';
+                    
+                    // PDF neupravujeme, jen ho uložíme
+                    Storage::disk('r2')->putFileAs($folder, $file, $uniqueName . '.pdf', 'public');
+
+                } else {
+                    // --- LOGIKA PRO OBRÁZKY (WebP konverze) ---
+                    $filename = $folder . $uniqueName . '.webp';
+
+                    // Zpracování obrázku pomocí Intervention Image
+                    $img = Image::make($file)
+                        ->resize(1600, null, function ($constraint) {
+                            $constraint->aspectRatio();
+                            $constraint->upsize();
+                        })
+                        ->encode('webp', 80);
+
+                    // Uložení streamu na R2
+                    Storage::disk('r2')->put($filename, $img->stream(), 'public');
+                }
+
+                // Uložení do DB (společné pro PDF i Obrázek)
                 UserRider::create([
                     'user_id' => $user->id,
-                    'image_url' => $path,
+                    'image_url' => $filename,
                 ]);
             }
         }

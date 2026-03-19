@@ -35,7 +35,7 @@ class PhoneController extends Controller
                 ->v2
                 ->services(config('services.twilio.verify_service'))
                 ->verifications
-                ->create($request->phone, 'sms');
+                ->create($request->phone, 'sms', ['locale' => 'cs']);
 
             return response()->json([
                 'success' => true,

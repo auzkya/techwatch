@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ROUTES, buildRoute } from "../routes/RouteNames";
-import InputLogin from "./InputLogin";
+import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleXmark, faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
-import axiosInstance from "../api/axiosInstance";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import InputLogin from "./InputLogin";
 
 import { useAlert } from "../context/AlertContext";
 import { useAuth } from "../context/AuthContext";
+
+import { ROUTES } from "../routes/RouteNames";
 
 const LoginForm = ({ setLoading, setError, setErrorTop }) => {
     const [email, setEmail] = useState("");
@@ -15,9 +15,20 @@ const LoginForm = ({ setLoading, setError, setErrorTop }) => {
     const [showPassword, setShowPassword] = useState(false);
     const { loginUser } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const togglePassword = () => setShowPassword(!showPassword);
     const { showAlert } = useAlert();
+
+    const SENSITIVE_PATHS = [
+        ROUTES.ADMIN,
+        "/tech/edit",      // Stačí začátek cesty
+        ROUTES.ADD_TECH,
+        ROUTES.EDIT_PROFILE,
+        ROUTES.SETTINGS,
+        ROUTES.FAVOURITES,
+        ROUTES.FAVOURITES_CATEGORY
+    ];
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,7 +37,19 @@ const LoginForm = ({ setLoading, setError, setErrorTop }) => {
 
         try {
             await loginUser(email, password); // předáme email + password
-            navigate("/", { replace: true });
+            // Zjistíme, odkud uživatel přišel
+            const origin = location.state?.from?.pathname || "/app"; // Pokud není informace o původu, přesměrujeme na home
+
+            // Kontrola, zda původní cesta nezačíná některou z citlivých cest
+            const isSensitive = SENSITIVE_PATHS.some(path => origin.startsWith(path));
+
+            if (isSensitive || origin === ROUTES.LOGIN) {
+                // Pokud je cesta citlivá, pošli ho raději na základní HOME
+                navigate(ROUTES.HOME, { replace: true });
+            } else {
+                // Jinak ho klidně vrať tam, kde byl (např. detail veřejné techniky)
+                navigate(origin, { replace: true });
+            }
         } catch (err) {
             console.error(err); // <--- vypiš celý objekt, abys viděl status a message
             if (err.response) {

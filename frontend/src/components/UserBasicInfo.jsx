@@ -29,6 +29,17 @@ const UserBasicInfo = ({
     const location = useLocation();
     const [isMessagePopupOpen, setIsMessagePopupOpen] = useState(false);
 
+    // LOGIKA TOOLTIPU: Určení textu podle situace
+    let tooltipText = "";
+    if (currentUser) {
+        tooltipText = isTechDetail
+            ? "Nemůžete se ozvat na vlastní inzerát"
+            : "Nemůžete poslat nabídku sami sobě";
+    } else if (!isActive && !isTechDetail) {
+        tooltipText = "Uživatel momentálně nehledá práci";
+    }
+    const isUnclickable = !!tooltipText;
+
     // Sestavení specializací: "Osvětlovač | Stagehands"
     const formattedSpecs = specs
         .map(s => categoryMap[s.name] || s.name)
@@ -99,16 +110,23 @@ const UserBasicInfo = ({
                         </>
                     )}
 
-                    {/* 4) Tlačítko Ozvat se */}
-                    <button
-                        type="button"
-                        className={`form-submit ${(currentUser || (!isActive && !isTechDetail)) ? "unclickable" : ""}`}
-                        onClick={handleMessageClick}
-                    >
-                        <p className="strong">
-                            {isTechDetail ? "Ozvat se na nabídku" : "Ozvat se s prací"}
-                        </p>
-                    </button>
+                    {/* 4) Tlačítko Ozvat se s TOOLTIPEM */}
+                    <div className={`tooltip-wrapper ${isUnclickable ? "has-tooltip" : ""}`}>
+                        <button
+                            type="button"
+                            className={`form-submit ${isUnclickable ? "unclickable" : ""}`}
+                            onClick={handleMessageClick}
+                        >
+                            <p className="strong">
+                                {isTechDetail ? "Ozvat se na nabídku" : "Ozvat se s prací"}
+                            </p>
+                        </button>
+                        {isUnclickable && (
+                            <span className="tooltip-bubble">
+                                {tooltipText}
+                            </span>
+                        )}
+                    </div>
 
                     {/* 5) Druhé tlačítko */}
                     <button className="secondary_button extra_space" onClick={handleShowListings}>
@@ -124,7 +142,7 @@ const UserBasicInfo = ({
                     </div>
 
                     {/* Kontakt: Telefon */}
-                    {(phoneVisible && phone) || currentUser ? (
+                    {phone && (phoneVisible) ? (
                         <div className="user_basic_info_contact">
                             <FontAwesomeIcon icon={faPhone} className="contact_icon" />
                             <p className="contact_text">{phone}</p>

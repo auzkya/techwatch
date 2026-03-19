@@ -117,7 +117,8 @@ class FavouriteController extends Controller
         $workersQuery = User::with(['specs'])
             ->whereHas('favouritedBy', function ($q) use ($currentUser) {
                 $q->where('user_id', $currentUser->id);
-            });
+            })
+            ->where('active_worker_till', '>', now());
 
         if ($request->filled('search')) {
             $workersQuery->where(function ($q) use ($searchTerm) {
@@ -136,7 +137,8 @@ class FavouriteController extends Controller
         // --- TECHNIKA ---
         $techQuery = Item::whereHas('favouritedBy', function ($q) use ($currentUser) {
             $q->where('user_id', $currentUser->id);
-        });
+        })
+        ->where('active_item', true);
 
         if ($request->filled('search')) {
             $techQuery->where('title', 'LIKE', "%{$searchTerm}%"); // V TechControlleru máš 'title', ne 'name'

@@ -5,12 +5,13 @@
 }
 
 .user_basic_info_profile_picture {
-    width: 200px;
-    height: 200px;
     border-radius: 50%;
+    margin: 0 auto;
     overflow: hidden;
     position: relative;
-    margin: 0 auto;
+    width: 220px;
+    aspect-ratio: 1 / 1 !important;
+    max-width: 90%;
 }
 
 .user_basic_info_profile_picture img {
@@ -28,7 +29,7 @@
 
 .user_basic_info_details h3 {
     padding-top: 24px;
-    margin: 0px 0 12px 0;
+    margin: 0px 0 18px 0;
 }
 
 .user_basic_info_details .unclickable {
@@ -43,7 +44,7 @@
 .secondary_button {
     background-color: transparent;
     border: 2px solid var(--primary);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 4px 12px 6px 12px;
     color: var(--text);
     margin: 10px auto 6px auto;
@@ -53,7 +54,7 @@
 .secondary_button_review {
     background-color: transparent;
     border: 2px solid var(--primary);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 4px 12px 6px 12px;
     color: var(--text);
     width: 100%;

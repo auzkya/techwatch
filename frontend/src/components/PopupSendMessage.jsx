@@ -19,6 +19,7 @@ const PopupSendMessage = ({ isOpen, onClose, targetId, targetName, type, techId 
 
         if (text.length > 500) {
             showAlert("error", "Zpráva je příliš dlouhá. Zkraťte ji prosím.");
+            return;
         }
         setLoading(true);
         try {

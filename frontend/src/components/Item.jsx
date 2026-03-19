@@ -1,18 +1,18 @@
-import React, { useState, useRef, useEffect, forwardRef, memo } from "react";
-import "./Item.css";
-import { useFavourites } from '../hooks/useFavourites';
-import { useAlert } from "../context/AlertContext";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as faHeartEmpty, faStar as faStarEmpty, faTrashCan } from '@fortawesome/free-regular-svg-icons';
 import {
-    faStar as faStarFull,
-    faStarHalfStroke,
+    faEye,
+    faEyeSlash,
     faHeart as faHeartFull,
     faPenToSquare,
-    faEyeSlash,
-    faEye,
-    faShareFromSquare
+    faShareFromSquare,
+    faStar as faStarFull,
+    faStarHalfStroke
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { forwardRef, memo, useEffect, useState } from "react";
+import { useAlert } from "../context/AlertContext";
+import { useFavourites } from '../hooks/useFavourites';
+import "./Item.css";
 
 // Memoizujeme hvězdičky, aby se nepřekreslovaly zbytečně
 export const Stars = memo(({ rating = 0, max = 5 }) => {
@@ -38,7 +38,7 @@ export const Stars = memo(({ rating = 0, max = 5 }) => {
 const ItemBase = forwardRef((props, ref) => {
     const {
         id, profile_picture, name, rating, role, onClick,
-        isFavouriteInitially, price, purpose,
+        isFavouriteInitially, price, purpose, quantity,
         isOwner, activeItem, onEdit, onDelete, onStatusChange, onShare
     } = props;
 
@@ -69,6 +69,15 @@ const ItemBase = forwardRef((props, ref) => {
         const formattedPrice = new Intl.NumberFormat('cs-CZ').format(price);
         const unit = purpose === 'rental' ? ' / den' : '';
         return <>{typeText} <span className="light-weight-text">za</span> {formattedPrice} Kč{unit}</>;
+    };
+
+    const renderQuantityInfo = () => {
+        if (quantity === undefined || quantity === null) return null;
+        return (
+            <>
+               {quantity} ks
+            </>
+        );
     };
 
     return (
@@ -107,16 +116,57 @@ const ItemBase = forwardRef((props, ref) => {
                 </div>
 
                 <p className="name body_base strong">{name}</p>
-                <p className="role">{role?.replace(/;/g, " | ")}</p>
+                {!isTech && <p className="role">{role?.replace(/;/g, " | ")}</p>}
 
-                {isTech && <p className="role">{renderTechInfo()}</p>}
+                {isTech &&
+                    <>
+                        <p className="role2">{renderTechInfo()}</p>
+                        <p className="role2">{renderQuantityInfo()}</p>
+                    </>}
 
                 {isOwner && (
                     <div className="item-edit-menu">
-                        <FontAwesomeIcon icon={activeItem ? faEyeSlash : faEye} className="icon" onClick={(e) => { e.stopPropagation(); onStatusChange(id, !activeItem); }} />
-                        <FontAwesomeIcon icon={faPenToSquare} className="icon" onClick={(e) => { e.stopPropagation(); onEdit(id); }} />
-                        <FontAwesomeIcon icon={faShareFromSquare} className="icon" onClick={(e) => { e.stopPropagation(); onShare(id); }} />
-                        <FontAwesomeIcon icon={faTrashCan} className="icon" onClick={(e) => { e.stopPropagation(); onDelete(id); }} />
+                        {/* Tooltip: Skrýt/Zobrazit */}
+                        <div className="tooltip-wrapper has-tooltip">
+                            <FontAwesomeIcon
+                                icon={activeItem ? faEyeSlash : faEye}
+                                className="icon"
+                                onClick={(e) => { e.stopPropagation(); onStatusChange(id, !activeItem); }}
+                            />
+                            <span className="tooltip-bubble">
+                                {activeItem ? "Skrýt nabídku" : "Zveřejnit nabídku"}
+                            </span>
+                        </div>
+
+                        {/* Tooltip: Upravit */}
+                        <div className="tooltip-wrapper has-tooltip">
+                            <FontAwesomeIcon
+                                icon={faPenToSquare}
+                                className="icon"
+                                onClick={(e) => { e.stopPropagation(); onEdit(id); }}
+                            />
+                            <span className="tooltip-bubble">Upravit nabídku</span>
+                        </div>
+
+                        {/* Tooltip: Sdílet */}
+                        <div className="tooltip-wrapper has-tooltip">
+                            <FontAwesomeIcon
+                                icon={faShareFromSquare}
+                                className="icon"
+                                onClick={(e) => { e.stopPropagation(); onShare(id); }}
+                            />
+                            <span className="tooltip-bubble">Sdílet</span>
+                        </div>
+
+                        {/* Tooltip: Smazat */}
+                        <div className="tooltip-wrapper has-tooltip">
+                            <FontAwesomeIcon
+                                icon={faTrashCan}
+                                className="icon delete-icon"
+                                onClick={(e) => { e.stopPropagation(); onDelete(id); }}
+                            />
+                            <span className="tooltip-bubble">Smazat</span>
+                        </div>
                     </div>
                 )}
             </div>

@@ -57,7 +57,7 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
         setLoading(true);
         try {
             await axiosInstance.post("/api/resend-verification", { email });
-            showAlert("success", "Potvrzovací email byl odeslán znovu.");
+            showAlert("success", "Potvrzovací email byl odeslán znovu. Pokud email stále nevidíte, možná skočil do spamu nebo nevyžádané pošty.");
             setCountdown(59); // restart countdownu
         } catch (err) {
             console.error(err);
@@ -123,7 +123,7 @@ const RegisterForm = ({ setLoading, setTitleText, setInfoText }) => {
             } else if (errors) {
                 showAlert("error", Object.values(errors).flat().join("\n"));
             } else {
-                showAlert("error", "Chyba serveru, zkuste to prosím později.<br />Pokud bude problém přetrvávat, kontaktujte nás prosím na <i>info@techwatch.cz</i>.");
+                showAlert("error", "Chyba serveru, zkuste to prosím později.<br />Pokud bude problém přetrvávat, kontaktujte nás prosím na <i>info@techwatch.app</i>.");
             }
 
             setLoading(false);

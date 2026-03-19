@@ -7,10 +7,13 @@ import FormRegister from "../../components/FormRegister";
 import { faFacebookF, faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ASSETS } from "../../config/assets";
 import { useScrollLock } from "../../hooks/useScrollLock";
 import { ROUTES } from "../../routes/RouteNames";
+
+import { useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 const Register = () => {
     const [loading, setLoading] = useState(false);
@@ -18,6 +21,17 @@ const Register = () => {
     const [success, setSuccess] = useState("");
     const [titleText, setTitleText] = useState("REGISTRACE"); // dynamický titul
     const [infoText, setInfoText] = useState("");
+
+    const { user, isAuthReady } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthReady && user) {
+            navigate(ROUTES.HOME, { replace: true });
+        }
+    }, [isAuthReady, user, navigate]);
+
+    if (!isAuthReady || user) return null;
 
     const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
 
@@ -47,9 +61,13 @@ const Register = () => {
                         )}
                     </div>
                 </div>
-                <p className="login_link">Už máš účet?
-                    <Link to={ROUTES.LOGIN} className="login_a strong"> Přihlas se!</Link>
+                <p className="login_link">Už máte účet?
+                    <Link to={ROUTES.LOGIN} className="login_a strong"> Přihlaste se!</Link>
                 </p>
+
+                <footer className="login-footer">
+                    <Link to="/privacy" className="body_smallest">Privacy Policy</Link>
+                </footer>
 
             </div>
 

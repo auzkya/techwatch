@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ReviewUserController;
 use App\Http\Controllers\Api\ReviewItemController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +32,7 @@ Route::get('/ping', function () {
 */
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/registration', [AuthController::class, 'registration']);
+Route::get('/verify/{token}', [AuthController::class, 'verify']);
 Route::post('/resend-verification', [AuthController::class, 'resendVerification']);
 
 Route::post('/email-check', [AuthController::class, 'emailCheck']);
@@ -181,4 +183,32 @@ Route::middleware(['auth:sanctum'])->group(function () {
         }
         return \App\Models\Report::with('reporter')->get();
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:sanctum'])->group(function () {
+
+    // Statistiky: Vidí analytik, moderátor i hlavní admin
+    Route::get('/dashboard-stats', [AdminController::class, 'getDashboardStats'])
+        ->middleware('admin:admin_viewer,admin_moderator,super_admin');
+
+    // Nahlášení (Nevyřízená): Vidí jen moderátor a hlavní admin
+    Route::get('/admin/reports', [ReportController::class, 'index'])
+        ->middleware('admin:admin_moderator,super_admin');
+
+    // Historie (Vyřízená nahlášení)
+    Route::get('/admin/resolved-reports', [AdminController::class, 'getResolvedReports'])
+        ->middleware('admin:admin_moderator,super_admin');
+
+    // Akce pro vyřízení nahlášení
+    Route::post('/admin/reports/{id}/resolve', [AdminController::class, 'resolveReport'])
+        ->middleware('admin:admin_moderator,super_admin');
+
+    // Akce pro zvrácení nahlášení
+    Route::post('/admin/reports/{id}/revert', [AdminController::class, 'revertReport'])
+        ->middleware('admin:admin_moderator,super_admin');
 });

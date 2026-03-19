@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ReviewUser extends Model
 {
+    use SoftDeletes;
     use HasFactory;
 
     protected $table = 'reviews_users';
@@ -19,8 +21,15 @@ class ReviewUser extends Model
         'review_value' => 'float',
     ];
 
+    // Autor recenze
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    // Uživatel, na jehož profilu je recenze napsaná
+    public function reviewedUser()
+    {
+        return $this->belongsTo(User::class, 'reviewed_user_id');
     }
 }

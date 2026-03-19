@@ -1,11 +1,12 @@
 import { faFlag, faHeart, faPenToSquare, faShareFromSquare } from '@fortawesome/free-regular-svg-icons';
-import { faChevronLeft, faChevronRight, faHeart as faHeartSolid, faListCheck } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faHeart as faHeartSolid, faListCheck, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import imageCompression from "browser-image-compression";
 import { useCallback, useEffect, useRef, useState } from "react";
 import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
 import { Link } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
+import { useScrollLock } from "../hooks/useScrollLock";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
 
 import { useAlert } from "../context/AlertContext";
@@ -38,6 +39,63 @@ const UserMoreInfo = ({
 }) => {
     const [images, setImages] = useState(riderImagesFromDb || []);
     const [isReportPopupOpen, setIsReportPopupOpen] = useState(false);
+
+    // Kontrola změn oproti původním datům z DB pro zobrazení tlačítka pro uložení změn v seznamu techniky
+    const [hasChanges, setHasChanges] = useState(false);
+    useEffect(() => {
+        // Pokud ještě nemáme data z DB, změny nejsou
+        if (!riderImagesFromDb) return;
+
+        // Jednoduché porovnání: liší se délka?
+        if (images.length !== riderImagesFromDb.length) {
+            setHasChanges(true);
+            return;
+        }
+
+        // Liší se obsah nebo pořadí?
+        const isDifferent = images.some((img, index) => img !== riderImagesFromDb[index]);
+
+        setHasChanges(isDifferent);
+    }, [images, riderImagesFromDb]);
+
+    const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+
+    const ImageWithSkeleton = ({ url, isPdf, onClick }) => {
+        const [loaded, setLoaded] = useState(false);
+
+        useEffect(() => {
+            if (isPdf) {
+                setLoaded(true);
+            } else {
+                setLoaded(false);
+            }
+        }, [url, isPdf]);
+
+        return (
+            <div className={`img_wrapper ${!loaded ? 'skeleton_pulse' : ''}`} onClick={onClick} style={{ cursor: 'pointer' }} >
+                {isPdf ? (
+                    <div className="pdf_preview_container">
+
+                        {/* Skrytý embed jen pro "přednačtení", pokud je to nutné */}
+                        <embed
+                            src={url}
+                            type="application/pdf"
+                            onLoad={() => setLoaded(true)}
+                        />
+                        <div className="pdf_overlay_clicker"></div>
+                    </div>
+                ) : (
+                    <img
+                        src={url}
+                        className={`img_item ${loaded ? 'visible' : 'hidden-abs'}`}
+                        alt="rider"
+                        onLoad={() => setLoaded(true)}
+                    />
+                )}
+                {!loaded && <div className="skeleton_shimmer" />}
+            </div>
+        );
+    };
 
     const upscaleImage = (file, minSize = 1200) => {
         return new Promise((resolve) => {
@@ -102,9 +160,29 @@ const UserMoreInfo = ({
 
     // Pro posouvání mezi obrázky (index)
     const [currentIndex, setCurrentIndex] = useState(null); // Změna na index
+    const [isManagerOpen, setIsManagerOpen] = useState(false);
+    useScrollLock(currentIndex !== null || isManagerOpen);
     const imgRef = useRef();
+    const pdfRef = useRef(null);
+    // Pomocná funkce pro detekci PDF
+    const isPdfFile = (url) => {
+        if (typeof url !== 'string') return false;
+        return url.toLowerCase().endsWith('.pdf') || url.includes('blob:') || url.includes('application/pdf');
+    };
+
     const openGallery = (index) => setCurrentIndex(index);
     const closeGallery = () => setCurrentIndex(null);
+
+    // Automatický focus na PDF při otevření
+    useEffect(() => {
+        if (currentIndex !== null && isPdfFile(images[currentIndex])) {
+            // Malý timeout zajistí, že DOM je připraven
+            const timer = setTimeout(() => {
+                pdfRef.current?.focus();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [currentIndex, images]);
 
     // Obsluha klávesnice
     const nextImg = useCallback((e) => {
@@ -178,19 +256,32 @@ const UserMoreInfo = ({
     const [isUploading, setIsUploading] = useState(false);
 
     const handleUpdateRider = async () => {
-        setLoading(true);
+        setIsProcessingFiles(true);
         const formData = new FormData();
         try {
             formData.append('update_action', 'clear_or_update');
+
             if (images.length > 0) {
                 for (const img of images) {
                     if (img instanceof File) {
-                        // 1. Nejdříve upscale na minSize
-                        const upscaled = await upscaleImage(img);
-                        // 2. Poté komprese
-                        const options = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
-                        const compressedFile = await imageCompression(upscaled, options);
-                        formData.append('images[]', compressedFile);
+                        // Kontrola typu souboru
+                        if (img.type === "application/pdf") {
+                            // PDF neupravujeme, jen přidáme
+                            formData.append('images[]', img);
+                        } else {
+                            // OBRÁZEK - Šetrnější zpracování
+                            // Pokud je obrázek už velký, netřeba ho upscaleovat (vypnuto pro čitelnost)
+                            // const upscaled = await upscaleImage(img); // Můžeš zvážit zakomentování, pokud to text rozmazává
+
+                            const options = {
+                                maxSizeMB: 4,           // Zvýšeno z 1MB na 4MB pro zachování detailů textu
+                                maxWidthOrHeight: 2560, // Zvýšeno z 1920 pro 2K/4K čitelnost
+                                useWebWorker: true,
+                                initialQuality: 0.9     // Vysoká počáteční kvalita
+                            };
+                            const compressedFile = await imageCompression(img, options);
+                            formData.append('images[]', compressedFile);
+                        }
                     } else if (typeof img === 'string') {
                         formData.append('existing_images[]', img);
                     }
@@ -204,12 +295,13 @@ const UserMoreInfo = ({
             });
 
             if (onRefresh) await onRefresh();
-            showAlert("success", "Rider byl úspěšně aktualizován!");
+            setHasChanges(false);
+            showAlert("success", "Seznam techniky byl úspěšně aktualizován!");
         } catch (err) {
             console.error(err);
             showAlert("error", "Chyba při aktualizaci.");
         } finally {
-            setLoading(false);
+            setIsProcessingFiles(true);
         }
     };
 
@@ -277,7 +369,7 @@ const UserMoreInfo = ({
                 <div className="stars"><Stars rating={review_value} /></div>
                 {reviewsCount > 0 ? (
                     <a href="#reviews_href" className="review_count">
-                        {reviewsCount} {getReviewLabel(reviewsCount)}
+                        {review_value} ({reviewsCount} {getReviewLabel(reviewsCount)})
                     </a>
                 ) : (
                     <a href="#reviews_href" className="review_count">
@@ -307,77 +399,87 @@ const UserMoreInfo = ({
             {/* Lokalita */}
             <pre>{renderPriceLocation()}</pre>
 
-            {/* Technický rider / Galerie */}
-            {isLoggedUser ? (
-                <>
-                    <label className="body_base options_span_tech_label">Technický rider</label>
-                    <div className="options_span_tech clickable" onClick={handleUpdateRider}>
-                        <FontAwesomeIcon icon={faListCheck} className="options_icon" />
-                        <p className="options_text">Aktualizovat technický rider</p>
-                    </div>
-                    <FormImgManager
-                        images={images || []}
-                        setImages={setImages}
-                        isLoggedUser={true}
-                        className="user_more_info_images"
+            {/* SEZNAM TECHNIKY / RIDER */}
+            {!isTech && (isLoggedUser || images.length > 0 ) && (
+                <label className="body_base options_span_tech_label">Seznam techniky</label>
+            )}
+            {isLoggedUser && hasChanges && (
+                <div
+                    className={`options_span_tech ${isProcessingFiles ? 'is_busy' : 'clickable'}`}
+                    // Pokud se zpracovává nebo odesílá, onClick není definován
+                    onClick={!isProcessingFiles ? handleUpdateRider : undefined}
+                >
+                    <FontAwesomeIcon
+                        icon={isProcessingFiles ? faSpinner : faListCheck}
+                        spin={isProcessingFiles}
+                        className="options_icon"
                     />
-                </>
-            ) : (
-                <>
-                    {images.length > 0 && (
-                        <>
-                            <label className="body_base options_span_tech_label">Technický rider</label>
-                            <div className="user_more_info_images">
-                                {images.map((url, i) => (
-                                    <div className="img_wrapper" key={i}>
-                                        <div className="img_item_undrag">
-                                            <img
-                                                src={url}
-                                                className="rider_img unselectable"
-                                                draggable="false"
-                                                alt="rider"
-                                                onClick={() => openGallery(i)} // OPRAVA: předáváme index i
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </>
+                    <p className="options_text">
+                        {isProcessingFiles ? "Ukládám..." : "Uložit změny v seznamu"}
+                    </p>
+                </div>
             )}
 
-            {/* MODAL S GALERIÍ */}
+            <div>
+                {isLoggedUser ? (
+                    <FormImgManager images={images}
+                        setImages={setImages}
+                        setIsProcessingFiles={setIsProcessingFiles}
+                        isLoggedUser={true}
+                        allowPdf={true}
+                        onModalOpen={() => setIsManagerOpen(true)}
+                        onModalClose={() => setIsManagerOpen(false)}
+                        className="user_more_info_images" />
+                ) : (
+                    <div className="user_more_info_images">
+                        {images.map((url, i) => (
+                            <ImageWithSkeleton
+                                key={i}
+                                url={url}
+                                isPdf={isPdfFile(url)}
+                                onClick={() => openGallery(i)}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* FULLSCREEN GALERIE S PODPOROU PDF */}
             {currentIndex !== null && (
                 <div className="loader_container gallery_overlay" onClick={closeGallery}>
                     {images.length > 1 && (
                         <>
-                            <button
-                                className={`gallery_nav prev ${currentIndex === 0 ? "disabled" : ""}`}
-                                onClick={prevImg}
-                                disabled={currentIndex === 0}
-                            >
+                            <button className={`gallery_nav prev ${currentIndex === 0 ? "disabled" : ""}`} onClick={prevImg} disabled={currentIndex === 0}>
                                 <FontAwesomeIcon icon={faChevronLeft} />
                             </button>
-                            <button
-                                className={`gallery_nav next ${currentIndex === images.length - 1 ? "disabled" : ""}`}
-                                onClick={nextImg}
-                                disabled={currentIndex === images.length - 1}
-                            >
+                            <button className={`gallery_nav next ${currentIndex === images.length - 1 ? "disabled" : ""}`} onClick={nextImg} disabled={currentIndex === images.length - 1}>
                                 <FontAwesomeIcon icon={faChevronRight} />
                             </button>
                         </>
                     )}
 
-                    <QuickPinchZoom onUpdate={onUpdate} key={currentIndex} maxZoom={5}>
-                        <img
-                            ref={imgRef}
-                            src={images[currentIndex]}
-                            alt="fullscreen"
-                            className="form_img_full" // Třída s border-radius: 12px
-                            onClick={(e) => e.stopPropagation()}
-                        />
-                    </QuickPinchZoom>
+                    <div className="gallery_content_wrapper" onClick={(e) => e.stopPropagation()}>
+                        {isPdfFile(images[currentIndex]) ? (
+                            <div className="pdf_viewer_container">
+                                <object
+                                    ref={pdfRef}
+                                    data={`${images[currentIndex]}#toolbar=1&navpanes=0&scrollbar=1`}
+                                    type="application/pdf"
+                                    className="pdf_embed_view"
+                                    tabIndex="0" // Umožní focus
+                                >
+                                    <div className="pdf_fallback">
+                                        <p>PDF nelze zobrazit přímo v prohlížeči.</p>
+                                        <a href={images[currentIndex]} target="_blank" rel="noreferrer" className="btn_download">Otevřít PDF</a>
+                                    </div>
+                                </object>
+                            </div>
+                        ) : (
+                            <QuickPinchZoom onUpdate={onUpdate} key={currentIndex} maxZoom={5}>
+                                <img ref={imgRef} src={images[currentIndex]} alt="fullscreen" className="form_img_full" />
+                            </QuickPinchZoom>
+                        )}
+                    </div>
                 </div>
             )}
 

@@ -10,6 +10,7 @@ import "./Page.css";
 import { Link } from "react-router-dom";
 import LoginForm from "../../components/FormLogin";
 import { useAlert } from "../../context/AlertContext";
+import { useAuth } from "../../context/AuthContext";
 import { useScrollLock } from "../../hooks/useScrollLock";
 import { ROUTES } from "../../routes/RouteNames";
 
@@ -18,6 +19,7 @@ import { ASSETS } from "../../config/assets";
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
+    const { user, isAuthReady } = useAuth();
     useScrollLock(loading);
     const [errorTop, setErrorTop] = useState("");
 
@@ -27,8 +29,23 @@ const Login = () => {
     const shownRef = useRef(false);
 
     useEffect(() => {
+        if (!isAuthReady) {
+            setLoading(true);
+        } else {
+            setLoading(false);
+
+            if (user) {
+                //  jestli máme v state uloženou cestu "odkud"
+                const origin = location.state?.from?.pathname || ROUTES.HOME;
+                navigate(origin, { replace: true });
+            }
+        }
+    }, [isAuthReady, user, navigate]);
+
+    useEffect(() => {
         const params = new URLSearchParams(location.search);
         const error = params.get("error");
+        const reason = params.get("reason"); // důvod banu, pokud existuje
 
         if (location.state?.success) {
             showAlert(
@@ -54,6 +71,27 @@ const Login = () => {
             );
         }
 
+        if (error === "banned") {
+            // Pokud reason existuje, přidáme ho k textu
+            const message = reason
+                ? `Váš účet byl zablokován. Důvod: ${decodeURIComponent(reason)}`
+                : "Váš účet byl zablokován pro porušení pravidel.";
+
+            showAlert(
+                "error",
+                message,
+                "auth-banned"
+            );
+        }
+
+        if (error === "deleted") {
+            showAlert(
+                "error",
+                "Tento účet byl zrušen. Pokud si ho přejete obnovit, kontaktujte podporu.",
+                "auth-banned"
+            );
+        }
+
         if (error) {
             params.delete("error");
             navigate(
@@ -62,6 +100,8 @@ const Login = () => {
             );
         }
     }, [location.search, location.pathname, navigate, showAlert, location.state]);
+
+    if (!isAuthReady || user) return null;
 
     const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
 
@@ -76,19 +116,32 @@ const Login = () => {
                         <LoginForm setLoading={setLoading} setErrorTop={setErrorTop}></LoginForm>
                         <div className="oauth_divider"><span className="body_base">nebo</span></div>
                         <div className="oauth_container">
-                            <button className="oauth_button" onClick={() => window.location.href = `${apiUrl}/auth/google/redirect`}>
+                            <button className="oauth_button"
+                                onClick={() => {
+                                    const origin = location.state?.from?.pathname || "/app";
+                                    window.location.href = `${apiUrl}/auth/google/redirect?redirect=${encodeURIComponent(origin)}`;
+                                }}
+                            >
                                 <FontAwesomeIcon icon={faGoogle} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Google</p>
                             </button>
-                            <button className="oauth_button" onClick={() => window.location.href = `${apiUrl}/auth/facebook/redirect`}>
+                            <button className="oauth_button"
+                                onClick={() => {
+                                    const origin = location.state?.from?.pathname || "/app";
+                                    window.location.href = `${apiUrl}/auth/facebook/redirect?redirect=${encodeURIComponent(origin)}`;
+                                }}
+                            >
                                 <FontAwesomeIcon icon={faFacebookF} className="oauth_icon" /><p className="oauth_text strong">Pokračovat přes Facebook</p>
                             </button>
                         </div>
                     </div>
                 </div>
-                <p className="login_link">Ještě nemáš účet?
-                    <Link to={ROUTES.REGISTER} className="login_a strong"> Zaregistruj se!</Link>
+                <p className="login_link">Ještě nemáte účet?
+                    <Link to={ROUTES.REGISTER} className="login_a strong"> Zaregistrujte se!</Link>
                 </p>
 
+                <footer className="login-footer">
+                    <Link to="/privacy" className="body_smallest">Privacy Policy</Link>
+                </footer>
             </div>
 
         </>

@@ -29,10 +29,20 @@ class OAuthController extends Controller
 
         $providerColumn = $request->provider . '_id';
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::withTrashed()->where('email', $request->email)->first();
 
         if (!$user || $user->{$providerColumn} !== $request->provider_id) {
             return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        // Ověření, zda není uživatel zablokovaný
+        if ($user->is_banned) {
+            return redirect(config('app.frontend_url') . "/login?error=banned");
+        }
+
+        // Ověření, zda není uživatel smazaný
+        if ($user->trashed()) {
+            return redirect(config('app.frontend_url') . "/login?error=deleted");
         }
 
         // smaž staré refresh tokeny
@@ -52,7 +62,22 @@ class OAuthController extends Controller
             now()->addDays(14)
         )->plainTextToken;
 
-        return response()
+        $redirectTo = $request->query('redirect', '/');
+        
+        return redirect(config('app.frontend_url') . "/oauth-callback?token=$accessToken&redirect=" . urlencode($redirectTo))
+        ->cookie(
+            'refresh_token',
+            $refreshToken,
+            60 * 24 * 14,
+            '/',
+            null,
+            false,
+            true,
+            false,
+            'Lax'
+        );
+
+        /*return response()
             ->json([
                 'access_token' => $accessToken,
                 'user' => $user
@@ -67,9 +92,8 @@ class OAuthController extends Controller
                 true,
                 false,
                 'Lax'
-            );
+            );*/
     }
-
 
     public function oauthRegistration(Request $request)
     {
@@ -105,18 +129,20 @@ class OAuthController extends Controller
             now()->addDays(14)
         )->plainTextToken;
 
-        // ✅ Redirect s cookie
-        return redirect(config('app.frontend_url') . "/oauth-callback?token=$accessToken")
-            ->cookie(
-                'refresh_token',
-                $refreshToken,
-                60 * 24 * 14,
-                '/',
-                null,
-                false,
-                true,
-                false,
-                'Lax'
-            );
-    }
+        $redirectTo = $request->query('redirect', '/');
+
+        // Redirect s cookie a odkazem na případný link 
+        return redirect(config('app.frontend_url') . "/oauth-callback?token=$accessToken&redirect=" . urlencode($redirectTo))
+                ->cookie(
+                    'refresh_token',
+                    $refreshToken,
+                    60 * 24 * 14,
+                    '/',
+                    null,
+                    false,
+                    true,
+                    false,
+                    'Lax'
+                );
+            }
 }

@@ -40,22 +40,38 @@ export const NotificationProvider = ({ children }) => {
                 // private() teď použije aktualizované headers pro POST /broadcasting/auth
                 window.Echo.private(channelName)
                     .listen('.notification.sent', (e) => {
-                        // ... zbytek logiky listenru
-                    });
+                        console.log("🔔 Nová notifikace přijata realtime:", e);
 
-            } catch (err) {
-                console.error("Chyba inicializace notifikací:", err);
-            }
-        };
+                        const newNotif = e.notification;
 
-        initNotifications();
+                        setNotifications(prev => {
+                            // Zabráníme duplicitám (pokud by se náhodou event poslal dvakrát)
+                            if (prev.find(n => n.id === newNotif.id)) return prev;
 
-        return () => {
-            if (window.Echo && user) {
-                window.Echo.leave(`user.${user.id}`);
-            }
-        };
-    }, [user, accessToken]); // Odstraňte updateCounts z dependencí, pokud je definována uvnitř
+                            // Přidáme novou notifikaci na začátek seznamu
+                            const updated = [newNotif, ...prev];
+
+                            // ZDE JE KLÍČ: Musíš zavolat updateCounts s novými daty, 
+                            // aby se změnila čísla u ikon v Headeru
+                            updateCounts(updated);
+
+                            return updated;
+                        });
+                    })
+
+                    } catch (err) {
+                        console.error("Chyba inicializace notifikací:", err);
+                    }
+            };
+
+            initNotifications();
+
+            return () => {
+                if (window.Echo && user) {
+                    window.Echo.leave(`user.${user.id}`);
+                }
+            };
+        }, [user, accessToken]); // Odstraňte updateCounts z dependencí, pokud je definována uvnitř
 
     const markAsRead = async (idOrAll, type = null) => {
         // 1. Uložíme si původní stav pro případný rollback

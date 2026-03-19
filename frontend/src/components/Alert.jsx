@@ -1,12 +1,13 @@
-import "./Alert.css";
-import { useEffect, useRef, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-    faCircleExclamation,
     faCircleCheck,
+    faCircleExclamation,
     faInfoCircle,
     faXmark
 } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import DOMPurify from "dompurify";
+import { useEffect, useRef, useState } from "react";
+import "./Alert.css";
 
 export default function Alert({
     type = "success",
@@ -82,7 +83,14 @@ export default function Alert({
 
             <div className="alert-title">
                 <FontAwesomeIcon icon={icon} />
-                <p className="alert-message">{message}</p>
+                <p className="alert-message">
+                    {typeof message === 'string' ? (
+                        <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message) }} />
+                    ) : (
+                        // Pokud je to JSX (objekt React elementu), prostě ho vyrenderuj
+                        message
+                    )}
+                </p>
             </div>
         </div>
     );

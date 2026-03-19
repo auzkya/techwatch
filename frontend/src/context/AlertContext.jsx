@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useRef, useState } from "react";
-import Alert from "../components/Alert";
 import { v4 as uuidv4 } from "uuid";
+import Alert from "../components/Alert";
 
 const AlertContext = createContext();
 
@@ -16,6 +16,30 @@ export const AlertProvider = ({ children }) => {
 
         if (key) {
             shownKeysRef.current.add(key);
+        }
+
+        // --- OCHRANA PROTI [object Object] ---
+        let finalMessage = message;
+
+        // Pokud je message objekt a NENÍ to React element (JSX)
+        if (typeof message === 'object' && message !== null && !React.isValidElement(message)) {
+            // 1. Zkusíme běžné Laravel klíče
+            if (message.message) {
+                finalMessage = message.message;
+            }
+            // 2. Pokud jsou to validační chyby (errors: { field: [msg] })
+            else if (message.errors) {
+                const firstError = Object.values(message.errors)[0];
+                finalMessage = Array.isArray(firstError) ? firstError[0] : "Chyba validace dat.";
+            }
+            // 3. Totální fallback - převedeme na string, aby to aspoň nespadlo
+            else {
+                try {
+                    finalMessage = JSON.stringify(message);
+                } catch {
+                    finalMessage = "Došlo k neznámé chybě.";
+                }
+            }
         }
 
         setAlerts(prev => [

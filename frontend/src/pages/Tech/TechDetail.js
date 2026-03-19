@@ -25,6 +25,8 @@ const TechDetail = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const isAdmin = currentUser && ["admin_moderator", "super_admin"].includes(currentUser.role);
+
     // Stavy pro inzerát
     const [item, setItem] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -55,6 +57,7 @@ const TechDetail = () => {
             setItem(res.data.item);
         } catch (err) {
             console.error("Chyba při načítání:", err);
+            setItem(null);
         } finally {
             setLoading(false);
         }
@@ -148,10 +151,37 @@ const TechDetail = () => {
         }
     };
 
-    useScrollToHash([reviews]); // Spustí se i po načtení recenzí, což je důležité pro scroll na recenzi z notifikace
+    useScrollToHash([reviews]); // Spustí se i po načtení recenzí - důležité pro scroll na recenzi z notifikace
+
 
     if (loading) return <div className="loader_container"><div className="loader"></div></div>;
-    if (!item) return <div className="no-results_tech-container"><h2 className="no-results_tech">Toto zařízení neexistuje nebo bylo smazáno</h2></div>;
+    // Inzerát je smazaný
+    if (!item) {
+        return (
+            <div className="no-results_tech-container">
+                <h2 className="no-results_tech">Tato nabídka neexistuje nebo byla trvale odstraněna</h2>
+            </div>
+        );
+    }
+
+    // Kontrola neaktivního inzerátu (soft-delete nebo active_item)
+    const isActuallyDeleted = item.is_deleted;
+    const isInactive = !item.active_item && !isActuallyDeleted;
+
+    if (isActuallyDeleted && !isAdmin) {
+        return (
+            <div className="no-results_tech-container">
+                <h2 className="no-results_tech">Tato nabídka byla smazána</h2>
+            </div>
+        );
+    }
+    if (isInactive && !isOwner) {
+        return (
+            <div className="no-results_tech-container">
+                <h2 className="no-results_tech">Tato nabídka je neaktivní</h2>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -159,10 +189,27 @@ const TechDetail = () => {
 
             {/* Path */}
             <Path
-                mode={location.state?.fromMode || "direct"}
+                mode={location.state?.fromMode || "tech"}
                 category={location.state?.fromCategory}
-                customLabel={item.title}
+                customLabel={location.state?.customLabel}
+                name={item.title}
+                userId={item.user?.id || item.user_id}
+                // Pokud je userName ve state explicitně null, necháme ho null
+                userName={location.state?.hasOwnProperty('userName') ? location.state.userName : `${item.user?.first_name} ${item.user?.last_name}`}
             />
+
+            {/* Varovné pruhy */}
+            {isActuallyDeleted && isAdmin && (
+                <div className="deleted-warning-bar strong">
+                    Tato nabídka byla smazána. Vidíte ji pouze jako administrátor.
+                </div>
+            )}
+
+            {isInactive && isOwner && (
+                <div className="non_active-warning-bar strong">
+                    Tato nabídka je neaktivní. Vidíte ji pouze jako její majitel.
+                </div>
+            )}
 
             {/* Popup pro Recenze */}
             <PopupReview
@@ -206,7 +253,7 @@ const TechDetail = () => {
                 </div>
             )}
 
-            <div className="tech_container">
+            <div className="tech_container" style={isActuallyDeleted ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
                 <TechPhoto
                     itemId={item.id}
                     images={item.image_urls?.length > 0 ? item.image_urls : [ASSETS.default_item]}
@@ -242,8 +289,8 @@ const TechDetail = () => {
                 />
             </div>
 
-            <div className="reviews_container" id="reviews_href">
-                <h2 className="strong">Recenze zařízení ({reviews.length})</h2>
+            <div className="reviews_container" id="reviews_href" style={isActuallyDeleted ? { pointerEvents: 'none', opacity: 0.8 } : {}}>
+                <h2 className="strong">Recenze zařízení <span>({reviews.length})</span></h2>
                 {canWriteReview && (
                     <button type="button" className="write-review" onClick={() => setIsReviewPopupOpen(true)}>
                         <FontAwesomeIcon icon={faPencil} className="options_icon" />

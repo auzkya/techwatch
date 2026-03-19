@@ -16,7 +16,7 @@ const VerifySuccess = () => {
         }
 
         loginUser(token).then(() => {
-            navigate("/", { replace: true });
+            navigate("/app", { replace: true });
         });
     }, []);
 
