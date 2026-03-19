@@ -9,18 +9,30 @@ return new class extends Migration {
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
+            // Vazba na majitele
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            
+            // Základní informace
             $table->string('title', 255);
-            $table->text('category');
+            $table->text('category'); // Doporučení pro BP: Pokud je kategorie jedno slovo, string by stačil, ale nechávám text dle tvého zadání
             $table->text('description');
             $table->string('location', 100);
+            
+            // Parametry nabídky
             $table->enum('purpose', ['rental', 'sell']);
-            $table->json('images')->nullable();
-            $table->integer('quantity');
+            $table->integer('quantity')->default(1);
             $table->integer('price')->nullable();
+            
+            // Média a metadata
+            $table->json('images')->nullable();
             $table->boolean('active_item')->default(true);
             $table->float('review_value')->nullable();
+            
+            // Časové značky a Soft Deletes
             $table->timestamps();
+            $table->softDeletes(); 
+
+            // Indexy pro rychlé vyhledávání a filtrování
             $table->index('title');
             $table->index('location');
             $table->index('purpose');
