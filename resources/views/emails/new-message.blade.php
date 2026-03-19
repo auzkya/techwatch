@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Totální likvidace barev v Outlooku */
+        /* Nastavení barev pro Outlook */
         a, a:visited { color: #F1F1F1 !important; text-decoration: none !important; }
         .button-link:visited { color: #F1F1F1 !important; }
         span.MsoHyperlinkFollowed { color: #F1F1F1 !important; }

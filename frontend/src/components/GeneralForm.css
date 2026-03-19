@@ -366,10 +366,6 @@ option::-webkit-scrollbar-thumb {
     }
 }
 
-/*::picker(select) {
-    top: calc(anchor(bottom) + 2px);
-}*/
-
 /*Cena*/
 .price-wrapper {
     position: relative;
@@ -381,14 +377,12 @@ option::-webkit-scrollbar-thumb {
 }
 
 .price-input {
-    /*width: auto !important;*/
     flex-shrink: 10;
 }
 
 .general_form .checkbox-container {
     position: relative;
     right: 0;
-    /* úplně vpravo */
     display: flex;
     align-items: center;
     margin-left: 10px;
@@ -398,5 +392,4 @@ option::-webkit-scrollbar-thumb {
 .disabled-input {
     opacity: 0.6;
     pointer-events: none;
-    /* nemožnost psaní */
 }

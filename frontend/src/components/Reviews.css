@@ -4,7 +4,6 @@
     margin: 0px auto 0 auto;
     position: relative;
     padding-bottom: 120px;
-    /*min-height: 100vh;*/
 }
 
 .reviews_container h2 {
@@ -19,10 +18,8 @@
 .all-reviews {
     display: block;
     position: relative;
-    /*padding-bottom: 150px;*/
 }
 
-/* jenom komponenta */
 .review_component {
     position: relative;
     margin: 40px auto;
@@ -93,8 +90,8 @@
 
 .review_component_point p {
     margin: 0px 0 0 8px;
-    white-space: normal; /* Standardní zalamování (vypne případný no-wrap) */
-    overflow-wrap: anywhere; /* Zajistí zalomení kdekoli, pokud slovo přesahuje šířku */
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .review_component_point .icon {
@@ -146,7 +143,6 @@
     right: 0;
     top: 0;
     transform: scale(0.8);
-    /*margin-top: 50px;*/
 }
 
 .write-review .options_icon {

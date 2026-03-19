@@ -8,9 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
-    /**
-     * @param  string  ...$roles  Seznam povolených rolí pro autorizaci přístupu.
-     */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         // Načtení aktuálně autentizovaného uživatele přes rozhraní Sanctum

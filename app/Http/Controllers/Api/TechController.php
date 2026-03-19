@@ -376,7 +376,7 @@ class TechController extends Controller
         ]);
     }
 
-    /* Změna stavu aktivní/neaktivní (Skrýt/Zobrazit) */
+    // Změna stavu aktivní/neaktivní (Skrýt/Zobrazit)
     public function updateStatus(Request $request, $id)
     {
         // Najdeme item, který patří přihlášenému uživateli
@@ -401,7 +401,7 @@ class TechController extends Controller
         ]);
     }
 
-    /* Trvalé smazání inzerátu včetně obrázků na R2 */
+    // Trvalé smazání inzerátu včetně obrázků na R2 
     public function destroy($id)
     {
         $item = Item::where('id', $id)

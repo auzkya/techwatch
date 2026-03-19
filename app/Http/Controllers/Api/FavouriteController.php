@@ -37,24 +37,6 @@ class FavouriteController extends Controller
             'created_at' => now(),
         ]);
 
-        // Volitelná notifikace při přidání do oblíbených je dočasně vypnuta
-        /*if ($user->id !== $targetUser->id) {
-            $notification = Notification::create([
-                'user_id' => $targetUser->id,
-                'type' => 'favourite_user',
-                'title' => 'Nový fanoušek!',
-                'description' => "Uživatel {$user->first_name} {$user->last_name} si vás přidal do oblíbených.",
-                'is_read' => false,
-                'data' => [
-                    'sender_id' => $user->id,
-                    'sender_name' => "{$user->first_name} {$user->last_name}",
-                    'sender_avatar' => $user->profile_image_url
-                ]
-            ]);
-
-            broadcast(new NotificationSent($notification))->toOthers();
-        }*/
-
         return response()->json(['status' => 'added', 'message' => 'Přidáno do oblíbených']);
     }
 
@@ -81,24 +63,6 @@ class FavouriteController extends Controller
             'item_id' => $id,
             'created_at' => now(),
         ]);
-
-        // Volitelná notifikace majiteli položky je dočasně vypnuta
-        /*if ($user->id !== $item->user_id) {
-            $notification = Notification::create([
-                'user_id' => $item->user_id, // Majitel položky
-                'type' => 'favourite_item',
-                'title' => 'Líbí se mi!',
-                'description' => "Uživatel {$user->first_name} si přidal vaši nabídku {$item->title} do oblíbených.",
-                'is_read' => false,
-                'data' => [
-                    'item_id' => $item->id,
-                    'item_title' => $item->title,
-                    'sender_name' => $user->first_name
-                ]
-            ]);
-
-            broadcast(new NotificationSent($notification))->toOthers();
-        }*/
 
         return response()->json(['status' => 'added']);
     }

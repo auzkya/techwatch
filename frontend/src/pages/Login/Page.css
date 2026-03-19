@@ -117,11 +117,8 @@
     display: inline-block;
     margin: 0 0 0 8px;
     -webkit-user-select: none;
-    /* Safari */
     -ms-user-select: none;
-    /* IE 10 and IE 11 */
     user-select: none;
-    /* Standard syntax */
 }
 
 .reset_password_link {
@@ -148,7 +145,6 @@ input[type="checkbox" i] {
     display: inline-block;
     vertical-align: middle;
     position: relative;
-    /* FIX: Definujeme border pevnou šířkou a typem, měníme jen barvu */
     border: 2px solid var(--text) !important;
     outline: none;
     box-shadow: none;
@@ -165,7 +161,6 @@ input[type="checkbox" i] {
 
 .custom-checkbox:checked {
     background-color: var(--primary2);
-    /* Tady změníme barvu borderu na barvu pozadí, aby to vypadalo jako jeden celek */
     border: 2px solid var(--primary2) !important;
 }
 
@@ -241,33 +236,25 @@ input[type="checkbox" i] {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    /* mezera mezi textem a čarami */
     width: 80%;
     margin: 1.25rem auto;
 }
 
-/* čáry pomocí pseudo-elementů (responzivní, roztahují se) */
 .oauth_divider::before,
 .oauth_divider::after {
     content: "";
     flex: 1 1 0;
-    /* roztahují se dle dostupného prostoru */
     height: 1px;
-    /* tloušťka čáry */
     border-top: 1px dashed var(--text);
-    /* čárkovaná čára (barvu uprav) */
     min-width: 0;
-    /* zabrání overflow v flex kontejnerech */
 }
 
-/* styling textu uprostřed */
 .oauth_divider span {
     white-space: nowrap;
     font-size: 0.95rem;
     color: var(--text);
     padding: 0 0.25rem;
     background: transparent;
-    /* pokud máš barevné pozadí, můžeš nastavit stejné pozadí */
 }
 
 .oauth_container {

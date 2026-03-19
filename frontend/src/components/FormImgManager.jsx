@@ -479,7 +479,7 @@ export default function FormImgManager({
                             className="pdf_preview_full"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            {/* Trik pro Firefox: neviditelný input pro získání focusu */}
+                            {/* Pro Firefox - neviditelný input pro získání focusu */}
                             <input
                                 style={{
                                     position: "absolute",

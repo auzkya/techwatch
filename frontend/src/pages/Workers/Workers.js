@@ -175,29 +175,6 @@ const Workers = () => {
         [navigate, subcategory],
     );
 
-    // OPTIMALIZACE: Memoizujeme pouze pole komponent, ne logiku uvnitř
-    /*const memoizedWorkers = useMemo(() => {
-        return workers.map((worker, index) => {
-            const isLast = workers.length === index + 1;
-            return (
-                <Item
-                    key={worker.id}
-                    id={worker.id}
-                    ref={isLast ? lastWorkerRef : null}
-                    isFavouriteInitially={worker.is_favourite}
-                    profile_picture={worker.profile_image_url || ASSETS.default_avatar}
-                    rating={worker.review_value}
-                    name={`${worker.first_name ?? ''} ${worker.last_name ?? ''}`}
-                    role={worker.formatted_specs}
-                    // Zásadní změna: Předáváme celého workera, nebo parametry vyřešíme v Itemu
-                    // Aby onClick zůstal stabilní, Item by měl volat onClick(id, name, surname) interně
-                    workerData={worker}
-                    onClick={handleItemClick}
-                />
-            );
-        });
-    }, [workers, lastWorkerRef, handleItemClick]);*/
-
     // Definice povolených podkategorií
     const allowedSubcategories = [
         "light_technician",

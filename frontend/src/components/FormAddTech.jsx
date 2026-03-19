@@ -255,9 +255,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                 : ["Došlo k chybě."];
             setLoading(false);
             messages.forEach((msg) => showAlert("error", msg));
-        } /*finally {
-            setLoading(false);
-        }*/
+        }
     };
 
     return (
@@ -385,7 +383,6 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                     </div>
                     {isPurpOpen && (
                         <div className="options-up">
-                            {/* Už tu není ten fixní div navíc, bere se jen z pole purposeOptions */}
                             {purposeOptions.map((opt) => (
                                 <div
                                     key={opt.value}

@@ -128,21 +128,6 @@
     pointer-events: none;
 }
 
-/* Pozadí modalu */
-/*.loader_container.full_modal_overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.95);
-    z-index: 10000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-}*/
-
 .form_img_full {
     max-width: 80vw;
     max-height: 75vh;
@@ -221,7 +206,6 @@
     height: 100%;
     border: none;
     pointer-events: none;
-    /* Důležité: embed nesmí krást kliknutí */
 }
 
 .pdf_overlay_clicker {

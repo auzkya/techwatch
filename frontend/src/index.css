@@ -28,15 +28,6 @@ body {
     height: 100%;
 }
 
-/*body,
-button,
-input,
-select,
-textarea,
-pre {
-    font-family: "Inter", sans-serif !important;
-}*/
-
 body,
 button,
 input,
@@ -77,7 +68,6 @@ button {
 
 button:hover {
     opacity: 0.85;
-    /*transform: scale(0.98);*/
 }
 
 .smaller_opacity {
@@ -235,7 +225,6 @@ input:active {
 
     width: auto;
     pointer-events: none;
-    /* Kliky projdou skrz na filtry */
     z-index: 10;
 }
 
@@ -512,7 +501,6 @@ input:active {
     display: block;
 }
 
-/*kliknutí na fav tlačítko animace**/
 .fav-active {
     animation: heartBeat 0.3s ease-in-out;
 }
@@ -534,7 +522,6 @@ input:active {
 /*animace u upozornění**/
 .animate-badge {
     animation: animateBadge 0.55s ease-in-out;
-    /*animation-delay: 0.3s;*/
 }
 
 @keyframes animateBadge {
@@ -578,7 +565,7 @@ input:active {
     visibility: hidden;
     opacity: 0;
     width: max-content;
-    /*max-width: 220px;*/
+
     background-color: var(--background3);
     color: var(--text);
     text-align: center;
@@ -587,7 +574,6 @@ input:active {
     font-size: 13px;
     line-height: 1.4;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    /*border: 1px solid #333;*/
     border: none;
     font-weight: 500;
 
@@ -620,13 +606,6 @@ input:active {
     transform: translateX(-50%) translateY(0);
 }
 
-/* Styl pro unclickable tlačítko */
-/*.form-submit.unclickable {
-    cursor: not-allowed !important;
-    filter: grayscale(0.8);
-    opacity: 0.7;
-}*/
-
 /* Zajištění, aby p uvnitř tlačítka neblokovalo hover */
 .form-submit.unclickable p {
     pointer-events: none;
@@ -655,6 +634,7 @@ input:active {
 .custom-select-down.open {
     border-radius: 10px 10px 0 0;
 }
+
 /* Když je otevřený SMĚREM NAHORU, spodní rohy zůstanou kulaté, horní se narovnají */
 .custom-select-up.open {
     border-radius: 0 0 10px 10px;
@@ -702,7 +682,6 @@ input:active {
     border-radius: 10px 10px 0 0; /* Zakulacení nahoře */
     box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3); /* Stín směrem nahoru */
     z-index: 10;
-    /*margin-bottom: -10px;*/ /* Překrytí marginu selektu, aby na sebe navazovaly */
 }
 
 .option {

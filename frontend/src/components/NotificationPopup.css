@@ -3,12 +3,11 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.3);
     z-index: 9000;
-    /* zajisti, že zachytí kliknutí */
     pointer-events: auto;
 }
 
 .notification-popup {
-    position: fixed; /* FIXED (pevně vůči viewportu) */
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -17,7 +16,7 @@
     border-radius: 20px;
     padding: 30px 40px;
     color: var(--text);
-    z-index: 1100; /* nad backdropem */
+    z-index: 1100;
     max-width: 90vw;
     max-height: 90vh;
     overflow: auto;

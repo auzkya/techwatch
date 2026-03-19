@@ -209,21 +209,6 @@ const PopupReview = ({
                         />
                     </div>
 
-                    {/*initialData ? (
-                        <>
-                            <button className="form-submit extra_space half-width" onClick={handleSubmit}>
-                                <p className="strong">Aktualizovat recenzi</p>
-                            </button>
-                            <button className="secondary_button_review extra_space half-width" onClick={handleDelete}>
-                                <p className="strong">Smazat recenzi</p>
-                            </button>
-                        </>
-                    ) : (
-                        <button className="form-submit extra_space half-width center" onClick={handleSubmit}>
-                            <p className="strong">Vložit recenzi</p>
-                        </button>
-                    )*/}
-
                     <button
                         className="form-submit extra_space"
                         onClick={handleSubmit}

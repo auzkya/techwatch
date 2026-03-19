@@ -475,9 +475,6 @@ const Header = () => {
                     </span>
                 );
             }
-            /*if (part.includes('red-text')) {
-                return <span key={index} className="text-red strong">{part.replace(/<[^>]*>/g, '')}</span>;
-            }*/
             return part;
         });
     };

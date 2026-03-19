@@ -1,19 +1,15 @@
 .all-path {
     width: 100%;
     text-align: center;
-    /* vycentruje .path */
 }
 
 .path {
     cursor: default;
     display: inline-flex;
-    /* nebo inline-block */
     align-items: center;
     justify-content: center;
     margin: 0 auto;
-    /* vycentruje v rámci rodiče */
     gap: 5px;
-    /* mezera mezi prvky */
 }
 
 .path p {

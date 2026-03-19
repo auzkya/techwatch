@@ -10,7 +10,6 @@
     width: 100%;
     border-collapse: collapse;
     color: var(--text-color);
-    /* Důležité pro zarovnání: */
     table-layout: auto;
 }
 
@@ -26,11 +25,9 @@
 .admin-custom-table td {
     padding: 1.2rem 1rem;
     border-bottom: 1px solid var(--background3);
-    /* Fix výškového zarovnání: */
     vertical-align: middle;
 }
 
-/* Odkazy v tabulce */
 .target-link,
 .reporter-link {
     text-decoration: none;
@@ -60,7 +57,6 @@
     display: block;
 }
 
-/* Zarovnání Typu */
 .type-badge {
     display: flex;
     align-items: center;
@@ -68,7 +64,6 @@
     font-weight: 500;
 }
 
-/* Fix výšky pro sloupec s textem */
 .col-reason {
     max-width: 350px;
     min-width: 250px;
@@ -79,21 +74,16 @@
     line-height: 1.5;
     color: #bbb;
     word-break: break-word;
-    /* Zabrání rozbití tabulky dlouhým slovem */
     max-height: 100px;
-    /* Limit výšky, aby řádek nebyl přes celou obrazovku */
     overflow-y: auto;
-    /* Pokud je text moc dlouhý, dá se v buňce scrollovat */
     padding-right: 5px;
 }
 
-/* Akce vedle sebe nebo pod sebou */
 .actions-stack {
     display: flex;
     gap: 8px;
 }
 
-/* Preview zpráv tlačítko */
 .msg-preview-btn {
     margin-top: 8px;
     font-size: 0.75rem;
@@ -114,19 +104,16 @@
     border: 1px solid #444;
 }
 
-/* Sloupec s dlouhým důvodem */
 .col-reason {
     max-width: 400px;
 }
 
 .reason-text {
     white-space: pre-line;
-    /* Zachová zalomení řádků z textarea */
     line-height: 1.4;
     color: #ccc;
 }
 
-/* Akce */
 .col-actions {
     white-space: nowrap;
 }
@@ -162,7 +149,6 @@
     color: white;
 }
 
-/* Datum a čas */
 .col-date {
     white-space: nowrap;
     min-width: 130px;
@@ -183,7 +169,6 @@
     color: #666;
 }
 
-/* Vizuální urgence řádků */
 .urgency-high {
     border-left: 4px solid #ff4d4d !important;
     background: rgba(255, 77, 77, 0.02);
@@ -193,7 +178,6 @@
     border-left: 4px solid #ffa500 !important;
 }
 
-/* Varování o strikech */
 .strike-warning {
     color: #ff4d4d;
     font-size: 0.7rem;
@@ -202,7 +186,6 @@
     margin: 2px 0;
 }
 
-/* Styl pro zobrazení striků */
 .strike-badge {
     font-size: 0.7rem;
     padding: 2px 6px;
@@ -228,7 +211,6 @@
     font-size: 0.65rem;
 }
 
-/* Naléhavost řádků */
 .urgency-high {
     border-left: 4px solid #d0021b;
 }
@@ -237,7 +219,6 @@
     border-left: 4px solid #f5a623;
 }
 
-/* Oprava zarovnání pro cílové informace */
 .target-info {
     display: flex;
     flex-direction: column;
@@ -323,8 +304,8 @@
 .action-pill-group .status-pill {
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid transparent; /* Aby nepodskakovalo při aktivaci */
-    opacity: 0.4; /* Neaktivní pilulky budou tlumené */
+    border: 1px solid transparent;
+    opacity: 0.4;
     filter: grayscale(0.3);
     letter-spacing: 0.5px;
 }
@@ -334,7 +315,6 @@
     filter: grayscale(0);
     transform: scale(1.05);
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-    /* Zvýraznění aktivní pilulky - využije tvou barvu z .action-X */
     border-width: 1px;
 }
 

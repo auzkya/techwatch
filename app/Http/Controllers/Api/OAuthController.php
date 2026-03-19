@@ -65,23 +65,6 @@ class OAuthController extends Controller
                 false,
                 'Lax'
             );
-
-        /*return response()
-            ->json([
-                'access_token' => $accessToken,
-                'user' => $user
-            ])
-            ->cookie(
-                'refresh_token',
-                $refreshToken,
-                60 * 24 * 14,
-                '/',
-                null,
-                false,
-                true,
-                false,
-                'Lax'
-            );*/
     }
 
     public function oauthRegistration(Request $request)

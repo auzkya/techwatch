@@ -45,9 +45,6 @@ return [
             'client_options' => [
                 // Guzzle client options: https://docs.guzzlephp.org/en/stable/request-options.html
             ],
-            /* 'attributes' => [
-                'guard' => 'sanctum', // Toto říká Laravelu: "Při autorizaci kanálu hledej Bearer token"
-            ],*/
         ],
 
         'pusher' => [

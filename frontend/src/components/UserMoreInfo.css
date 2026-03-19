@@ -3,10 +3,6 @@
     margin-bottom: 60px;
 }
 
-/*.user_more_info .stars_container {
-    margin-top: 20px;
-}*/
-
 .user_more_info .stars {
     display: inline-block;
     vertical-align: middle;
@@ -139,7 +135,6 @@
 
 /* Upravit původní třídu */
 .gallery_content_wrapper {
-    /* Místo 90% šířky použijeme auto, aby se wrapper smrskl na obsah */
     width: auto;
     max-width: 95%;
     height: auto;
@@ -147,23 +142,20 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Důležité: pointer-events nesmí blokovat overlay */
     position: relative;
     z-index: 1001;
 }
 
 .pdf_viewer_container {
-    /* Tady definujeme pevnou velikost pro PDF */
     width: 80vw;
     max-width: 1000px;
-    height: 80vh; /* PDF by mělo mít výšku, aby se dalo scrollovat */
+    height: 80vh;
     background: white;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-/* Pokud je to fotka přes QuickPinchZoom, zajisti, aby nevyplňovala celý wrapper */
 .form_img_full {
     max-height: 80vh;
     max-width: 100%;

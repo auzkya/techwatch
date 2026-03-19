@@ -15,13 +15,7 @@ window.Echo = new Echo({
     wssPort: process.env.REACT_APP_REVERB_PORT || 443, // Na produkci běží WS přes SSL (443)
     forceTLS: process.env.REACT_APP_REVERB_SCHEME === "https",
     enabledTransports: ["ws", "wss"],
-    /*authEndpoint: `${apiUrl}/api/broadcasting/auth`,
-    auth: {
-        headers: {
-            Accept: 'application/json',
-            // Authorization zde prázdné, doplníme v Headeru
-        },
-    },*/
+
     // Vlastní authorizer, který přidá aktuální token
     authorizer: (channel, options) => {
         return {

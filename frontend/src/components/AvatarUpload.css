@@ -85,19 +85,6 @@
     margin: 0 !important;
 }
 
-/*.reactEasyCrop_Container{
-    width: 60vh !important;
-    height: 60vh !important;
-        position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-}
-
-.reactEasyCrop_CropArea{
-    color: transparent !important;
-}*/
-
 /* Zoom slider */
 .zoom_slider {
     width: 280px;

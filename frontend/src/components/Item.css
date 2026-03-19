@@ -122,7 +122,6 @@
 /* skrytý filtr pro obrázek */
 .item-inactive .item_profile_img {
     filter: grayscale(1) brightness(0.5);
-    /* Šedý a tmavý filtr */
 }
 
 .item_image_container {
