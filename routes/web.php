@@ -10,26 +10,23 @@ use Laravel\Socialite\Facades\Socialite;
 
 // Route::get('/verify/{token}', [AuthController::class, 'verify']);
 
-// NOVÁ ROUTE pro prodloužení active_worker (HLEDÁM PRÁCI)
+// NOV ROUTE pro prodloužení active_worker (Hledám práci)
 Route::get('/extend-active-worker', [ProfileController::class, 'extendActiveWorker'])
     ->name('extend-active-worker')
     ->middleware('signed'); // DŮLEŽITÉ: pouze signed URLs
 
-// NOVÁ ROUTE PRO OTEVŘENÍ NOTIFIKACE (označí jako přečtenou a přesměruje na frontend)
+// NOV ROUTE PRO OTEVENÍ NOTIFIKACE (označí jako přečtenou a přesměruje na frontend)
 Route::get('/open-notification/{notification}', function (Notification $notification) {
-    // 1. Označíme jako přečtené
+    // Označíme jako přečtené
     $notification->update(['is_read' => true]);
 
-    // 2. Přesměrujeme na FRONTEND (port 3000)
+    // Přesměrujeme na FRONTEND (port 3000)
     // env('FRONTEND_URL') vytáhne tu správnou adresu z tvého souboru
     $frontendUrl = env('FRONTEND_URL', 'https://techwatch.app/app');
 
     return Redirect::to($frontendUrl.'/?open_notif='.$notification->id);
 })->name('notification.email.open');
-
-// ------------------------------------
 // OAuth Routes
-// ------------------------------------
 Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
     $validProviders = ['google', 'facebook'];
     if (! in_array($provider, $validProviders)) {
@@ -65,10 +62,10 @@ Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
     $frontend = config('app.frontend_url');
 
     if ($user) {
-        // Uživatel už existuje - přihlásíme ho
+        // Přihlášení existujícího uživatele přes OAuth poskytovatele
         $providerColumn = $provider . '_id';
 
-        // Aktualizuj OAuth ID pokud ještě není nastavené
+        // Doplnění OAuth identifikátoru, pokud dosud není uložen
         if (!$user->{$providerColumn}) {
             $user->{$providerColumn} = $providerId;
         }
@@ -76,8 +73,8 @@ Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
         $user->last_login = now();
         $user->save();
 
-        // Vytvoř tokeny
-        $user->tokens()->delete(); // Smaž staré tokeny
+        // Rotace tokenů před vydáním nové dvojice access/refresh
+        $user->tokens()->delete();
 
         $accessToken = $user->createToken(
             'access',
@@ -91,7 +88,6 @@ Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
             now()->addDays(14)
         )->plainTextToken;
 
-        // ⚠️ OPRAVENO: Vrať TOKENY, ne email v URL!
         return redirect($frontend . "/oauth-success")
             ->cookie(
                 'refresh_token',
@@ -105,7 +101,7 @@ Route::get('/auth/{provider}/redirect', function (Request $request, $provider) {
                 'Lax'
             )
             ->cookie(
-                'oauth_access_token',  // Dočasná cookie pro předání access tokenu
+                'oauth_access_token',
                 $accessToken,
                 5, // 5 minut
                 '/',
@@ -184,7 +180,7 @@ Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
         );
     }
 
-    // EXISTUJÍCÍ UŽIVATEL → VYTVOŘ TOKENY
+    // EXISTUJÍCÍ UŽIVATEL → VYTVO TOKENY
     $providerColumn = $provider.'_id';
     if (! $user->{$providerColumn}) {
         $user->{$providerColumn} = $providerId;
@@ -218,10 +214,7 @@ Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
             'Lax'
         );
 });
-
-// ------------------------------------
 // SPA catch-all route
-// ------------------------------------
 Route::get('/{any}', function () {
     return file_get_contents(public_path('react/index.html'));
 })->where('any', '^(?!api).*$');

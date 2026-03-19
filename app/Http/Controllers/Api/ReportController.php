@@ -13,13 +13,13 @@ class ReportController extends Controller
     {
         $validated = $request->validate([
             'target_id' => 'required|integer',
-            // Frontend bude posílat jednoduchý klíč, my ho zde přemapujeme na Model
+            // Přijetí klíče typu cíle pro následné mapování na model
             'type' => 'required|in:items,reviews_items,users,reviews_users',
-            'category' => 'required|string|max:255', // mapujeme na 'report_category' v DB
+            'category' => 'required|string|max:255',
             'reason' => 'nullable|string|max:2000',
         ]);
 
-        // Mapa pro převod typu z requestu na Laravel Model třídy
+        // Mapování typu cíle z požadavku na třídu modelu pro polymorfní vazbu
         $map = [
             'items' => \App\Models\Item::class,
             'reviews_items' => \App\Models\ReviewItem::class,
@@ -31,7 +31,7 @@ class ReportController extends Controller
             'reporter_id' => Auth::id(),
             'target_type' => $map[$validated['type']],
             'target_id' => $validated['target_id'],
-            'report_category' => $validated['category'], // změna názvu dle nové migrace
+            'report_category' => $validated['category'],
             'reason' => $validated['reason'],
             'status' => 'pending',
         ]);
@@ -42,12 +42,10 @@ class ReportController extends Controller
         ], 201);
     }
 
-    /**
-     * RQ-37: Zobrazení nahlášení pro admina
-     */
+    // Načtení seznamu nahlášení pro administrátorské rozhraní
     public function index()
     {
-        // Načteme nahlášení i s daty o nahlášeném objektu (target) a reportérovi
+        // Eager loading vazeb reportéra a cílového objektu pro omezení počtu dotazů
         $reports = Report::with(['reporter', 'target'])
             ->orderBy('created_at', 'desc')
             ->get();

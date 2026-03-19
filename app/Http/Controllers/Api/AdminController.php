@@ -22,7 +22,7 @@ class AdminController extends Controller
         $now = now();
         $timeData = collect();
 
-        // 1. Nastavení parametrů podle rozsahu
+        // Nastavení parametrů podle rozsahu
         switch ($range) {
             case 'week':
                 $steps = 7;
@@ -65,7 +65,7 @@ class AdminController extends Controller
                 break;
         }
 
-        // 2. Generování datových bodů
+        // Generování datových bodů
         for ($i = $steps; $i >= 0; $i--) {
             // Dynamické odečítání jednotek (dnů/týdnů/měsíců)
             $method = 'sub'.ucfirst($subUnit).'s';
@@ -130,10 +130,10 @@ class AdminController extends Controller
             ->get()
             ->map(function ($report) {
                 try {
-                    // Načteme target
+                    // Načtení cílového objektu včetně soft-deleted záznamů
                     $target = $report->target_type::withTrashed()->find($report->target_id);
 
-                    // Pokud je target načten, ručně mu dotáhneme relace, které potřebuješ v UI
+                    // Načtení souvisejících relací podle typu objektu pro administrátorské rozhraní
                     if ($target) {
                         $modelName = class_basename($report->target_type);
                         switch ($modelName) {
@@ -168,7 +168,7 @@ class AdminController extends Controller
             'users_count' => User::count(),
             'items_count' => Item::count(),
             'pending_reports_count' => Report::where('status', 'pending')->count(),
-            'reports' => $reports, // Použijeme naši zpracovanou kolekci
+            'reports' => $reports,
         ]);
     }
 
@@ -176,7 +176,7 @@ class AdminController extends Controller
     {
         $report = Report::findOrFail($id);
 
-        // Načtení targetu i když je smazaný (soft delete)
+        // Načtení cílového objektu i v případě soft delete stavu
         $target = null;
         if ($report->target_type && class_exists($report->target_type)) {
             $target = $report->target_type::withTrashed()->find($report->target_id);
@@ -192,10 +192,10 @@ class AdminController extends Controller
 
         $isUser = $target instanceof User;
 
-        // --- PŘÍPRAVA DAT PRO NOTIFIKACI ---
+        // Příprava textových dat notifikace podle typu řešeného objektu
         $targetType = 'obsah';
         $targetName = '';
-        $suffix = 'o'; // Výchozí pro "obsah byl odstraněnO" (neutrál) nebo "bylo"
+        $suffix = 'o';
 
         if ($target) {
             $modelName = class_basename($report->target_type);
@@ -205,26 +205,24 @@ class AdminController extends Controller
                 case 'Item':
                     $targetType = 'inzerát';
                     $targetName = "**„{$target->title}“**";
-                    $suffix = ''; // "inzerát byl odstraněn" (mužský)
+                    $suffix = '';
                     break;
                 case 'User':
                     $targetType = 'účet';
                     $targetName = "**{$target->first_name} {$target->last_name}**";
-                    $suffix = ''; // "účet byl odstraněn" (mužský)
+                    $suffix = '';
                     break;
                 case 'ReviewUser':
                     $targetType = 'recenze';
-                    // Načteme uživatele, na jehož profilu recenze byla
                     $profileOwner = $target->reviewedUser
                         ? "{$target->reviewedUser->first_name} {$target->reviewedUser->last_name}"
                         : null;
 
                     $targetName = "uživatele **$profileOwner** ze dne **$targetDate**";
-                    $suffix = 'a'; // "recenze byla odstraněna / obnovena"
+                    $suffix = 'a';
                     break;
                 case 'ReviewItem':
                     $targetType = 'recenze';
-                    // hledáme název inzerátu, ke kterému recenze patří
                     $itemTitle = $target->item ? "„{$target->item->title}“" : 'inzerátu';
                     $targetName = "nabídky **$itemTitle** ze dne **$targetDate**";
                     $suffix = 'a';
@@ -236,7 +234,7 @@ class AdminController extends Controller
             $target = $report->target;
             $owner = null;
 
-            // 1. Identifikace majitele
+            // Identifikace majitele
             if ($target instanceof User) {
                 $owner = $target;
             } elseif ($target) {
@@ -247,7 +245,7 @@ class AdminController extends Controller
                 }
             }
 
-            // 2. Provedení akce
+            // Provedení akce
             switch ($action) {
                 case 'strike_user':
                     // STRIKE: Funguje pro uživatele přímo, i pro majitele obsahu
@@ -288,17 +286,16 @@ class AdminController extends Controller
                     break;
 
                 case 'delete_content':
-                    // Tato akce by u typu User neměla v UI ideálně vůbec být,
-                    // ale pro jistotu ji ošetříme, aby uživateli neublížila (jen ho "schová")
+                    // Bezpečné zpracování akce delete_content i pro uživatelský typ cíle
                     if ($isUser) {
-                        $target->delete(); // Jen soft-delete bez banu/striku
+                        $target->delete();
                     } else {
                         $target->delete();
                     }
                     break;
             }
 
-            // 3. Uzavření reportu
+            // Uzavření nahlášení a uložení metadat o řešení
             $report->update([
                 'status' => $action === 'dismiss' ? 'dismissed' : 'resolved',
                 'resolution_action' => $action,
@@ -308,7 +305,7 @@ class AdminController extends Controller
                 'resolved_at' => now(),
             ]);
 
-            // 4. Notifikace majiteli
+            // Odeslání notifikace vlastníkovi cílového objektu mimo akci dismiss
             if ($owner && $action !== 'dismiss') {
                 $notifTitle = 'Tým TechWatch: Smazání obsahu';
                 if ($action === 'strike_user') {
@@ -318,43 +315,37 @@ class AdminController extends Controller
                     $notifTitle = 'Tým TechWatch: Zablokování účtu';
                 }
 
-                // Dynamické skloňování členu (Váš / Vaše)
+                // Volba tvaru zájmena podle rodu cílového typu obsahu
                 $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
 
-                // Dynamický text podle akce
+                // Sestavení textu notifikace podle typu provedené moderace
                 if ($action === 'strike_user') {
                     $currentStrikes = $owner->strikes_count;
                     $verb = ($suffix === 'a') ? 'byla vyhodnocena jako závadná' : 'byl vyhodnocen jako závadný';
 
                     if ($currentStrikes >= 3) {
-                        // Text pro finální 3. strike
                         $notifTitle = 'Tým TechWatch: Zablokování účtu';
                         $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. ".
                                         'Za opakované porušení pravidel Vám byl udělen **3. strike**, a proto byl Váš účet **trvale zablokován**.';
                     } else {
-                        // Text pro 1. a 2. strike
                         $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. ".
                                         "Za porušení pravidel vám byl udělen **Strike**. Toto je Váš **$currentStrikes. ze 3 možných**. ".
-                                        'Upozorňujeme, že při dosažení **3 striků** bude Váš účet **zablokován**.';
+                                        'Upozorujeme, že při dosažení **3 striků** bude Váš účet **zablokován**.';
                     }
                 } elseif ($action === 'ban_user') {
                     $fullDescription = "Dobrý den, $pronoun $targetType $targetName byl důvodem pro okamžité **zablokování Vašeho účtu**.";
                 } else {
-                    // Pouze smazání (delete_content)
                     $verb = ($suffix === 'a') ? 'byla odstraněna' : (($suffix === '') ? 'byl odstraněn' : 'bylo odstraněno');
                     $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb z důvodu porušení pravidel.";
                 }
 
-                // Zobrazit "Odůvodnění" jen pokud není adminNote prázdný
                 if (! empty($adminNote)) {
                     $fullDescription .= "\n**Odůvodnění**: $adminNote";
                 }
 
-                // Vyčistit od nebezpečných tagů
+                // Sanitizace a formátování textu před odesláním e-mailu/notifikace
                 $fullDescription = strip_tags($fullDescription);
-                // Převést konce řádků na <br> (klíčové pro Outlook)
                 $fullDescription = nl2br($fullDescription);
-                // Nahradit Markdown za strong
                 $fullDescription = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $fullDescription);
 
                 $notifOwner = Notification::create([
@@ -375,7 +366,7 @@ class AdminController extends Controller
                 }
             }
 
-            // 5. Notifikace oznamovateli
+            // Notifikace oznamovateli
             if ($report->reporter && $reporterNote) {
                 $notifReporter = Notification::create([
                     'user_id' => $report->reporter_id,
@@ -433,12 +424,12 @@ class AdminController extends Controller
             $modelClass = $report->target_type;
             $target = $modelClass::withTrashed()->find($report->target_id);
 
-            // 1. Obnova cíle
+            // Obnova cíle
             if ($target && method_exists($target, 'restore') && $target->trashed()) {
                 $target->restore();
             }
 
-            // 2. Textace (přesunuto nad notifikaci)
+            // Textace (přesunuto nad notifikaci)
             $targetType = 'obsah';
             $targetName = '';
             $suffix = '';
@@ -473,7 +464,7 @@ class AdminController extends Controller
                 }
             }
 
-            // 3. Správa postihů
+            // Správa postihů
             $owner = null;
             if ($target instanceof User) {
                 $owner = $target;
@@ -510,7 +501,7 @@ class AdminController extends Controller
                     $wasUnbanned = true;
                 }
 
-                // 4. Notifikace - Vše musí být uvnitř této podmínky
+                // Notifikace - Vše musí být uvnitř této podmínky
                 if ($shouldNotify && $report->status === 'resolved') {
                     $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
                     $verb = ($suffix === 'a') ? 'obnovena' : 'obnoven';
@@ -524,7 +515,7 @@ class AdminController extends Controller
                     }
 
                     if ($wasUnbanned) {
-                        $msg .= ' Zároveň byl Váš účet **plně odblokován** a přístup k němu **obnoven**.';
+                        $msg .= ' Zárove byl Váš účet **plně odblokován** a přístup k němu **obnoven**.';
                     }
 
                     // Očistit od nebezpečných tagů
@@ -551,7 +542,7 @@ class AdminController extends Controller
                 }
             }
 
-            // 5. Reset reportu (vždy na konci transakce)
+            // Reset reportu (vždy na konci transakce)
             $report->update([
                 'status' => 'pending',
                 'resolved_at' => null,

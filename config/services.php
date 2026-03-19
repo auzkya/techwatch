@@ -35,7 +35,7 @@ return [
         ],
     ],
 
-    // Propojení s oAuth
+    // Konfigurace OAuth poskytovatelů
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
@@ -46,11 +46,11 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT'),
         'guzzle' => [
-            'verify' => false, // vypne SSL certifikáty jen pro vývoj
+            'verify' => false,
         ],
     ],
 
-    // Twilio pro autentizaci telefonu
+    // Konfigurace Twilio rozhraní pro telefonní verifikaci
     'twilio' => [
         'sid' => env('TWILIO_SID'),
         'token' => env('TWILIO_AUTH_TOKEN'),

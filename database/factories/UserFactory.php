@@ -29,9 +29,10 @@ class UserFactory extends Factory
             'is_active' => true,
             'profile_image' => 'https://i.pravatar.cc/150?u='.fake()->uuid(),
             'bio' => fake()->sentence(),
-            'location' => fake()->randomElement(['praha', 'brno', 'ostrava', 'plzensky']), // Slugs pro tvůj select
+            // Generování slug hodnot kompatibilních s výběrem lokality na frontendu
+            'location' => fake()->randomElement(['praha', 'brno', 'ostrava', 'plzensky']),
             'review_value' => fake()->randomFloat(1, 1, 5),
-            // Nastavíme aktivitu na 1 měsíc dopředu, aby byli vidět v seznamu
+            // Nastavení data platnosti aktivního profilu do budoucna pro testovací scénáře
             'active_worker_till' => now()->addMonths(1),
             'state_verified' => fake()->boolean(),
         ];

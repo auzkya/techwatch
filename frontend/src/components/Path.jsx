@@ -54,14 +54,14 @@ const Path = ({
     const myListingsPath = `/user/${userId}/listings`;
 
     const handleReset = (e, targetPath, type) => {
-        // 1. Pokud už na té stránce jsme, spustíme tvůj resetovací event
+        // Pokud už je otevřená cílová stránka, spustit resetovací událost
         if (location.pathname === targetPath) {
             e.preventDefault();
             window.dispatchEvent(new CustomEvent("reset-filters"));
             return; // Dál už nepokračujeme
         }
 
-        // 2. Pokud jsme na jiné stránce (např. v detailu), musíme navigovat
+        // Pokud jsme na jiné stránce (např. v detailu), musíme navigovat
         // e.preventDefault() zde nevoláme hned, aby Link mohl přirozeně navigovat,
         // nebo ho zavoláme a použijeme navigate (čistší řešení):
 
@@ -87,7 +87,7 @@ const Path = ({
                     </Link>
                 </p>
 
-                {/* 1. ÚROVEŇ: PRACOVNÍCI / TECHNIKA - Tady chceme RESET FILTRŮ */}
+                {/* 1. úroveň: pracovníci/technika, reset filtrů */}
                 {showMode && (
                     <>
                         <p>&rsaquo;</p>
@@ -114,7 +114,7 @@ const Path = ({
                                     )
                                 }
                             >
-                                {/* TADY JE OPRAVA POPISKU */}
+                                {/* Korekce popisku */}
                                 {isFavourites
                                     ? "ULOŽENÉ NABÍDKY"
                                     : isTech
@@ -125,7 +125,7 @@ const Path = ({
                     </>
                 )}
 
-                {/* 2. ÚROVEŇ: KATEGORIE - Tady chceme zachovat kategorii */}
+                {/* 2. úroveň: kategorie, zachování zvoleného filtru */}
                 {showCategory && (
                     <>
                         <p>&rsaquo;</p>
@@ -174,8 +174,8 @@ const Path = ({
                         <p>&rsaquo;</p>
                         <p>
                             {isMyListings ? (
-                                // Pokud máme název (jsme v detailu), "Moje nabídky" je odkaz.
-                                // Pokud název nemáme (jsme v seznamu), je to jen text.
+                                // Pokud máme název (jsme v detailu), "Moje nabídky" je odkaz
+                                // Pokud název nemáme (jsme v seznamu), je to jen text
                                 name ? (
                                     <Link
                                         className="path-a"

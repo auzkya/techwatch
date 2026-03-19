@@ -38,7 +38,7 @@ const Tech = () => {
     const path = useLocation();
     const navigate = useNavigate();
 
-    // STAVY PRO PAGINACI
+    // Stav stránkování
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const isFetching = useRef(false);
@@ -48,9 +48,9 @@ const Tech = () => {
     const [isOpen3, setIsOpen3] = useState(false);
     const selectRef1 = useRef(null); // Pro Lokalitu (isOpen)
     const selectRef2 = useRef(null); // Pro Dostupnost (isOpen2)
-    const selectRef3 = useRef(null); // Pro Řazení (isOpen3)
+    const selectRef3 = useRef(null); // Pro azení (isOpen3)
 
-    // STAVY FILTRŮ
+    // Stav filtrů
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedLocation, setSelectedLocation] = useState({
         value: "",
@@ -72,7 +72,7 @@ const Tech = () => {
         quantity: 1,
     });
 
-    // FUNKCE PRO NAČÍTÁNÍ (stejná logika jako ve Workers)
+    // FUNKCE PRO NAČÍTNÍ (stejná logika jako ve Workers)
     const fetchItems = useCallback(
         async (pageNumber, isInitial = false) => {
             if (isFetching.current && !isInitial) return;
@@ -128,7 +128,7 @@ const Tech = () => {
         setPage(1);
         setHasMore(true);
 
-        // OKAMŽITÁ AKCE: Vymazat staré položky a zapnout loading
+        // OKAMŽIT AKCE: Vymazat staré položky a zapnout loading
         setItems([]);
         setLoading(true);
 
@@ -226,7 +226,7 @@ const Tech = () => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeňský kraj" },
+        { value: "plzensky", label: "Plzeský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -287,7 +287,7 @@ const Tech = () => {
 
             {!subcategory && (
                 <div className="workers-nav">
-                    {/* Tady budou tlačítka pro podkategorie */}
+                    {/* Tlačítka pro volbu podkategorií techniky */}
                     <ButtonSubcategory
                         key={"light"}
                         icon={<FontAwesomeIcon icon={faLightbulb} />}
@@ -373,7 +373,7 @@ const Tech = () => {
                         <div className="location" ref={selectRef3}>
                             <div className="custom-select-wrapper">
                                 <label className="body_base label-move">
-                                    Řadit dle
+                                    adit dle
                                 </label>
                                 <div
                                     className={`custom-select-down ${isOpen3 ? "open" : ""}`}
@@ -536,7 +536,7 @@ const Tech = () => {
                             </div>
                         </div>
 
-                        {/* HODNOCENÍ ZAŘÍZENÍ */}
+                        {/* HODNOCENÍ ZAÍZENÍ */}
                         <label
                             htmlFor="rating"
                             className="body_base label-move"

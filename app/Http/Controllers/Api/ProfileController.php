@@ -32,17 +32,15 @@ class ProfileController extends Controller
             'spec.*' => 'string|exists:specs,slug',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp,avif|max:4096',
         ]);
-
-        // --- LOGIKA TELEFONU ---
         if (array_key_exists('phone', $validated)) {
             $newPhone = $validated['phone'];
 
-            // SCÉNÁŘ A: Uživatel telefon smazal
+            // SCÉN A: Uživatel telefon smazal
             if (empty($newPhone)) {
                 $user->phone = null;
                 $user->phone_verified_at = null;
             }
-            // SCÉNÁŘ B: Uživatel telefon změnil na jiné číslo
+            // SCÉN B: Uživatel telefon změnil na jiné číslo
             elseif ($newPhone !== $user->phone) {
                 $verification = \App\Models\PhoneVerification::where('user_id', $user->id)
                     ->where('phone', $newPhone)
@@ -81,42 +79,39 @@ class ProfileController extends Controller
 
         // Avatar
         if ($request->hasFile('avatar')) {
-            // 1. Smazání starého avataru (pokud existuje)
+            // Smazání starého avataru (pokud existuje)
             if ($user->profile_image && ! filter_var($user->profile_image, FILTER_VALIDATE_URL)) {
                 Storage::disk('r2')->delete($user->profile_image);
             }
 
             $file = $request->file('avatar');
 
-            // 2. Definice názvu (vždy končí .webp)
+            // Generování názvu souboru avatara ve formátu WebP
             $filename = 'avatars/'.$user->id.'_'.time().'.webp';
 
-            // 3. Zpracování obrázku pomocí Intervention
-            // fit(400, 400) ořízne obrázek na čtverec (center crop)
-            // encode('webp', 80) převede formát a nastaví kvalitu na 80 %
+            // Optimalizace obrázku na čtvercový výřez 400x400 ve formátu WebP
             $optimizedImage = Image::make($file)
                 ->fit(400, 400, function ($constraint) {
-                    $constraint->upsize(); // nezvětšovat, pokud je zdroj menší než 400px
+                    $constraint->upsize();
                 })
                 ->encode('webp', 80);
 
-            // 4. Uložení streamu do Cloudflare R2
+            // Uložení optimalizovaného souboru do objektového úložiště R2
             Storage::disk('r2')->put(
                 $filename,
                 $optimizedImage->stream(),
                 'public'
             );
 
-            // 5. Uložení cesty do databáze
+            // Uložení cesty k avataru do databáze uživatele
             $user->profile_image = $filename;
             $user->save();
         }
 
-        // Po uložení všech dat zkontrolujeme eligibilitu
+        // Vyhodnocení podmínek pro aktivní stav profilu po aktualizaci údajů
         $profileComplete = $user->first_name && $user->last_name && $user->email &&
                         $user->bio && $user->location && $user->phone;
 
-        // Načteme specs, pokud nejsou v modelu User přes $with
         $hasSpecializations = $user->specs()->count() > 0;
         $hasAvatar = ! empty($user->profile_image);
 
@@ -125,7 +120,7 @@ class ProfileController extends Controller
 
         $extraMessage = null;
 
-        // Pokud byl aktivní a už není způsobilý, vypneme mu to
+        // Deaktivace režimu hledání práce při ztrátě způsobilosti profilu
         if ($wasActive && ! $isStillEligible) {
             $user->active_worker_till = null;
             $user->save();
@@ -165,8 +160,6 @@ class ProfileController extends Controller
 
         // Pokud uživatel chce zapnout (nyní je vypnuto nebo prošlé)
         if (! $user->active_worker_till || $user->active_worker_till->isPast()) {
-
-            // --- VALIDACE PŘED ZAPNUTÍM ---
             $profileComplete = $user->first_name && $user->last_name && $user->email &&
                 $user->bio && $user->location && $user->phone;
             $hasSpecializations = $user->specs->count() > 0;
@@ -257,13 +250,13 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // 1. Získáme seznam aktuálních obrázků/souborů v DB
+        // Získáme seznam aktuálních obrázků/souborů v DB
         $currentRiders = UserRider::where('user_id', $user->id)->get();
 
-        // 2. Seznam URL, které mají zůstat
+        // Seznam URL, které mají zůstat
         $existingImages = $request->input('existing_images', []);
 
-        // 3. Smazání odstraněných souborů
+        // Smazání odstraněných souborů
         foreach ($currentRiders as $rider) {
             $fullUrl = config('filesystems.disks.r2.url').'/'.$rider->image_url;
 
@@ -273,7 +266,7 @@ class ProfileController extends Controller
             }
         }
 
-        // 4. Přidání nových souborů
+        // Zpracování nově nahraných souborů podle typu přípony
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
 
@@ -282,17 +275,15 @@ class ProfileController extends Controller
                 $folder = "riders/{$user->id}/";
 
                 if ($extension === 'pdf') {
-                    // --- LOGIKA PRO PDF ---
                     $filename = $folder.$uniqueName.'.pdf';
 
-                    // PDF neupravujeme, jen ho uložíme
+                    // Uložení PDF dokumentu bez obrazové optimalizace
                     Storage::disk('r2')->putFileAs($folder, $file, $uniqueName.'.pdf', 'public');
 
                 } else {
-                    // --- LOGIKA PRO OBRÁZKY (WebP konverze) ---
                     $filename = $folder.$uniqueName.'.webp';
 
-                    // Zpracování obrázku pomocí Intervention Image
+                    // Konverze obrázku do WebP pro efektivnější uložení a přenos
                     $img = Image::make($file)
                         ->resize(1600, null, function ($constraint) {
                             $constraint->aspectRatio();

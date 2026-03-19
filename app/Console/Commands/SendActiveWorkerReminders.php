@@ -10,23 +10,8 @@ use Illuminate\Support\Facades\URL;
 
 class SendActiveWorkerReminders extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'app:send-active-worker-reminders';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Send reminder email 24h before active_worker_till expires';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $users = User::whereNotNull('active_worker_till')
@@ -36,8 +21,6 @@ class SendActiveWorkerReminders extends Command
                 now()->addHours(25),
             ])
             ->get();
-
-        // ⚠️ DEBUG
         \Log::info('Sending active worker reminders', [
             'count' => $users->count(),
             'users' => $users->pluck('id', 'email')->toArray(),

@@ -9,19 +9,19 @@ use Symfony\Component\HttpFoundation\Response;
 class AdminMiddleware
 {
     /**
-     * @param  string  ...$roles  <-- Tady přijímáme seznam povolených rolí
+     * @param  string  ...$roles  Seznam povolených rolí pro autorizaci přístupu.
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // Použijeme tvůj ověřený způsob se Sanctumem
+        // Načtení aktuálně autentizovaného uživatele přes rozhraní Sanctum
         $user = auth('sanctum')->user();
 
-        // Pokud v routě nezadáš žádné role, defaultně pustíme jen 'admin' (původní chování)
+        // Použití výchozí role administrátora při nevyplněném seznamu rolí
         if (empty($roles)) {
             $roles = ['admin'];
         }
 
-        // Kontrola: Je uživatel přihlášen a má jednu z požadovaných rolí?
+        // Ověření, že uživatel existuje a má alespoň jednu požadovanou roli
         if ($user && in_array($user->role, $roles)) {
             return $next($request);
         }

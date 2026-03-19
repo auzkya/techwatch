@@ -11,33 +11,31 @@ class Report extends Model
     protected $fillable = [
         'reporter_id',
         'target_id',
-        'target_type',    // Nahrazuje 'type' pro polymorfní vazbu
-        'report_category', // Sjednoceno s názvem v migraci
+        'target_type',
+        'report_category',
         'reason',
         'status',
         'resolution_action',
-        'admin_note',     // Přidáno pro tvoje poznámky (RQ-37)
+        'admin_note',
         'resolved_at',
         'resolved_by',
     ];
 
     /**
-     * Klíčová změna: Polymorfní vazba.
-     * Umožňuje získat objekt, který byl nahlášen (Item, User, Review)
-     * bez ohledu na to, v jaké je tabulce.
+     * Polymorfní vazba na nahlášený objekt.
      */
     public function target(): MorphTo
     {
         return $this->morphTo();
     }
 
-    // Kdo nahlášení vytvořil
+    // Vazba na uživatele, který nahlášení vytvořil
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reporter_id');
     }
 
-    // Kdo (admin/moderátor) nahlášení vyřešil
+    // Vazba na administrátora, který nahlášení vyřešil
     public function resolver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'resolved_by');

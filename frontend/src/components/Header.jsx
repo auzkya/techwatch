@@ -44,7 +44,7 @@ const Header = () => {
     const { user, setUser, accessToken } = useAuth();
     const { showAlert } = useAlert();
 
-    // ✅ Centrální data z NotificationContext
+    // Centrální data notifikací z `NotificationContext`
     const {
         notifications,
         unreadMessagesCount,
@@ -111,9 +111,7 @@ const Header = () => {
             }
         }
     }, [searchParams, notifications, handleNotificationClick, setSearchParams]);
-
-    // --- LOGIKA: "HLEDÁM PRÁCI" & AVATAR ---
-    // Pomocná funkce pro Alert HLEDÁM PRÁCI
+    // Pomocná funkce pro Alert Hledám práci
     const showIncompleteProfileAlert = (data) => {
         // Pokud by data byla null nebo prázdná, nastavíme fallback
         if (!data) {
@@ -127,7 +125,7 @@ const Header = () => {
         if (data.profileComplete === false) {
             message = (
                 <span>
-                    Vyplňte profil{" "}
+                    Vyplte profil{" "}
                     <Link to={buildRoute(ROUTES.EDIT_PROFILE)}>zde</Link>.
                 </span>
             );
@@ -149,7 +147,7 @@ const Header = () => {
 
         showAlert("error", message);
     };
-    // 1. STAV ODVOZENÝ PŘÍMO Z DAT (žádný extra useState)
+    // STAV ODVOZENÝ PÍMO Z DAT (žádný extra useState)
     const isLookingForJob = user?.active_worker_till
         ? new Date(user.active_worker_till) > new Date()
         : false;
@@ -160,7 +158,7 @@ const Header = () => {
         const isTurningOn = !isLookingForJob;
         const previousDate = user.active_worker_till;
 
-        // 1. KONTROLA PŘEDEM (z Cache) - Pokud už víme, že profil je nekompletní, ani nezkoušíme API
+        // KONTROLA PŘEDEM (z Cache) - Pokud už víme, že profil je nekompletní, ani nezkoušíme API
         const eligibility = cache.getProfileEligible();
         if (
             isTurningOn &&
@@ -173,7 +171,7 @@ const Header = () => {
             return;
         }
 
-        // 2. OPTIMISTICKÝ UPDATE - Přepneme UI okamžitě
+        // OPTIMISTICKÝ UPDATE - Přepneme UI okamžitě
         // Nastavíme datum na +14 dní (při zapnutí) nebo null (při vypnutí)
         const optimisticDate = isTurningOn
             ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
@@ -187,7 +185,7 @@ const Header = () => {
             );
             const { active_worker_till } = res.data;
 
-            // 3. SYNCHRONIZACE S REALITOU (Backend potvrdil úspěch)
+            // SYNCHRONIZACE S REALITOU (Backend potvrdil úspěch)
             setUser({ ...user, active_worker_till });
             cache.setActiveWorkerTill(active_worker_till);
 
@@ -216,8 +214,8 @@ const Header = () => {
                 cache.setProfileEligible(responseData);
                 showIncompleteProfileAlert(responseData);
             } else {
-                // Tady je zakopaný pes. Pokud Laravel vrátí validační chyby,
-                // message může být objekt nebo pole.
+                // Zpracování validačních chyb vrácených backendem
+                // message může být objekt nebo pole
                 let errorMsg = "Nepodařilo se změnit stav.";
 
                 if (typeof responseData?.message === "string") {
@@ -237,8 +235,6 @@ const Header = () => {
 
     // To samé pro avatar - nenechávej tam default a pak useEffect, dej to rovnou:
     const avatarPreview = user?.profile_image_url || ASSETS.default_avatar;
-
-    // --- LOGIKA: ANIMACE BADGE PŘI ZVÝŠENÍ POČTU ---
     useEffect(() => {
         if (unreadMessagesCount > prevMessagesCount.current) {
             setIsAnimatingMessage(true);
@@ -254,8 +250,6 @@ const Header = () => {
         }
         prevNotifsCount.current = unreadNotifsCount;
     }, [unreadNotifsCount]);
-
-    // --- LOGIKA: DROPDOWN MANAGEMENT ---
     const toggleDropdown = (type) => {
         if (type === "messages") {
             setOpenMessages(!openMessages);
@@ -353,13 +347,13 @@ const Header = () => {
                     <NotificationMessage
                         key={msg.id}
                         id={msg.id}
-                        // 3) OPRAVA UNDEFINED: Používáme msg.sender (díky .with() v Laravelu)
+                        // Použití msg.sender pro konzistentní data o odesílateli
                         image={
                             msg.sender?.profile_image_url ||
                             ASSETS.default_avatar
                         }
                         name={msg.title}
-                        // 1) KONKRÉTNÍ ČAS HH:MM pro dnešní/včerejší, jinak datum
+                        // KONKRÉTNÍ ČAS HH:MM pro dnešní/včerejší, jinak datum
                         date={format(new Date(msg.created_at), "HH:mm")}
                         user={`${msg.sender?.first_name} ${msg.sender?.last_name}:`}
                         text={renderNotificationDescription(msg.description)}
@@ -506,7 +500,7 @@ const Header = () => {
                         className="button-add_item"
                         onClick={() => navigate(buildRoute(ROUTES.ADD_TECH))}
                     >
-                        <span>PŘIDAT NABÍDKU</span>
+                        <span>PIDAT NABÍDKU</span>
                     </button>
 
                     <button
@@ -522,7 +516,7 @@ const Header = () => {
                             />
                             <span className="slider round"></span>
                         </label>
-                        HLEDÁM PRÁCI
+                        Hledám práci
                     </button>
 
                     <button
@@ -674,7 +668,7 @@ const Header = () => {
                     <button
                         className="profile_dropdown_button"
                         onClick={() => {
-                            // Zde state také nepotřebujeme, Path si "Moje nabídky" vezme z props
+                            // `state` zde není potřeba; breadcrumb využije hodnoty z props
                             navigate(
                                 buildRoute(ROUTES.USER_LISTINGS, {
                                     id: user.id,

@@ -27,7 +27,7 @@ class NotificationSent implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        // Kanál, který poslouchá konkrétní uživatel v Reactu
+        // Publikování události do privátního kanálu cílového uživatele
         return [
             new PrivateChannel('user.'.$this->notification->user_id),
         ];
@@ -35,7 +35,7 @@ class NotificationSent implements ShouldBroadcast
 
     public function broadcastWith(): array
     {
-        // ✅ Načteme odesílatele a jeho specifikace, aby to React mohl vykreslit hned
+        // Rozšíření payloadu o data odesílatele a počet nepřečtených notifikací
         return [
             'notification' => $this->notification->load(['sender.specs']),
             'unread_count' => Notification::where('user_id', $this->notification->user_id)

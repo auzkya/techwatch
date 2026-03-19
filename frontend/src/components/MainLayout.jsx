@@ -8,7 +8,7 @@ const MainLayout = () => {
             <Header />
             <div className="content-wrapper">
                 <Outlet />{" "}
-                {/* Tady se vykreslí ty routes z pole layoutRoutes */}
+                {/* Vykreslení tras definovaných v `layoutRoutes` */}
             </div>
         </NotificationProvider>
     );

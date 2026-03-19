@@ -15,9 +15,8 @@ class FavouriteController extends Controller
     public function toggleUser($id)
     {
         $user = auth()->user();
-        $targetUser = User::findOrFail($id); // Najdeme uživatele, kterého si někdo přidává
-        // toggle() v Laravelu pro M:N vztahy funguje skvěle,
-        // ale my zde použijeme manuální kontrolu kvůli primárnímu klíči
+        $targetUser = User::findOrFail($id);
+        // Ruční kontrola existence záznamu v M:N tabulce pro jednoznačné mazání/vložení
         $exists = DB::table('favourites_users')
             ->where('user_id', $user->id)
             ->where('favourite_user_id', $id)
@@ -38,8 +37,7 @@ class FavouriteController extends Controller
             'created_at' => now(),
         ]);
 
-        // ODESLÁNÍ NOTIFIKACE (jen když přidává do oblíbených)
-        // Nechceme notifikovat sami sebe
+        // Volitelná notifikace při přidání do oblíbených je dočasně vypnuta
         /*if ($user->id !== $targetUser->id) {
             $notification = Notification::create([
                 'user_id' => $targetUser->id,
@@ -63,7 +61,7 @@ class FavouriteController extends Controller
     public function toggleItem($id)
     {
         $user = auth()->user();
-        $item = Item::findOrFail($id); // Najdeme věc, kterou si někdo přidává
+        $item = Item::findOrFail($id);
         $exists = DB::table('favourites_items')
             ->where('user_id', $user->id)
             ->where('item_id', $id)
@@ -84,7 +82,7 @@ class FavouriteController extends Controller
             'created_at' => now(),
         ]);
 
-        // ODESLÁNÍ NOTIFIKACE majiteli položky
+        // Volitelná notifikace majiteli položky je dočasně vypnuta
         /*if ($user->id !== $item->user_id) {
             $notification = Notification::create([
                 'user_id' => $item->user_id, // Majitel položky
@@ -115,7 +113,7 @@ class FavouriteController extends Controller
 
         $searchTerm = $request->query('search');
 
-        // --- PRACOVNÍCI ---
+        // Načtení oblíbených pracovníků aktuálního uživatele
         $workersQuery = User::with(['specs'])
             ->whereHas('favouritedBy', function ($q) use ($currentUser) {
                 $q->where('user_id', $currentUser->id);
@@ -132,33 +130,32 @@ class FavouriteController extends Controller
         $workers = $workersQuery->get()->map(function ($user) {
             $user->append('profile_image_url');
             $user->formatted_specs = $user->specs->pluck('name')->implode(' | ');
-            $user->is_favourite = true; // Jsme v seznamu oblíbených
+            $user->is_favourite = true;
 
             return $user;
         });
 
-        // --- TECHNIKA ---
+        // Načtení oblíbených položek techniky aktuálního uživatele
         $techQuery = Item::whereHas('favouritedBy', function ($q) use ($currentUser) {
             $q->where('user_id', $currentUser->id);
         })
             ->where('active_item', true);
 
         if ($request->filled('search')) {
-            $techQuery->where('title', 'LIKE', "%{$searchTerm}%"); // V TechControlleru máš 'title', ne 'name'
+            $techQuery->where('title', 'LIKE', "%{$searchTerm}%");
         }
 
         $tech = $techQuery->get()->map(function ($item) {
             $item->is_favourite = true;
 
-            // Použijeme tvou logiku pro obrázky z TechControlleru
+            // Sjednocení hlavního obrázku položky pro výstup API
             if ($item->images) {
                 $images = is_array($item->images) ? $item->images : json_decode($item->images, true);
                 $item->main_image_url = ! empty($images) ? \Storage::disk('r2')->url($images[0]) : null;
             }
 
-            // V TechControlleru máš sloupec 'category', ne vztah
             $item->category_name = $item->category;
-            // Pro frontend Item.js sjednoť jméno na 'name'
+            // Sjednocení názvu položky na atribut `name` pro frontend
             $item->name = $item->title;
 
             return $item;

@@ -8,36 +8,35 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Zajistíme čistý start pro odevzdání
+        // Vynucení čistého vytvoření tabulky při spuštění migrace
         Schema::dropIfExists('reports');
 
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
 
-            // Kdo nahlásil
+            // Vazba na uživatele, který nahlášení vytvořil
             $table->foreignId('reporter_id')->constrained('users')->onDelete('cascade');
 
-            // Polymorfní vazba na cíl (User, Item, atd.)
-            // Vytvoří target_id a target_type
+            // Polymorfní identifikace cílového objektu nahlášení
             $table->nullableMorphs('target');
 
-            // Detaily hlášení
-            $table->string('report_category'); // např. podvod, spam
-            $table->text('reason')->nullable(); // Původní důvod od uživatele
-            $table->text('reporter_note')->nullable(); // Doplňující poznámka reportéra
+            // Detailní klasifikace a popis nahlášení
+            $table->string('report_category');
+            $table->text('reason')->nullable();
+            $table->text('reporter_note')->nullable();
 
-            // Administrace a řešení (RQ-37)
+            // Stav a výstup administrátorského řešení nahlášení
             $table->enum('status', ['pending', 'resolved', 'dismissed'])->default('pending');
-            $table->string('resolution_action')->nullable(); // Např. 'banned', 'deleted_item', 'warned'
-            $table->text('admin_note')->nullable(); // Interní komentář admina
+            $table->string('resolution_action')->nullable();
+            $table->text('admin_note')->nullable();
 
-            // Audit řešení
+            // Auditní údaje o zpracování nahlášení
             $table->foreignId('resolved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('resolved_at')->nullable();
 
             $table->timestamps();
 
-            // Indexy pro dashboard
+            // Indexy pro optimalizaci filtrů v administrátorském dashboardu
             $table->index('status');
             $table->index('created_at');
         });

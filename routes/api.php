@@ -162,7 +162,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/notifications/send', [NotificationController::class, 'sendInquiry']);
 });
 
-// Toto přepíše výchozí chování a vynutí Sanctum middleware pro auth socketů
+// Vynucení Sanctum middleware pro autentizaci websocket kanálů
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 /*
@@ -172,10 +172,10 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 */
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // Trasy pro nahlášení (vytvořit nahlášení může každý přihlášený)
+    // Trasa pro vytvoření nahlášení přihlášeným uživatelem
     Route::post('/reports', [ReportController::class, 'store']);
 
-    // Trasy jen pro adminy (např. seznam nahlášení)
+    // Trasa pro administrátorský přehled nahlášení
     Route::get('/admin/reports', function () {
         if (auth()->user()->role !== 'admin') {
             return response()->json(['message' => 'Unauthorized'], 403);
@@ -192,15 +192,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
 */
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    // Statistiky: Vidí analytik, moderátor i hlavní admin
+    // Statistiky dostupné rolím analytik, moderátor a hlavní administrátor
     Route::get('/dashboard-stats', [AdminController::class, 'getDashboardStats'])
         ->middleware('admin:admin_viewer,admin_moderator,super_admin');
 
-    // Nahlášení (Nevyřízená): Vidí jen moderátor a hlavní admin
+    // Nevyřízená nahlášení dostupná moderátorům a hlavním administrátorům
     Route::get('/admin/reports', [ReportController::class, 'index'])
         ->middleware('admin:admin_moderator,super_admin');
 
-    // Historie (Vyřízená nahlášení)
+    // Historie vyřízených nahlášení pro moderátorské rozhraní
     Route::get('/admin/resolved-reports', [AdminController::class, 'getResolvedReports'])
         ->middleware('admin:admin_moderator,super_admin');
 
@@ -208,7 +208,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/admin/reports/{id}/resolve', [AdminController::class, 'resolveReport'])
         ->middleware('admin:admin_moderator,super_admin');
 
-    // Akce pro zvrácení nahlášení
+    // Akce pro zvrácení vyřízení nahlášení
     Route::post('/admin/reports/{id}/revert', [AdminController::class, 'revertReport'])
         ->middleware('admin:admin_moderator,super_admin');
 });

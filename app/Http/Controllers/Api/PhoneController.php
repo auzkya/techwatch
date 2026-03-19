@@ -20,9 +20,7 @@ class PhoneController extends Controller
         );
     }
 
-    /**
-     * Odeslat OTP
-     */
+    // Odeslání OTP kódu prostřednictvím služby Twilio Verify
     public function sendOtp(Request $request)
     {
         $request->validate([
@@ -54,9 +52,7 @@ class PhoneController extends Controller
         }
     }
 
-    /**
-     * Ověřit OTP
-     */
+    // Ověření OTP kódu a uložení potvrzeného telefonního čísla
     public function verifyOtp(Request $request)
     {
         $request->validate([
@@ -82,7 +78,7 @@ class PhoneController extends Controller
                 ], 422);
             }
 
-            // ⚠️ NOVÉ: Ulož do phone_verifications tabulky
+            // Uložení ověřeného čísla s časovým omezením platnosti verifikace
             PhoneVerification::updateOrCreate(
                 [
                     'user_id' => $request->user()->id,
@@ -90,7 +86,7 @@ class PhoneController extends Controller
                 ],
                 [
                     'verified_at' => now(),
-                    'expires_at' => now()->addMinutes(10), // Vyprší za 10 minut
+                    'expires_at' => now()->addMinutes(10),
                 ]
             );
 
@@ -186,7 +182,7 @@ class PhoneController extends Controller
         $user = $request->user();
         $phone = $request->phone;
 
-        // existuje stejné číslo u tohoto uživatele?
+        // Kontrola duplicity čísla u jiného uživatelského účtu
         $exists = User::where('phone', $phone)
             ->where('id', '!=', $user->id)
             ->exists();

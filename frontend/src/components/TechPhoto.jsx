@@ -106,8 +106,6 @@ const TechPhoto = ({
         navigator.clipboard.writeText(window.location.href);
         showAlert("success", "Odkaz zkopírován do schránky!");
     };
-
-    // --- POPUP LOGIKA ---
     const [deleteItemId, setDeleteItemId] = useState(null); // Ukládáme ID mazané položky
     const [showDeletePopup, setShowDeletePopup] = useState(false);
     const openDeletePopup = (itemId) => {
@@ -142,7 +140,7 @@ const TechPhoto = ({
 
             // Přesměrování na listings uživatele (předpokládám, že máš v AuthContextu ID)
             // Pokud nemáš přístup k ID uživatele zde, můžeš přesměrovat na obecný dashboard
-            // nebo si ID poslat jako prop.
+            // nebo si ID poslat jako prop
             navigate(-1); // Jednoduchý návrat zpět, nebo:
             // navigate(buildRoute(ROUTES.USER_LISTINGS, { id: currentUserId }));
         } catch (err) {

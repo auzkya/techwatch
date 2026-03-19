@@ -35,7 +35,7 @@ class TechController extends Controller
     {
         $user_id = Auth::id();
 
-        // 1. Definice pravidel
+        // Definice pravidel
         $rules = [
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:700',
@@ -104,17 +104,16 @@ class TechController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Místo findOrFail použijeme where, abychom ověřili vlastníka
+        // Načtení položky omezené na vlastníka pro autorizaci úpravy
         $item = Item::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
 
         if (! $item) {
-            // Pokud item neexistuje NEBO patří někomu jinému, vrátíme 403
             return response()->json(['message' => 'Přístup odepřen.'], 403);
         }
 
-        // Validace: images není required, protože uživatel může chtít nechat původní
+        // Validace požadavku s nepovinným polem obrázků pro částečnou aktualizaci
         $rules = [
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:700',
@@ -142,7 +141,7 @@ class TechController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // 1. Zpracování existujících obrázků (ty už jsou ve WebP z minula nebo zůstávají v orig.)
+        // Normalizace již uložených obrázků před sloučením s novými soubory
         $existingRaw = $request->has('existing_images') ? json_decode($request->input('existing_images'), true) : [];
         $imagePaths = [];
 
@@ -155,7 +154,7 @@ class TechController extends Controller
             }
         }
 
-        // 2. Smazání z R2 těch, které uživatel odstranil
+        // Odstranění souborů z úložiště R2, které nejsou v aktualizovaném seznamu
         $oldImages = is_array($item->images) ? $item->images : json_decode($item->images, true) ?? [];
         foreach ($oldImages as $oldPath) {
             if (! in_array($oldPath, $imagePaths)) {
@@ -163,7 +162,7 @@ class TechController extends Controller
             }
         }
 
-        // 3. Přidání a konverze NOVÝCH obrázků
+        // Konverze nově nahraných obrázků do formátu WebP a jejich uložení
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $index => $imgFile) {
                 $filename = 'items/'.$user_id.'_'.time().'_upd_'.$index.'.webp';
@@ -201,19 +200,18 @@ class TechController extends Controller
 
         $query = Item::with(['user.specs']);
 
-        // Pokud je to admin, dovolíme mu vidět i smazané (soft-deleted) záznamy
+        // Administrátorské rozhraní zahrnuje i soft-deleted záznamy
         if ($isAdmin) {
             $query->withTrashed();
         }
 
         $item = $query->find($id);
 
-        // Kontrola existence a oprávnění pro ne-adminy
         if (! $item) {
             return response()->json(['message' => 'Nenalezeno'], 404);
         }
 
-        // Pokud je položka smazaná (soft-deleted) a uživatel není admin vrátíme 404
+        // Skrytí soft-deleted položek před běžnými uživateli
         if ($item->trashed() && ! $isAdmin) {
             return response()->json(['message' => 'Nenalezeno'], 404);
         }
@@ -222,7 +220,7 @@ class TechController extends Controller
             return response()->json(['message' => 'Nenalezeno'], 404);
         }
 
-        // Pokud request obsahuje parametr 'for_edit', zkontrolujeme majitele
+        // Při režimu editace ověření vlastnictví položky přihlášeným uživatelem
         if (request()->has('for_edit')) {
             if ((int) $item->user_id !== (int) auth()->id()) {
                 return response()->json(['message' => 'Na editaci nemáte právo.'], 403);
@@ -234,10 +232,10 @@ class TechController extends Controller
             ->where('item_id', $id)
             ->exists();
 
-        // Přidáme informaci o smazání, aby frontend mohl zobrazit varování pro adminy
+        // Předání příznaku odstranění pro administrátorské UI
         $item->is_deleted = $item->trashed();
 
-        // Transformace obrázků pro detail
+        // Transformace cest obrázků na výstupní formát pro detail položky
         $item->images = $this->transformImages($item);
 
         return response()->json([
@@ -248,48 +246,46 @@ class TechController extends Controller
     public function index(Request $request)
     {
         $currentUserId = auth('sanctum')->id();
-        // Základní query
         $query = Item::query()->where('active_item', true);
 
-        // Skrytí vlastních nabídek
+        // Vyloučení vlastních nabídek z veřejného výpisu
         if ($currentUserId) {
             $query->where('user_id', '!=', $currentUserId);
         }
 
-        // FILTR: Lokalita (oprava nefunkčnosti)
+        // Filtrace podle lokality
         if ($request->filled('location')) {
             $query->where('location', $request->location);
         }
 
-        // FILTR: Kategorie (subcategory)
+        // Filtrace podle kategorie
         if ($request->filled('subcategory')) {
             $query->where('category', $request->subcategory);
         }
 
-        // FILTR: Účel (rental/sell)
+        // Filtrace podle účelu nabídky
         if ($request->filled('purpose') && $request->purpose !== 'all') {
             $query->where('purpose', $request->purpose);
         }
 
-        // FILTR: Hodnocení (4+ hvězdy)
+        // Filtrace podle minimálního hodnocení
         if ($request->on_agreement == 'true' || $request->minRating == 'true') {
-            // Pokud je minRating true, chceme jen 4.0 a víc
             $query->where('review_value', '>=', 4);
         }
 
-        // FILTR: Minimální množství
+        // Filtrace podle minimálního množství
         if ($request->filled('quantity')) {
             $query->where('quantity', '>=', (int) $request->quantity);
         }
 
-        // FILTR: Cena (pouze "Dohodou")
+        // Filtrace nabídek bez pevně stanovené ceny
         if ($request->on_agreement == 'true') {
             $query->where(function ($q) {
                 $q->where('price', 0)->orWhereNull('price');
             });
         }
 
-        // Vyhledávání
+        // Fulltextové vyhledávání v názvu a popisu nabídky
         if ($request->filled('search')) {
             $searchTerm = '%'.$request->search.'%';
             $query->where(function ($q) use ($searchTerm) {

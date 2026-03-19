@@ -11,10 +11,9 @@ use Illuminate\Support\Facades\Mail;
 
 class NotificationController extends Controller
 {
-    // Načtení notifikací pro přihlášeného uživatele
+    // Načtení notifikací přihlášeného uživatele včetně odesílatele
     public function index()
     {
-        // Díky $appends v modelu se tech_info přidá samo
         return Notification::where('user_id', auth()->id())
             ->with(['sender.specs'])
             ->orderBy('created_at', 'desc')
@@ -30,7 +29,7 @@ class NotificationController extends Controller
             'tech_id' => 'nullable|integer',
         ]);
 
-        // Ukládáme POUZE tech_id. Žádné URL, žádné názvy (ty si vytáhneme v indexu výše)
+        // Uložení minimálního payloadu notifikace s identifikátorem techniky
         $notification = Notification::create([
             'user_id' => $request->recipient_id,
             'sender_id' => auth()->id(),
@@ -43,20 +42,16 @@ class NotificationController extends Controller
             ],
         ]);
 
-        // 1. Okamžité odeslání přes websocket
+        // Okamžité doručení notifikace přes websocket kanál
         broadcast(new NotificationSent($notification))->toOthers();
 
-        // 2. Email s odkladem (např. 5 minut)
-        // Pokud si uživatel zprávu přečte dřív v Reactu,
-        // v Jobu můžeme zkontrolovat 'is_read' a email neposlat.
+        // Asynchronní odeslání e-mailu pouze při trvajícím stavu nepřečtené zprávy
         $recipient = User::find($request->recipient_id);
 
         if ($recipient && $recipient->email) {
-            // Použijeme closure pro delayed job
             dispatch(function () use ($notification, $recipient) {
                 $currentNotification = Notification::find($notification->id);
 
-                // Kontrola: Poslat jen pokud je stále nepřečtená
                 if ($currentNotification && ! $currentNotification->is_read) {
                     Mail::to($recipient->email)->send(new NewMessageMail($currentNotification));
                 }
@@ -70,9 +65,9 @@ class NotificationController extends Controller
     {
         $userId = auth()->id();
 
-        // Pokud je voláno jako /api/notifications/all/mark-as-read (pro Přečíst vše)
+        // Hromadné označení notifikací jako přečtené pro vybraný typ
         if ($id === 'all') {
-            $type = $request->get('type'); // Volitelné: rozlišení zprávy vs notifikace
+            $type = $request->get('type');
 
             $query = Notification::where('user_id', $userId)->where('is_read', false);
 
@@ -87,7 +82,6 @@ class NotificationController extends Controller
             return response()->json(['success' => true]);
         }
 
-        // Klasické jedno ID
         $notification = Notification::where('id', $id)
             ->where('user_id', $userId)
             ->firstOrFail();

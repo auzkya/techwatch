@@ -70,7 +70,7 @@ class AuthController extends Controller
             now()->addDays(14)
         )->plainTextToken;
 
-        // ⚠️ KRITICKÉ: Vrať refresh token v httpOnly cookie!
+        // Předání refresh tokenu v HTTP-only cookie pro omezení přístupu skriptů
         return response()
             ->json([
                 'access_token' => $accessToken,
@@ -103,7 +103,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid refresh token'], 401);
         }
 
-        // Zkontroluj expiraci
+        // Ověření platnosti refresh tokenu podle času expirace
         if ($pat->expires_at && $pat->expires_at->isPast()) {
             $pat->delete();
 
@@ -112,7 +112,7 @@ class AuthController extends Controller
 
         $user = $pat->tokenable;
 
-        // Vytvoř nový access token
+        // Vygenerování nového access tokenu po úspěšném ověření refresh tokenu
         $accessToken = $user->createToken(
             'access',
             ['*'],
@@ -133,14 +133,14 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // Zkontroluj, jestli je uživatel přihlášený
+        // Načtení aktuálního uživatele pro revokaci tokenů
         $user = $request->user();
         if ($user) {
-            // Smaž všechny tokeny uživatele
+            // Revokace všech aktivních tokenů uživatele při odhlášení
             $user->tokens()->delete();
         }
 
-        // Vždy smaž cookie, i když user není přihlášený
+        // Odstranění refresh cookie bez ohledu na stav autentizace
         return response()
             ->json(['message' => 'Odhlášeno'])
             ->cookie(
@@ -239,24 +239,25 @@ class AuthController extends Controller
         ]);
     }
 
-    public function verify($token)  // ⚠️ POUZE TOKEN, bez ID
+    // Ověření účtu podle verifikačního tokenu bez identifikátoru uživatele
+    public function verify($token)
     {
         $user = User::where('email_verification_token', $token)
-            ->where('is_active', false)  // jen neověřené účty
+            ->where('is_active', false)
             ->first();
 
         if (! $user) {
             return redirect(config('app.frontend_url').'/login?error=invalid');
         }
 
-        // Kontrola expirace (např. 24 hodin)
+        // Kontrola expirace verifikačního odkazu po 24 hodinách od odeslání
         if ($user->email_verification_sent_at->addHours(24)->isPast()) {
             $user->delete();
 
             return redirect(config('app.frontend_url').'/login?error=expired');
         }
 
-        // Ověření
+        // Aktivace účtu a vyčištění verifikačních údajů po úspěšném potvrzení
         $user->update([
             'is_active' => true,
             'email_verification_token' => null,
@@ -264,7 +265,7 @@ class AuthController extends Controller
             'last_login' => now(),
         ]);
 
-        // Vytvoř tokeny
+        // Vytvoření nových přístupových tokenů po dokončení aktivace
         $accessToken = $user->createToken('access', ['*'], now()->addMinutes(30))->plainTextToken;
         $refreshToken = $user->createToken('refresh', ['refresh'], now()->addDays(14))->plainTextToken;
 

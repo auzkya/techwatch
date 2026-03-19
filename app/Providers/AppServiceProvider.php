@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('api', function (Request $request) {
-            // Navýšíme na 1000 požadavků za minutu pro vývoj
+            // Nastavení limitu API požadavků na 1000 za minutu pro vývojové prostředí
             return Limit::perMinute(1000)->by($request->user()?->id ?: $request->ip());
         });
 

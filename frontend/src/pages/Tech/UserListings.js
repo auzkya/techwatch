@@ -17,16 +17,16 @@ const UserListings = () => {
     const [items, setItems] = useState([]);
     const [ownerName, setOwnerName] = useState("");
     const [loading, setLoading] = useState(true);
-    const [initialLoad, setInitialLoad] = useState(true); // Nový stav pro první velký load
+    const [initialLoad, setInitialLoad] = useState(true); // Stav pro první načtení stránky.
     const [isOwner, setIsOwner] = useState(false);
 
-    // Stavy filtrů
+    // Stav filtrů výpisu nabídek
     const [searchTerm] = useState("");
     const [activeSubcategory] = useState(null);
     const [statusFilter, setStatusFilter] = useState("all");
 
-    // --- POPUP LOGIKA ---
-    const [deleteItemId, setDeleteItemId] = useState(null); // Ukládáme ID mazané položky
+    // Stav potvrzovacího dialogu pro smazání položky
+    const [deleteItemId, setDeleteItemId] = useState(null); // ID mazané položky.
     const [showDeletePopup, setShowDeletePopup] = useState(false);
 
     const openDeletePopup = (itemId) => {
@@ -39,7 +39,7 @@ const UserListings = () => {
         setDeleteItemId(null);
     };
 
-    // ESC zavře popup
+    // Zavření dialogu klávesou Escape
     useEffect(() => {
         const handleEsc = (e) => {
             if (e.key === "Escape" && showDeletePopup) {
@@ -49,8 +49,6 @@ const UserListings = () => {
         document.addEventListener("keydown", handleEsc);
         return () => document.removeEventListener("keydown", handleEsc);
     }, [showDeletePopup]);
-
-    // --- API FUNKCE ---
 
     const handleStatusChange = async (itemId, newStatus) => {
         const previousItems = [...items];
@@ -78,7 +76,7 @@ const UserListings = () => {
         if (!deleteItemId) return;
 
         const idToDel = deleteItemId;
-        handleClosePopup(); // Zavřít popup hned
+        handleClosePopup(); // Okamžité uzavření dialogu po potvrzení.
         setLoading(true);
 
         try {
@@ -94,10 +92,9 @@ const UserListings = () => {
         }
     };
 
-    // useEffect pro fetchListings zůstává stejný...
+    // Načtení seznamu nabídek s debounce při změně filtrů
     useEffect(() => {
         const fetchListings = async () => {
-            // Pokud jde o filtr (search/status), loading zapneme, ale initialLoad už ne
             setLoading(true);
             try {
                 const response = await axiosInstance.get(
@@ -117,7 +114,7 @@ const UserListings = () => {
                 console.error("Chyba při načítání:", err);
             } finally {
                 setLoading(false);
-                setInitialLoad(false); // První načtení je hotovo
+                setInitialLoad(false);
             }
         };
 
@@ -131,7 +128,7 @@ const UserListings = () => {
         return img;
     };
 
-    // 1. POKUD SE STRÁNKA NAČÍTÁ POPRVÉ (nemáme ani jméno, ani isOwner)
+    // Úvodní loader při prvním načtení
     if (initialLoad) {
         return (
             <>
@@ -142,7 +139,7 @@ const UserListings = () => {
         );
     }
 
-    // 2. POKUD UŽ MÁME DATA O MAJITELI, ALE DOČÍTÁME POLOŽKY (např. při změně filtru)
+    // Standardní vykreslení stránky po inicializaci dat
     return (
         <>
             <Path
@@ -152,15 +149,14 @@ const UserListings = () => {
                         ? null
                         : location.state?.fromCategory || activeSubcategory
                 }
-                userName={isOwner ? null : ownerName} // Předáme jméno majitele
-                customLabel={isOwner ? "Moje nabídky" : "TECHNIKA"} // Poslední článek cesty
+                userName={isOwner ? null : ownerName}
+                customLabel={isOwner ? "Moje nabídky" : "TECHNIKA"}
             />
 
             <h1 className="list_title">
                 {isOwner ? "Moje nabídky" : ownerName.toUpperCase()}
             </h1>
 
-            {/* --- MAZACÍ POPUP --- */}
             {showDeletePopup && (
                 <div className="popup_container" onClick={handleClosePopup}>
                     <div
@@ -236,7 +232,7 @@ const UserListings = () => {
                                     onEdit={(id) =>
                                         navigate(`/tech/edit/${id}`)
                                     }
-                                    onDelete={(id) => openDeletePopup(id)} // Voláme popup
+                                    onDelete={(id) => openDeletePopup(id)}
                                     onStatusChange={handleStatusChange}
                                     onShare={(id) => {
                                         navigator.clipboard.writeText(
@@ -256,7 +252,7 @@ const UserListings = () => {
                                                     : "TECHNIKA",
                                                 userName: isOwner
                                                     ? null
-                                                    : ownerName, // <--- TADY: Pokud jsem majitel, jméno vynulujeme
+                                                    : ownerName,
                                                 userId: id,
                                                 fromCategory: activeSubcategory,
                                                 ...location.state,

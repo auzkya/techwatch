@@ -22,9 +22,7 @@ import { useAlert } from "../context/AlertContext";
 import { useScrollLock } from "../hooks/useScrollLock";
 import "./FormImgManager.css";
 
-// --------------------------------------------------------
-// SORTABLE THUMBNAIL COMPONENT
-// --------------------------------------------------------
+// Komponenta řaditelného náhledu souboru
 function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const {
@@ -36,7 +34,7 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
         isDragging,
     } = useSortable({ id });
 
-    // detekce PDF souboru - kontrolujeme jak URL, tak název souboru (pro případ nově nahraných souborů bez URL)
+    // Detekce PDF podle URL nebo názvu souboru
     const isPdf =
         (typeof url === "string" &&
             url.split("?")[0].toLowerCase().endsWith(".pdf")) ||
@@ -46,12 +44,12 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
         transform: CSS.Transform.toString(transform),
         transition: isDragging ? "none" : transition,
         zIndex: isDragging ? 10 : 1,
-        opacity: isDragging ? 0.5 : 1, // Vizuální feedback při tažení
+        opacity: isDragging ? 0.5 : 1,
     };
 
     useEffect(() => {
         if (isPdf) {
-            // PDF emulujeme načtení, protože embed/object nemá spolehlivý onload
+            // Emulace onLoad pro PDF náhled bez spolehlivé události načtení
             const timer = setTimeout(() => setIsLoaded(true), 300);
             return () => clearTimeout(timer);
         }
@@ -72,13 +70,13 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
                         onClick={() => setShowFull(url)}
                         style={{ height: "100%", opacity: isLoaded ? 1 : 0 }}
                     >
-                        {/* Náhled PDF - #toolbar=0 skryje ovládací lištu */}
+                        {/* Náhled PDF bez lišty nástrojů */}
                         <embed
                             src={`${url}#toolbar=0&navpanes=0&scrollbar=0`}
                             type="application/pdf"
                             className="pdf_thumbnail_embed"
                         />
-                        {/* Průhledná vrstva aby šlo na položku kliknout a táhnout ji */}
+                        {/* Překryvná vrstva pro drag-and-drop interakci */}
                         <div className="pdf_overlay_clicker"></div>
                     </div>
                 ) : (
@@ -87,8 +85,8 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
                         alt=""
                         draggable="false"
                         onClick={() => setShowFull(url)}
-                        className={isLoaded ? "visible" : "hidden"} // Plynulý přechod
-                        onLoad={() => setIsLoaded(true)} // KLÍČOVÁ OPRAVA: Ukončení skeletonu
+                        className={isLoaded ? "visible" : "hidden"}
+                        onLoad={() => setIsLoaded(true)}
                     />
                 )
             ) : (
@@ -109,9 +107,7 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
     );
 }
 
-// --------------------------------------------------------
-// MAIN COMPONENT
-// --------------------------------------------------------
+// Hlavní správce obrázků a PDF souborů
 export default function FormImgManager({
     images,
     setImages,
@@ -120,7 +116,7 @@ export default function FormImgManager({
     setIsProcessingFiles,
 }) {
     const [internalImages, setInternalImages] = useState(() => {
-        if (!Array.isArray(images)) return []; // Bezpečnostní pojistka
+        if (!Array.isArray(images)) return [];
         return images.map((img, i) => ({ id: "img-" + i, url: img }));
     });
 
@@ -133,7 +129,7 @@ export default function FormImgManager({
 
     const pdfFullRef = useRef(null);
 
-    // useEffect pro focus PDF v manažeru
+    // Přesun fokusu na PDF náhled po otevření fullscreen režimu
     useEffect(() => {
         if (
             showFull &&
@@ -153,7 +149,7 @@ export default function FormImgManager({
         }
     }, []);
 
-    // Touch-friendly drag sensors
+    // Senzory pro drag-and-drop včetně dotykového ovládání
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
         useSensor(TouchSensor, {
@@ -161,26 +157,26 @@ export default function FormImgManager({
         }),
     );
 
-    // Sync external images
+    // Synchronizace externího seznamu souborů s interním stavem
     useEffect(() => {
         if (!Array.isArray(images)) return;
 
         const newInternalImages = images
             .map((img, i) => {
-                // 1. Pokud je img UŽ URL string (z databáze)
+                // URL řetězec z databáze
                 if (typeof img === "string") {
                     return {
                         id:
                             "img-db-" +
                             i +
                             "-" +
-                            img.substring(img.length - 10), // stabilnější ID
+                            img.substring(img.length - 10),
                         url: img,
                         file: img,
                     };
                 }
 
-                // 2. Pokud je img File objekt (nově nahraný)
+                // Nově nahraný `File` objekt
                 if (img instanceof File) {
                     return {
                         id: "img-file-" + i + "-" + img.name,
@@ -189,7 +185,7 @@ export default function FormImgManager({
                     };
                 }
 
-                // 3. Fallback pro objekty typu {url: '...', file: ...}
+                // Fallback pro objekty ve tvaru `{ url, file }`
                 if (img && typeof img === "object" && img.url) {
                     return {
                         id: "img-obj-" + i,
@@ -200,38 +196,36 @@ export default function FormImgManager({
 
                 return null;
             })
-            .filter(Boolean); // Odstraní případné neplatné záznamy
+            .filter(Boolean);
 
         setInternalImages(newInternalImages);
     }, [images]);
 
-    //Vyčištění alokované paměti pro náhledy
+    // Uvolnění ObjectURL při unmountu komponenty
     useEffect(() => {
         return () => {
             internalImages.forEach((i) => {
                 if (i.file instanceof File) {
-                    URL.revokeObjectURL(i.url); // uvolníme paměť pro náhled
+                    URL.revokeObjectURL(i.url);
                 }
             });
         };
     }, [internalImages]);
 
-    // --------------------------------------------------------
-    // Add image button
-    // --------------------------------------------------------
+    // Otevření dialogu pro přidání souboru
     const handleAddClick = (index) => {
         addIndexRef.current = index;
         fileInputRef.current.click();
     };
 
-    // Pomocná funkce pro zvětšení obrázku, pokud je příliš malý
+    // Upscale malých obrázků na minimální rozměr
     const upscaleImage = (file, minSize = 1200) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onerror = () => {
                 console.error("FileReader selhal");
-                resolve(file); // Vracíme původní při chybě
+                resolve(file);
             };
             reader.onload = (event) => {
                 const img = new Image();
@@ -241,7 +235,7 @@ export default function FormImgManager({
                     resolve(file);
                 };
                 img.onload = () => {
-                    // Pokud je už velký nebo má extrémní rozlišení, které by zabilo Canvas
+                    // Přeskočení upscale u dostatečně velkých nebo extrémních rozměrů
                     if (
                         (img.width >= minSize && img.height >= minSize) ||
                         img.width > 5000 ||
@@ -308,10 +302,7 @@ export default function FormImgManager({
             };
         });
     };
-
-    // --------------------------------------------------------
     // Upload selected file(s)
-    // --------------------------------------------------------
     const handleFilesSelected = async (event) => {
         const files = Array.from(event.target.files);
         if (!files.length) return;
@@ -320,7 +311,7 @@ export default function FormImgManager({
         const oversizedFiles = files.filter((f) => f.size > MAX_SIZE);
 
         if (oversizedFiles.length > 0) {
-            // Zde nahraďte vaším toastem/notifikací
+            // Zobrazení notifikace při překročení limitu velikosti souboru
             showAlert(
                 "error",
                 `Soubor ${oversizedFiles[0].name} je příliš velký. Max. velikost je 10MB.`,
@@ -333,7 +324,7 @@ export default function FormImgManager({
         try {
             const uploads = await Promise.all(
                 files.map(async (file) => {
-                    // LOGIKA PRO PDF: Pokud je to PDF, neupscalujeme
+                    // PDF soubory bez upscale
                     if (file.type === "application/pdf") {
                         return {
                             id: "img-" + crypto.randomUUID(),
@@ -342,7 +333,7 @@ export default function FormImgManager({
                         };
                     }
 
-                    // LOGIKA PRO OBRÁZKY: Upscale proběhne jen u nich
+                    // Upscale pouze pro obrázky
                     const processedFile = await upscaleImage(file);
                     return {
                         id: "img-" + crypto.randomUUID(),
@@ -368,19 +359,13 @@ export default function FormImgManager({
             setIsProcessingFiles?.(false);
         }
     };
-
-    // --------------------------------------------------------
     // Delete one image
-    // --------------------------------------------------------
     const handleDelete = (id) => {
         const filtered = internalImages.filter((img) => img.id !== id);
         setInternalImages(filtered);
         setImages(filtered.map((i) => i.file));
     };
-
-    // --------------------------------------------------------
     // Drag handlers
-    // --------------------------------------------------------
     const handleDragStart = (event) => {
         setActiveId(event.active.id);
     };

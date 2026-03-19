@@ -24,7 +24,7 @@ const FormConfirmName = ({ setLoading, setError }) => {
         e.preventDefault();
         setLoading(true);
 
-        // ⚠️ KLÍČOVÁ ZMĚNA: Vytvoř normální HTML form a submitni ho
+        // Vytvoření standardního HTML formuláře a jeho odeslání
         const form = document.createElement("form");
         form.method = "POST";
         form.action = `${apiUrl}/api/oauth-registration`;

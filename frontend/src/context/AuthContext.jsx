@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
                     const newUser = newCacheEntry ? newCacheEntry.value : null;
                     const oldUser = user;
 
-                    // 1. SCÉNÁŘ: Přihlášení jiného uživatele v jiném tabu
+                    // SCÉN: Přihlášení jiného uživatele v jiném tabu
                     if (newUser && oldUser && newUser.id !== oldUser.id) {
                         console.warn(
                             "Změna uživatele detekována. Obnovuji stránku...",
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
                         window.location.reload();
                     }
 
-                    // 2. SCÉNÁŘ: Odhlášení v jiném tabu
+                    // SCÉN: Odhlášení v jiném tabu
                     if (!newUser && oldUser) {
                         console.warn("Odhlášení detekováno v jiném tabu.");
                         setUser(null);
@@ -76,20 +76,20 @@ export const AuthProvider = ({ children }) => {
             const res = await axiosInstance.get("/api/user", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            updateUser(res.data); // ✅ Použij updateUser místo setUser
+            updateUser(res.data); // Synchronizace stavu i cache přes `updateUser`.
             return res.data;
         } catch (error) {
             console.error("Chyba při načítání uživatele:", error);
             setUser(null);
             setAccessToken(null);
-            cache.clear(); // ✅ Vyčisti cache při chybě
+            cache.clear(); // Vyčištění cache při chybě načtení.
             throw error;
         }
     };
 
     // Získání nového access tokenu pomocí refresh tokenu
     const refreshAccessToken = async () => {
-        if (isRefreshing.current) return; // Pokud už refresh běží, nepouštěj další
+        if (isRefreshing.current) return; // Zamezení paralelního refresh požadavku.
         isRefreshing.current = true;
         try {
             console.log("🔄 Pokouším se obnovit token...");
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
 
             setAccessToken(newAccessToken);
 
-            // ✅ Pokud backend vrací user v /refresh, použij ho
+            // Preferovat user data vrácená přímo z `/refresh`
             if (res.data.user) {
                 updateUser(res.data.user);
             } else {
@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
             cache.clear();
             return null;
         } finally {
-            isRefreshing.current = false; // Uvolni zámek
+            isRefreshing.current = false; // Uvolnění zámku refresh procesu.
         }
     };
 
@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }) => {
     const loginUser = async (emailOrToken, password) => {
         const isOAuthLogin = password === undefined;
 
-        console.log("🔐 loginUser called:", {
+        console.log(" loginUser called:", {
             isOAuth: isOAuthLogin,
             hasPassword: !!password,
         });
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }) => {
         const token = res.data.access_token;
         setAccessToken(token);
 
-        // ✅ Pokud backend vrací user při loginu, použij ho
+        // Preferovat user data vrácená přímo z `/login`
         if (res.data.user) {
             updateUser(res.data.user);
         } else {
@@ -159,7 +159,7 @@ export const AuthProvider = ({ children }) => {
 
     // Odhlášení
     const logoutUser = async () => {
-        // 1. Okamžitě vymaž tokeny v paměti, aby interceptor už nerefreshoval
+        // Okamžitě vymaž tokeny v paměti, aby interceptor už nerefreshoval
         const currentToken = accessToken;
         setAccessToken(null);
         setUser(null);
@@ -171,7 +171,7 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // ✅ JEDINÝ useEffect - inicializace při startu
+    // Jediný inicializační useEffect při startu aplikace
     useEffect(() => {
         // Spusť pouze jednou, i v Strict Mode
         if (initializationAttempted.current) {
@@ -181,14 +181,14 @@ export const AuthProvider = ({ children }) => {
 
         const initAuth = async () => {
             try {
-                // 1️⃣ Zkus načíst z cache pro okamžité zobrazení
+                // 1️ Zkus načíst z cache pro okamžité zobrazení
                 const cachedUser = cache.getUserData();
                 if (cachedUser) {
                     console.log("📦 Načten cached user (okamžité zobrazení)");
                     setUser(cachedUser);
                 }
 
-                // 2️⃣ Zkus obnovit token (fresh data ze serveru)
+                // 2️ Zkus obnovit token (fresh data ze serveru)
                 console.log("🚀 Inicializace auth - pokus o refresh...");
                 const res = await axiosInstance.post("/api/refresh");
 
@@ -216,7 +216,7 @@ export const AuthProvider = ({ children }) => {
         };
 
         initAuth();
-    }, []); // ✅ Prázdné závislosti - spustí se jen jednou
+    }, []); // Spuštění pouze při montování komponenty.
 
     return (
         <AuthContext.Provider
@@ -227,7 +227,7 @@ export const AuthProvider = ({ children }) => {
                 logoutUser,
                 //loading,
                 refreshAccessToken,
-                setUser: updateUser, // ✅ Exportuj updateUser jako setUser
+                setUser: updateUser, // Zachování kompatibility API kontextu.
                 isAuthReady,
             }}
         >

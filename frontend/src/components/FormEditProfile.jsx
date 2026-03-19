@@ -54,7 +54,7 @@ const FormEditProfile = ({ setLoading }) => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeňský kraj" },
+        { value: "plzensky", label: "Plzeský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -89,7 +89,7 @@ const FormEditProfile = ({ setLoading }) => {
         setLocation(user.location || "");
         setEmail(user.email || "");
 
-        // ⚠️ KLÍČOVÉ: Uložení původního telefonu
+        // Uložení původního telefonního čísla
         const userPhone = user.phone || "";
         setSavedPhone(userPhone);
         setCurrentPhone(userPhone);
@@ -101,7 +101,7 @@ const FormEditProfile = ({ setLoading }) => {
         }
     }, [user]);
 
-    // 2. ⚠️ OPRAVA SPECIALIZACÍ: Tento efekt zajistí, že se checkboxy zaškrtnou
+    // Synchronizace checkboxů specializací podle načtených dat
     // i po reloadu, jakmile se načte user z API/Contextu
     useEffect(() => {
         if (user && user.specs) {
@@ -122,7 +122,7 @@ const FormEditProfile = ({ setLoading }) => {
             utilsScript: null,
         });
 
-        // ⚠️ Nastav uložené číslo do inputu
+        // Propagace uloženého čísla do vstupního pole
         if (savedPhone) {
             phoneFormInstance.current.setNumber(savedPhone);
         }
@@ -173,7 +173,7 @@ const FormEditProfile = ({ setLoading }) => {
         return () => clearTimeout(timer);
     }, [countdown]);
 
-    // ⚠️ NOVÁ LOGIKA: Kontrola změny telefonu při onBlur
+    // Kontrola změny telefonního čísla při události onBlur
     const handlePhoneBlur = () => {
         const iti = phoneFormInstance.current;
         const input = phoneFormRef.current;
@@ -182,7 +182,7 @@ const FormEditProfile = ({ setLoading }) => {
 
         const raw = input.value.trim();
 
-        // 1. Pokud je pole prázdné
+        // Pokud je pole prázdné
         if (!raw) {
             setCurrentPhone("");
             // Pokud předtím v savedPhone něco bylo, označíme to jako změnu
@@ -214,7 +214,7 @@ const FormEditProfile = ({ setLoading }) => {
         );
     };
 
-    // ⚠️ POPUP: Krok 1 - Odeslání OTP
+    // Popup krok 1: odeslání OTP kódu
     const handlePopupSubmit = async () => {
         const iti = phonePopupInstance.current;
         const input = phonePopupRef.current;
@@ -254,14 +254,14 @@ const FormEditProfile = ({ setLoading }) => {
         const phoneNumber = `+${dialCode}${digits}`;
 
         try {
-            // 1️⃣ Lookup (normalizace čísla)
+            // 1️ Lookup (normalizace čísla)
             const lookup = await axiosInstance.post("/api/phone-lookup", {
                 phone: phoneNumber,
             });
 
             const normalizedPhone = lookup.data.phone;
 
-            // 2️⃣ Kontrola duplicity (jiný uživatel)
+            // 2️ Kontrola duplicity (jiný uživatel)
             const check = await axiosInstance.post("/api/phone-check", {
                 phone: normalizedPhone,
             });
@@ -272,7 +272,7 @@ const FormEditProfile = ({ setLoading }) => {
                 return;
             }
 
-            // 3️⃣ Uložení a odeslání OTP
+            // 3️ Uložení a odeslání OTP
             setPendingPhone(normalizedPhone);
             setCurrentPhone(normalizedPhone);
             await sendOtp(normalizedPhone);
@@ -306,7 +306,7 @@ const FormEditProfile = ({ setLoading }) => {
         }
     };
 
-    // ⚠️ POPUP: Krok 2 - Ověření OTP
+    // Popup krok 2: ověření OTP kódu
     const handleVerifyOtp = async () => {
         setLoading(true);
         if (otp.length !== 6) {
@@ -329,7 +329,7 @@ const FormEditProfile = ({ setLoading }) => {
             setLoading(false);
             showAlert("success", "Telefon byl ověřen");
 
-            // ⚠️ Aktualizuj uložené číslo a zavři popup
+            // Aktualizace uloženého čísla a uzavření popupu
             setSavedPhone(currentPhone);
             setPhoneChanged(false);
             handleClosePopup();
@@ -346,7 +346,7 @@ const FormEditProfile = ({ setLoading }) => {
         setCountdown(0);
     };
 
-    // ⚠️ SUBMIT FORMULÁŘE
+    // Odeslání formuláře profilu
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -394,20 +394,20 @@ const FormEditProfile = ({ setLoading }) => {
                 },
             });
 
-            // 1. Aktualizace dat
+            // Aktualizace dat
             setUser(response.data.user);
             cache.remove(CACHE_KEYS.PROFILE_ELIGIBLE);
 
-            // 2. LOGIKA ALERTU - Vezmeme zprávu z backendu
+            // Zpracování zprávy alertu - Vezmeme zprávu z backendu
             const isDeactivated = response.data.deactivated;
             const msg =
                 response.data.message || "Profil byl úspěšně aktualizován.";
 
-            // 3. Zobrazení alertu - pokud došlo k vypnutí módu, dáme "warning" nebo "info"
+            // Zobrazení alertu - pokud došlo k vypnutí módu, dáme "warning" nebo "info"
             showAlert(isDeactivated ? "warning" : "success", msg);
 
-            // 4. NAVIGACE - Pokud chceš, aby uživatel viděl ten alert,
-            // můžeš navigaci o vteřinu odložit, nebo se ujisti, že AlertContext přežije navigaci.
+            // Navigace - Pokud chceš, aby uživatel viděl ten alert,
+            // můžeš navigaci o vteřinu odložit, nebo se ujisti, že AlertContext přežije navigaci
             setTimeout(() => {
                 navigate(`/user/${response.data.user.id}`);
             }, 100);
@@ -422,7 +422,7 @@ const FormEditProfile = ({ setLoading }) => {
 
     return (
         <>
-            {/* POPUP PRO OVĚŘENÍ TELEFONU */}
+            {/* POPUP PRO OVĚENÍ TELEFONU */}
             {showPhonePopup && (
                 <div className="popup_container" onClick={handleClosePopup}>
                     <div className="popup" onClick={(e) => e.stopPropagation()}>
@@ -500,7 +500,7 @@ const FormEditProfile = ({ setLoading }) => {
                 </div>
             )}
 
-            {/* HLAVNÍ FORMULÁŘ */}
+            {/* HLAVNÍ FORMUL */}
             <form className="form_edit_profile" onSubmit={handleSubmit}>
                 {/* Jméno */}
                 <div className="name">
@@ -547,7 +547,7 @@ const FormEditProfile = ({ setLoading }) => {
                     </label>
                     <TextArea
                         name="bio"
-                        placeholder="např. Pracoval jsem 2 roky jako bedňák..."
+                        placeholder="např. Pracoval jsem 2 roky jako bedák..."
                         value={bio || ""}
                         rows="7"
                         maxLength="700"
@@ -659,7 +659,7 @@ const FormEditProfile = ({ setLoading }) => {
                         onBlur={handlePhoneBlur}
                     />
 
-                    {/* ⚠️ Ikona varování když se telefon změnil */}
+                    {/* Ikona upozornění při změně telefonního čísla */}
                     {phoneChanged && currentPhone !== "" && (
                         <FontAwesomeIcon
                             icon={faCircleExclamation}

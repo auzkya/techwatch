@@ -32,8 +32,8 @@ class ReviewUserController extends Controller
         }
 
         $validated = $request->validate([
-            'rating' => 'required|numeric|min:0.5|max:5', // frontend posílá 'rating'
-            'text' => 'nullable|string|max:700',        // frontend posílá 'text'
+            'rating' => 'required|numeric|min:0.5|max:5',
+            'text' => 'nullable|string|max:700',
             'pros' => 'nullable|array',
             'cons' => 'nullable|array',
         ]);
@@ -47,7 +47,7 @@ class ReviewUserController extends Controller
             'cons' => $validated['cons'],
         ]);
 
-        // Vytvoření notifikace pro hodnoceného uživatele
+        // Vytvoření notifikace pro hodnoceného uživatele po uložení recenze
         $reviewedUser = User::find($reviewedUserId);
         $reviewer = Auth::user();
         $slug = Str::slug($reviewedUser->first_name.'-'.$reviewedUser->last_name);
@@ -57,13 +57,13 @@ class ReviewUserController extends Controller
             'type' => 'review_user',
             'title' => 'Nová recenze',
             'description' => "<span className='strong'>{$reviewer->first_name} {$reviewer->last_name}</span> ohodnotil <span className='strong'>Váš profil</span>.",
-            'target_id' => $reviewedUserId, // ID uživatele, na jehož profil jdeme
-            'target_sub_id' => $review->id, // ID recenze pro scroll
+            'target_id' => $reviewedUserId,
+            'target_sub_id' => $review->id,
             'target_slug' => $slug,
             'is_read' => false,
         ]);
 
-        // Odpálení realtime události
+        // Publikování realtime události pro doručení notifikace
         broadcast(new NotificationSent($notification));
 
         return response()->json($review, 201);

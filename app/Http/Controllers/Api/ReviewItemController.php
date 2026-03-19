@@ -12,16 +12,14 @@ use Illuminate\Support\Facades\Auth;
 
 class ReviewItemController extends Controller
 {
-    /**
-     * Získání všech recenzí pro konkrétní techniku/inzerát
-     */
+    // Načtení recenzí konkrétní nabídky
     public function index($itemId)
     {
         $currentUserId = Auth::id();
 
         $reviews = ReviewItem::where('item_id', $itemId)
             ->with(['reviewer:id,first_name,last_name,profile_image', 'reviewer.specs'])
-            // ✅ Moje recenze bude první, zbytek podle data
+            // Prioritizace recenze přihlášeného uživatele před ostatními záznamy
             ->orderByRaw('CASE WHEN reviewer_id = ? THEN 0 ELSE 1 END', [$currentUserId])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -29,12 +27,10 @@ class ReviewItemController extends Controller
         return response()->json($reviews);
     }
 
-    /**
-     * Uložení nové recenze
-     */
+    // Uložení nové recenze
     public function store(Request $request, $itemId)
     {
-        // Validace dat z frontendu (React posílá rating a text)
+        // Validace vstupních dat recenze z API požadavku
         $validated = $request->validate([
             'rating' => 'required|numeric|min:0.5|max:5',
             'text' => 'nullable|string|max:1000',
@@ -42,27 +38,29 @@ class ReviewItemController extends Controller
             'cons' => 'nullable|array',
         ]);
 
+        // Mapování polí z API požadavku na schéma recenze v databázi
         $review = ReviewItem::create([
             'reviewer_id' => Auth::id(),
             'item_id' => $itemId,
-            'review_value' => $validated['rating'], // Mapujeme frontend 'rating' na DB 'review_value'
-            'review' => $validated['text'],         // Mapujeme frontend 'text' na DB 'review'
+            'review_value' => $validated['rating'],
+            'review' => $validated['text'],
             'pros' => $validated['pros'] ?? [],
             'cons' => $validated['cons'] ?? [],
         ]);
 
-        // Vytvoření notifikace pro majitele nabídky
-        $item = Item::find($itemId); // Předpokládám model pro nabídku
+        // Načtení nabídky pro určení příjemce notifikace
+        $item = Item::find($itemId);
         $reviewer = Auth::user();
-        // Notifikaci pošleme majiteli nabídky (item->user_id)
+
+        // Vytvoření notifikace pro vlastníka nabídky po uložení recenze
         $notification = Notification::create([
             'user_id' => $item->user_id,
             'sender_id' => $reviewer->id,
-            'type' => 'review_item', // Specifický typ
+            'type' => 'review_item',
             'title' => 'Nová recenze',
             'description' => "<span className='strong'>{$reviewer->first_name} {$reviewer->last_name}</span> ohodnotil <span className='strong'>Vaši nabídku</span>.",
-            'target_id' => $itemId, // ID nabídky
-            'target_sub_id' => $review->id, // ID konkrétní recenze pro scroll
+            'target_id' => $itemId,
+            'target_sub_id' => $review->id,
             'is_read' => false,
         ]);
 
@@ -71,12 +69,10 @@ class ReviewItemController extends Controller
         return response()->json($review->load('reviewer'), 201);
     }
 
-    /**
-     * Aktualizace existující recenze
-     */
+    // Aktualizace existující recenze
     public function update(Request $request, $id)
     {
-        // Kontrola, zda recenze existuje a patří přihlášenému uživateli
+        // Ověření vlastnictví recenze přihlášeným uživatelem před úpravou
         $review = ReviewItem::where('id', $id)
             ->where('reviewer_id', Auth::id())
             ->firstOrFail();
@@ -98,9 +94,7 @@ class ReviewItemController extends Controller
         return response()->json($review->load('reviewer'));
     }
 
-    /**
-     * Smazání recenze
-     */
+    // Smazání recenze
     public function destroy($id)
     {
         $review = ReviewItem::where('id', $id)

@@ -37,12 +37,12 @@ const Workers = () => {
     const path = useLocation();
     const navigate = useNavigate();
 
-    // STAVY PRO PAGINACI
+    // Stav stránkování
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const isFetching = useRef(false);
 
-    // FILTRY
+    // Filtry
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedLocation, setSelectedLocation] = useState({
         value: "",
@@ -69,7 +69,7 @@ const Workers = () => {
             document.removeEventListener("mousedown", handleClickOutside);
     }, [isOpen]);
 
-    // FUNKCE PRO NAČÍTÁNÍ DAT
+    // FUNKCE PRO NAČÍTNÍ DAT
     const fetchWorkers = useCallback(
         async (pageNumber, isInitial = false) => {
             if (isFetching.current && !isInitial) return;
@@ -113,7 +113,7 @@ const Workers = () => {
         setPage(1);
         setHasMore(true);
 
-        // KLÍČOVÁ ZMĚNA: Okamžitě vymažeme staré výsledky, aby neproblikávaly se skeletony
+        // KLÍČOV ZMĚNA: Okamžitě vymažeme staré výsledky, aby neproblikávaly se skeletony
         setWorkers([]);
         setLoading(true);
 
@@ -159,7 +159,7 @@ const Workers = () => {
     }, []);
 
     // MEMOIZACE SEZNAMU (šetří výkon)
-    // 1. OPRAVA: handleItemClick už máš v useCallback, to je super.
+    // Memoizace handleItemClick pomocí useCallback
     const handleItemClick = useCallback(
         (id, firstName, lastName) => {
             const slug = makeSlug(`${firstName}-${lastName}`);
@@ -175,7 +175,7 @@ const Workers = () => {
         [navigate, subcategory],
     );
 
-    // 2. OPTIMALIZACE: Memoizujeme pouze pole komponent, ne logiku uvnitř
+    // OPTIMALIZACE: Memoizujeme pouze pole komponent, ne logiku uvnitř
     /*const memoizedWorkers = useMemo(() => {
         return workers.map((worker, index) => {
             const isLast = workers.length === index + 1;
@@ -224,7 +224,7 @@ const Workers = () => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeňský kraj" },
+        { value: "plzensky", label: "Plzeský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -258,7 +258,7 @@ const Workers = () => {
 
             {!subcategory && (
                 <div className="workers-nav">
-                    {/* Tady budou tlačítka pro podkategorie */}
+                    {/* Tlačítka pro volbu podkategorií pracovníků */}
                     <ButtonSubcategory
                         icon={<FontAwesomeIcon icon={faLightbulb} />}
                         text="Osvětlovač"

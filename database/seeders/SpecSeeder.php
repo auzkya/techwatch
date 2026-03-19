@@ -9,7 +9,7 @@ class SpecSeeder extends Seeder
 {
     public function run(): void
     {
-        // Definujeme pole dvojic: Název -> Tvůj React Slug
+        // Definice mapování názvů specializací na slug hodnoty
         $categories = [
             'Osvětlovač' => 'light_technician',
             'Zvukař' => 'sound_technician',
@@ -19,10 +19,10 @@ class SpecSeeder extends Seeder
         ];
 
         foreach ($categories as $name => $slug) {
-            // updateOrCreate zajistí, že pokud kategorie existuje, jen se aktualizuje slug
+            // Synchronizace specializací podle názvu a slug klíče
             Spec::updateOrCreate(
-                ['name' => $name], // Podle čeho hledáme
-                ['slug' => $slug]  // Co aktualizujeme
+                ['name' => $name],
+                ['slug' => $slug]
             );
         }
     }

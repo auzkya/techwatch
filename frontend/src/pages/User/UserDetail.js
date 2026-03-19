@@ -19,21 +19,20 @@ import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const UserDetail = () => {
-    // Vytáhneme id přímo, slug ignorujeme (je tam jen pro krásu URL)
+    // Použití ID z URL; slug slouží pouze pro čitelnost adresy
     const { id, slug } = useParams();
     const { user: currentUser } = useAuth();
 
     const { showAlert } = useAlert();
 
-    // Kontrola oprávnění admina
+    // Kontrola administrátorských oprávnění
     const isAdmin =
         currentUser &&
         ["admin_moderator", "super_admin"].includes(currentUser.role);
 
     const isLoggedUser = currentUser && String(currentUser.id) === String(id);
 
-    // Podmínka pro zobrazení tlačítka "Napsat recenzi"
-    // Nesmím být majitel profilu A musím být přihlášený
+    // Zobrazení akce recenze pouze pro přihlášeného uživatele mimo vlastní profil
     const canWriteReview = currentUser && String(currentUser.id) !== String(id);
     const [reviews, setReviews] = useState([]);
     const [loadingReviews, setLoadingReviews] = useState(true);
@@ -52,7 +51,7 @@ const UserDetail = () => {
 
     const [showDeletePopup, setShowDeletePopup] = useState(false);
     const [reviewToDelete, setReviewToDelete] = useState(null);
-    // Najdeme recenzi od aktuálního uživatele v seznamu
+    // Vyhledání recenze aktuálního uživatele
     const existingReview = reviews.find(
         (r) => String(r.reviewer_id) === String(currentUser?.id),
     );
@@ -82,7 +81,7 @@ const UserDetail = () => {
                 showAlert("success", "Recenze byla přidána");
             }
 
-            // Zavolej fetchReviews a tvou funkci pro načtení profilu (např. fetchProfileData)
+            // Obnovení recenzí i profilu po uložení změny
             await Promise.all([fetchReviews(), fetchUser()]);
         } catch (err) {
             showAlert("error", "Chyba při ukládání recenze.");
@@ -113,26 +112,24 @@ const UserDetail = () => {
 
     useScrollLock(actionLoading || isReviewPopupOpen || showDeletePopup);
 
-    // Teď už id máme přímo z useParams, není třeba splitovat
     const searchedUserID = id;
 
     const fetchUser = useCallback(async () => {
         if (!searchedUserID) return;
 
         try {
-            setInitialLoading(true); // Ujistíme se, že loading běží
+            setInitialLoading(true);
             const response = await axiosInstance.get(
                 `/api/user/${searchedUserID}`,
             );
 
-            // Laravel vrací response.data.user a response.data.rider_images
             setProfileData({
                 ...response.data.user,
                 rider_images: response.data.rider_images,
             });
         } catch (error) {
             console.error("Chyba při načítání uživatele:", error);
-            setProfileData(null); // Aby se zobrazilo "Uživatel nenalezen"
+            setProfileData(null);
         } finally {
             setInitialLoading(false);
         }
@@ -142,7 +139,8 @@ const UserDetail = () => {
         fetchUser();
     }, [fetchUser]);
 
-    useScrollToHash([reviews]); // Spustí se i po načtení recenzí, což je důležité pro scroll na recenzi z notifikace
+    // Opakované vyhodnocení hash kotvy po načtení recenzí
+    useScrollToHash([reviews]);
 
     useEffect(() => {
         const fetchReviews = async () => {
@@ -161,7 +159,7 @@ const UserDetail = () => {
     useEffect(() => {
         if (profileData) {
             const fullName = `${profileData.first_name}-${profileData.last_name}`;
-            // Vynutíme pomlčky místo podtržítek
+            // Normalizace slugu na pomlčky místo podtržítek
             const correctSlug = makeSlug(fullName).replace(/_/g, "-");
 
             if (slug !== correctSlug) {
@@ -176,7 +174,7 @@ const UserDetail = () => {
     useEffect(() => {
         if (!isLoggedUser || !currentUser || !profileData) return;
 
-        // ✅ Porovnej hodnoty, ne objekty
+        // Porovnání hodnot aktivního stavu bez porovnávání objektů
         if (currentUser.active_worker_till !== profileData.active_worker_till) {
             setProfileData((prev) => ({
                 ...prev,
@@ -185,11 +183,11 @@ const UserDetail = () => {
         }
     }, [currentUser, profileData, isLoggedUser]);
 
-    // --- Scroll na recenzi po kliknutí z notifikace ---
+    // Scroll na konkrétní recenzi po příchodu z notifikace
     useEffect(() => {
         const hash = window.location.hash;
         if (hash && hash.startsWith("#review-")) {
-            // Počkáme chvíli, než se recenze načtou z API
+            // Zpoždění kvůli dokončení renderu po načtení dat
             setTimeout(() => {
                 const element = document.getElementById(hash.substring(1));
                 if (element) {
@@ -197,9 +195,9 @@ const UserDetail = () => {
                         behavior: "smooth",
                         block: "center",
                     });
-                    element.classList.add("highlight-flash"); // Volitelný efekt bliknutí
+                    element.classList.add("highlight-flash");
                 }
-            }, 500); // Timeout je nutný, pokud se data teprve stahují
+            }, 500);
         }
     }, [location]);
 
@@ -217,7 +215,7 @@ const UserDetail = () => {
         );
     }
 
-    const isBanned = profileData.is_banned; // Předpoklad pole v DB
+    const isBanned = profileData.is_banned;
     const isActive = profileData.active_worker_till
         ? new Date(profileData.active_worker_till) > new Date()
         : false;
@@ -239,8 +237,6 @@ const UserDetail = () => {
             )}
 
             <Path
-                // Pokud fromMode existuje (přišli jsme z menu), použijeme ho.
-                // Pokud ne (přímý vstup), dáme "direct", což v Path.js skryje prostřední členy.
                 mode={fromMode}
                 category={fromCategory}
                 userName={`${profileData.first_name} ${profileData.last_name}`}
@@ -263,11 +259,11 @@ const UserDetail = () => {
                 initialData={
                     existingReview
                         ? {
-                              // Tady mapujeme názvy z DB na názvy pro Popup
+                              // Mapování polí z databáze na vstupní strukturu popupu
                               rating: existingReview.review_value,
                               pros: existingReview.pros || [""],
                               cons: existingReview.cons || [""],
-                              text: existingReview.review, // v DB je to 'review', v popupu 'text'
+                              text: existingReview.review,
                           }
                         : null
                 }
@@ -308,10 +304,9 @@ const UserDetail = () => {
                 className="user_container"
                 style={isBanned ? { pointerEvents: "none", opacity: 0.8 } : {}}
             >
-                {/* Předáváme data do komponent */}
                 <UserBasicInfo
                     currentUser={isLoggedUser}
-                    profileImage={profileData.profile_image_url} // používáme appendovanou URL z Laravelu
+                    profileImage={profileData.profile_image_url}
                     isActive={isActive}
                     email={profileData.email}
                     phone={profileData.phone}
@@ -322,7 +317,6 @@ const UserDetail = () => {
                     isTechDetail={false}
                 />
 
-                {/* UserMoreInfo může dostat bio a specializace */}
                 <UserMoreInfo
                     userId={profileData.id}
                     isFavouriteInitially={profileData.is_favourite}
@@ -333,9 +327,9 @@ const UserDetail = () => {
                     reviewsCount={profileData.reviews_count || 0}
                     bio={profileData.bio}
                     location={profileData.location}
-                    createdAt={profileData.created_at} // Datum z DB
-                    specs={profileData.specs} // Pole objektů z Eloquent vztahu
-                    riderImagesFromDb={profileData.rider_images} // Pole obrázků rideru
+                    createdAt={profileData.created_at}
+                    specs={profileData.specs}
+                    riderImagesFromDb={profileData.rider_images}
                     onRefresh={fetchUser}
                     setLoading={setActionLoading}
                 />

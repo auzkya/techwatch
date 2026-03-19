@@ -15,7 +15,7 @@ import { faCircleMinus, faCirclePlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const FormAddTech = ({ setLoading, isEdit }) => {
-    const { id } = useParams(); // ID z URL /tech/edit/:id
+    const { id } = useParams(); // ID z URL `/tech/edit/:id`.
     const { user } = useAuth();
     const currentUser = user;
 
@@ -29,7 +29,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     const [quantity, setQuantity] = useState(1);
     const [images, setImages] = useState([]);
 
-    // Data pro select
+    // Konfigurační data pro výběrová pole
     const categoryOptions = [
         { value: "", label: "-- Vyberte kategorii --" },
         { value: "light", label: "Světla" },
@@ -46,7 +46,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeňský kraj" },
+        { value: "plzensky", label: "Plzeský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -64,18 +64,17 @@ const FormAddTech = ({ setLoading, isEdit }) => {
         { value: "sell", label: "Prodej" },
     ];
 
-    // Select logika
-    // NOVÉ STAVY PRO CUSTOM SELECTY
+    // Stav vlastních select komponent
     const [isCatOpen, setIsCatOpen] = useState(false);
     const [isLocOpen, setIsLocOpen] = useState(false);
     const [isPurpOpen, setIsPurpOpen] = useState(false);
 
-    // REFY PRO DETEKCI KLIKNUTÍ MIMO
+    // Reference pro detekci kliknutí mimo dropdown
     const catRef = useRef(null);
     const locRef = useRef(null);
     const purpRef = useRef(null);
 
-    // Upravený useEffect pro zavírání všech dropdownů při kliknuití mimo
+    // Zavření otevřených dropdownů při kliknutí mimo komponentu
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isCatOpen && !catRef.current?.contains(event.target))
@@ -90,8 +89,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             document.removeEventListener("mousedown", handleClickOutside);
     }, [isCatOpen, isLocOpen, isPurpOpen]);
 
-    const [existingImages, setExistingImages] = useState([]); // Pro zobrazení původních fotek
-    // Funkce pro odstranění existujícího obrázku z náhledu
+    const [existingImages, setExistingImages] = useState([]); // Původní obrázky při editaci.
     const removeExistingImage = (urlToRemove) => {
         setExistingImages((prev) => prev.filter((url) => url !== urlToRemove));
     };
@@ -102,15 +100,14 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     const handleCheckboxChange = () => {
         setPriceNegotiable(!priceNegotiable);
 
-        // pokud zapnuto -> smaž cenu
+        // Vymazání ceny při aktivaci režimu "dohodou"
         if (!priceNegotiable) {
             setPrice("");
         }
     };
 
-    // Načtení dat pro editaci
+    // Načtení dat inzerátu při editaci
     useEffect(() => {
-        // PŘÍSNĚJŠÍ KONTROLA: Spustit pouze pokud JSME v edit módu A MÁME id
         if (isEdit && id && id !== "undefined") {
             const fetchItem = async () => {
                 setLoading(true);
@@ -138,8 +135,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                         setImages(item.image_urls);
                     }
                 } catch (err) {
-                    // Pokud interceptor zachytí 403, window.location.href v axiosInstance.js
-                    // uživatele okamžitě přesměruje. Zde řešíme jen ostatní chyby (např. 404).
+                    // Zpracování chyb mimo globální 403 redirect v axios interceptoru
                     if (err.response?.status === 404) {
                         showAlert("error", "Inzerát nebyl nalezen.");
                         navigate("/tech");
@@ -155,9 +151,9 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Ruční validace vlastních selectů
+        // Ruční validace hodnot vlastních selectů
         if (!category) {
-            showAlert("error", "Prosím vyplňte kategorii.");
+            showAlert("error", "Prosím vyplte kategorii.");
             return;
         }
         if (!location) {
@@ -169,7 +165,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             return;
         }
 
-        // Validace velikosti (přidaná kontrola pro případ, že images je prázdné)
+        // Kontrola celkové velikosti nahraných souborů
         const totalSize =
             images.length > 0
                 ? images.reduce((sum, img) => sum + img.size, 0)
@@ -235,9 +231,9 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             const res = await axiosInstance.post(url, formData, {
                 headers: { "Content-Type": "multipart/form-data" },
             });
-            // 1. Získáme ID (u nového z res.data, u editace ho už máme)
+            // Získáme ID (u nového z res.data, u editace ho už máme)
             const itemId = isEdit ? id : res.data.item.id;
-            // 2. OKAMŽITĚ přesměrujeme na detail inzerátu
+            // OKAMŽITĚ přesměrujeme na detail inzerátu
             navigate(`/tech/item/${itemId}`, {
                 state: {
                     fromMode: null, // Vymažeme mode, aby se necpal do cesty
@@ -246,7 +242,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                     userName: null, // Aby se v cestě skrylo jméno
                 },
             });
-            // 3. Zobrazíme úspěšný alert, který se vykreslí už na nové stránce
+            // Zobrazíme úspěšný alert, který se vykreslí už na nové stránce
             showAlert(
                 "success",
                 isEdit
