@@ -63,6 +63,15 @@ const Favourites = () => {
         displayItems = techWithFlag;
     }
 
+    displayItems.sort((a, b) => {
+        // Zjistíme status pro 'a' i 'b' bez ohledu na typ
+        const isAActive = a.itemType === "worker" ? a.isActiveWorker : a.activeItem;
+        const isBActive = b.itemType === "worker" ? b.isActiveWorker : b.activeItem;
+
+        // Převod na čísla (true = 1, false = 0) a seřazení sestupně (aktivní první)
+        return Number(isBActive) - Number(isAActive);
+    });
+
     return (
         <>
             <Path mode="favourites" category={subcategory} />
@@ -71,8 +80,8 @@ const Favourites = () => {
                 {!subcategory
                     ? "Uložené nabídky"
                     : subcategory === "workers"
-                      ? "Uložení pracovníci"
-                      : "Uložená technika"}
+                        ? "Uložení pracovníci"
+                        : "Uložená technika"}
             </h1>
 
             <div className="search_bar-container">
@@ -136,8 +145,8 @@ const Favourites = () => {
                             // 2. Příprava slugu pro dělníky (stejná logika jako ve Workers)
                             const workerSlug = isWorker
                                 ? makeSlug(
-                                      `${item.first_name}-${item.last_name}`,
-                                  )
+                                    `${item.first_name}-${item.last_name}`,
+                                )
                                 : "";
 
                             return (
@@ -149,9 +158,9 @@ const Favourites = () => {
                                     profile_picture={
                                         isWorker
                                             ? item.profile_image_url ||
-                                              ASSETS.default_avatar
+                                            ASSETS.default_avatar
                                             : item.main_image_url ||
-                                              ASSETS.default_item
+                                            ASSETS.default_item
                                     }
                                     rating={item.review_value}
                                     name={displayName}
@@ -161,7 +170,12 @@ const Favourites = () => {
                                     price={item.price}
                                     purpose={item.purpose}
                                     quantity={item.quantity}
+                                    isActiveWorker={isWorker ? item.isActiveWorker : null}
+                                    activeItem={isWorker ? null : item.activeItem}
                                     onClick={() => {
+                                        if (item.activeItem === false) {
+                                            return;
+                                        }
                                         if (isWorker) {
                                             navigate(
                                                 `/user/${item.id}/${workerSlug}`,

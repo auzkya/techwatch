@@ -6,6 +6,7 @@ namespace App\Observers;
 
 use App\Models\Item;
 use App\Models\ReviewItem;
+use App\Events\ReviewUpdatedEvent;
 
 class ReviewItemObserver
 {
@@ -22,15 +23,18 @@ class ReviewItemObserver
     public function created(ReviewItem $review)
     {
         $this->updateRating($review);
+        broadcast(new ReviewUpdatedEvent($review))->toOthers();
     }
 
     public function updated(ReviewItem $review)
     {
         $this->updateRating($review);
+        broadcast(new ReviewUpdatedEvent($review))->toOthers();
     }
 
     public function deleted(ReviewItem $review)
     {
         $this->updateRating($review);
+        broadcast(new ReviewUpdatedEvent($review))->toOthers();
     }
 }

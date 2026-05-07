@@ -31,10 +31,18 @@ class Item extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Vztah k recenzím - důležité pro Observer i pro výpočty
+    // Vztah k recenzím - důležité pro Observer i pro výpočty (bez deleted_at uživatele)
     public function reviews()
     {
-        return $this->hasMany(ReviewItem::class, 'item_id');
+        return $this->hasMany(ReviewItem::class, 'item_id')
+            ->whereHas('reviewer', function ($query) {
+                $query->whereNull('deleted_at');
+            });
+    }
+    public function getReviewValueAttribute()
+    {
+        $avg = $this->reviews()->avg('review_value') ?: 0;
+        return (float) number_format((float) $avg, 1, '.', '');
     }
 
     // Accessor pro počet recenzí

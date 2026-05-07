@@ -25,16 +25,16 @@ header .left {
 }
 
 header .right {
+    justify-content: right;
+    display: flex;
+    align-items: center;
     width: 70%;
-    float: right;
-    max-height: 100%;
-    text-align: right;
 }
 
 .button-add_item {
     border: none;
     border-radius: 15px;
-    padding: 8px 16px;
+    padding: 8px 18px;
     font-size: 14px;
     color: var(--text);
     font-weight: 600;
@@ -47,13 +47,12 @@ header .right {
 .button-search_job {
     border: none;
     border-radius: 15px;
-    padding: 8px 16px;
+    padding: 8px 18px 8px 16px;
     color: var(--text);
     font-weight: 600;
     font-size: 14px;
-    margin: 0 35px 0 15px;
     vertical-align: middle;
-
+    text-transform: uppercase;
     background-color: var(--background2);
 }
 
@@ -280,15 +279,15 @@ header .right {
     transition: 0.4s;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     background-color: var(--primary2);
 }
 
-input:focus + .slider {
+input:focus+.slider {
     box-shadow: 0 0 1px #2196f3;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
     -webkit-transform: translateX(12px);
     -ms-transform: translateX(12px);
     transform: translateX(12px);

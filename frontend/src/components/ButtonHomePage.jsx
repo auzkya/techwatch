@@ -2,7 +2,7 @@ import "./ButtonHomePage.css";
 
 const ButtonHomePage = ({ icon, text, onClick }) => {
     return (
-        <button onClick={onClick} className="button-homepage smaller_scale">
+        <button onClick={onClick} className="button-homepage smaller_scale squircle-optimized">
             <div className="button-content">
                 <h3>
                     {icon && (

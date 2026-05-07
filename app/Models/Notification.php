@@ -39,7 +39,7 @@ class Notification extends Model
     // Vztah k odesílateli
     public function sender()
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return $this->belongsTo(User::class, 'sender_id')->withTrashed();
     }
 
     // Pomocná metoda pro získání techniky z JSON dat

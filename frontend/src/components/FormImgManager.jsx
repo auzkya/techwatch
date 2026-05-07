@@ -23,7 +23,7 @@ import { useScrollLock } from "../hooks/useScrollLock";
 import "./FormImgManager.css";
 
 // Komponenta řaditelného náhledu souboru
-function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
+function SortableThumb({ id, url, fileName, onDelete, setShowFull, isLoggedUser }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const {
         attributes,
@@ -45,6 +45,7 @@ function SortableThumb({ id, url, fileName, onDelete, setShowFull }) {
         transition: isDragging ? "none" : transition,
         zIndex: isDragging ? 10 : 1,
         opacity: isDragging ? 0.5 : 1,
+        cursor: isLoggedUser ? (isDragging ? "grabbing" : "grab") : "pointer",
     };
 
     useEffect(() => {
@@ -114,6 +115,7 @@ export default function FormImgManager({
     className,
     allowPdf = false,
     setIsProcessingFiles,
+    isLoggedUser
 }) {
     const [internalImages, setInternalImages] = useState(() => {
         if (!Array.isArray(images)) return [];
@@ -129,7 +131,24 @@ export default function FormImgManager({
 
     const pdfFullRef = useRef(null);
 
-    // Přesun fokusu na PDF náhled po otevření fullscreen režimu
+    const isDraggingFullscreenRef = useRef(false);
+    const handleDragFullscreenStart = () => {
+        isDraggingFullscreenRef.current = true;
+    };
+    const handleDragFullscreenEnd = () => {
+        // Malý timeout zajistí, že click event, který následuje hned po dragu, neuzavře náhled
+        setTimeout(() => {
+            isDraggingFullscreenRef.current = false;
+        }, 100);
+    };
+    const handleFullscreenOverlayClick = (e) => {
+        // Zavřeme jen pokud se netáhlo (drag) a pokud uživatel klikl přímo na pozadí (ne na img)
+        if (!isDraggingFullscreenRef.current && e.target === e.currentTarget) {
+            setShowFull(false);
+        }
+    };
+
+    // Přesun fokusu na PDF náhled po otevření fullscreen režimu + zavření fullscreen režimu stiskem ESC
     useEffect(() => {
         if (
             showFull &&
@@ -138,6 +157,13 @@ export default function FormImgManager({
         ) {
             setTimeout(() => pdfFullRef.current?.focus(), 100);
         }
+        const handleEsc = (e) => {
+            if (e.key === "Escape") setShowFull(false);
+        };
+        if (showFull) {
+            window.addEventListener("keydown", handleEsc);
+        }
+        return () => window.removeEventListener("keydown", handleEsc);
     }, [showFull]);
 
     const imgRef = useRef();
@@ -425,6 +451,7 @@ export default function FormImgManager({
                                     id={img.id}
                                     url={img.url}
                                     fileName={img.file?.name}
+                                    isLoggedUser={isLoggedUser}
                                     onDelete={handleDelete}
                                     setShowFull={setShowFull}
                                 />
@@ -448,9 +475,9 @@ export default function FormImgManager({
                                 {activeItem.url
                                     .toLowerCase()
                                     .endsWith(".pdf") ||
-                                activeItem.file?.name
-                                    ?.toLowerCase()
-                                    .endsWith(".pdf") ? (
+                                    activeItem.file?.name
+                                        ?.toLowerCase()
+                                        .endsWith(".pdf") ? (
                                     <div className="pdf_preview_placeholder">
                                         <FontAwesomeIcon
                                             icon={faFilePdf}
@@ -469,12 +496,12 @@ export default function FormImgManager({
             {showFull && (
                 <div
                     className="loader_container gallery_overlay"
-                    onClick={() => setShowFull(false)}
+                    onClick={handleFullscreenOverlayClick}
                 >
                     {/* Kontrola zda jde o PDF podle URL nebo typu v internalImages */}
                     {internalImages.find((img) => img.url === showFull)?.file
                         ?.type === "application/pdf" ||
-                    showFull.toLowerCase().includes(".pdf") ? (
+                        showFull.toLowerCase().includes(".pdf") ? (
                         <div
                             className="pdf_preview_full"
                             onClick={(e) => e.stopPropagation()}
@@ -507,8 +534,10 @@ export default function FormImgManager({
                     ) : (
                         <QuickPinchZoom
                             onUpdate={onUpdate}
+                            onDragStart={handleDragFullscreenStart}
+                            onDragEnd={handleDragFullscreenEnd}
                             wheelScaleFactor={1000}
-                            animationDuration={150}
+                            animationDuration={100}
                             minZoom={1}
                             maxZoom={5}
                         >

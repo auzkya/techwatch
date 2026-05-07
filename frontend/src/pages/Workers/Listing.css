@@ -1,5 +1,5 @@
 .list_title {
-    margin-top: 60px;
+    margin-top: 40px;
     margin-bottom: 10px;
     font-size: 58px;
 }
@@ -63,7 +63,8 @@
     margin: 0 auto;
     display: flex;
     align-items: flex-start;
-    gap: 40px;
+    justify-content: space-evenly;
+    gap: 20px;
     position: relative;
     min-height: 400px;
 }
@@ -72,7 +73,7 @@
     position: -webkit-sticky;
     position: sticky;
     top: 60px;
-    width: 260px;
+    width: 240px;
     z-index: 10;
     align-self: flex-start;
 }
@@ -83,18 +84,18 @@
 }
 
 .all-items-full {
-    display: inline-flex;
-    flex-direction: row;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 5px;
     width: 100%;
     margin-bottom: 200px;
 }
 
 .all-items {
-    display: inline-flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: calc(100% - 300px);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 5px;
+    width: calc(100% - 260px);
     margin-bottom: 200px;
 }
 
@@ -169,8 +170,8 @@
 }
 
 /* Animace pro načítání položek */
-.all-items > div,
-.all-items-full > div {
+.all-items>div,
+.all-items-full>div {
     animation: fadeInTech 0.4s ease-out forwards;
 }
 
@@ -179,6 +180,7 @@
         opacity: 0;
         margin-top: 8px;
     }
+
     to {
         opacity: 1;
         margin-top: 0;

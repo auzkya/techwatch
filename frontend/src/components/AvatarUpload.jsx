@@ -1,10 +1,10 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
-import Cropper from "react-easy-crop";
-import imageCompression from "browser-image-compression";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-regular-svg-icons";
-import "./AvatarUpload.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import imageCompression from "browser-image-compression";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Cropper from "react-easy-crop";
 import { ASSETS } from "../config/assets";
+import "./AvatarUpload.css";
 
 export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
     const fileInputRef = useRef(null);
@@ -62,8 +62,8 @@ export default function AvatarUpload({ avatarPreview, onAvatarReady }) {
         );
 
         const compressed = await imageCompression(blob, {
-            maxSizeMB: 0.5,
-            maxWidthOrHeight: 500,
+            maxSizeMB: 0.7,
+            maxWidthOrHeight: 700,
             useWebWorker: true,
         });
 

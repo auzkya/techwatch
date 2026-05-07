@@ -14,10 +14,12 @@ const UserBasicInfo = ({
     currentUser, // info o tom, zda jsem majitel profilu/inzerátu
     profileImage,
     isActive,
-    email,
-    phone,
+    email: initialEmail,
+    phone: initialPhone,
+    obs_email, // Zašifrovaný email z API
+    obs_phone, // Zašifrovaný telefon z API
     phoneVisible,
-    isTechDetail, // NOVÁ PROP: rozliší mód zobrazení
+    isTechDetail, // rozliší mód zobrazení
     firstName, // Jméno majitele inzerátu
     lastName, // Příjmení majitele inzerátu
     specs = [], // Specializace (pole)
@@ -28,6 +30,29 @@ const UserBasicInfo = ({
     const navigate = useNavigate();
     const location = useLocation();
     const [isMessagePopupOpen, setIsMessagePopupOpen] = useState(false);
+
+    // LOGIKA PRO OCHRANU KONTAKTŮ proti spambottům
+    const [isRevealed, setIsRevealed] = useState(false);
+
+    // Funkce pro "odprášení" dat
+    const deobfuscate = (str) => {
+        if (!str || !str.startsWith("v1_")) return str;
+        try {
+            const encoded = str.replace("v1_", "").split("").reverse().join("");
+            return atob(encoded); // Base64 decode
+        } catch (e) {
+            return "Chyba zobrazení";
+        }
+    };
+
+    const handleRevealClick = async (e) => {
+        e.stopPropagation(); // Abychom neklikli na kartu pod tím
+        setIsRevealed(true);
+    };
+
+    // Pokud jsem majitel, vidím údaje hned. Pokud ne, vidím buď tlačítko nebo načtená data.
+    const displayEmail = currentUser ? initialEmail : deobfuscate(obs_email);
+    const displayPhone = currentUser ? initialPhone : deobfuscate(obs_phone);
 
     // LOGIKA TOOLTIPU: Určení textu podle situace
     let tooltipText = "";
@@ -155,13 +180,13 @@ const UserBasicInfo = ({
                         </p>
                     </button>
 
-                    {/* Kontakt: Email */}
+                    {/* Kontakt: Email 
                     <div className="user_basic_info_contact">
                         <FontAwesomeIcon icon={faAt} className="contact_icon" />
                         <p className="contact_text">{email}</p>
                     </div>
 
-                    {/* Kontakt: Telefon */}
+                    
                     {phone && phoneVisible ? (
                         <div className="user_basic_info_contact">
                             <FontAwesomeIcon
@@ -170,7 +195,29 @@ const UserBasicInfo = ({
                             />
                             <p className="contact_text">{phone}</p>
                         </div>
-                    ) : null}
+                    ) : null}*/}
+
+                    <div className="contact_section_wrapper">
+                        {!isRevealed && !currentUser ? (
+                            <span className="options_span clickable" onClick={handleRevealClick}>
+                                <p className="options_text">Zobrazit kontakt</p>
+                            </span>
+                        ) : (
+                            <div className="contacts_visible_fadein">
+                                <div className="user_basic_info_contact">
+                                    <FontAwesomeIcon icon={faAt} className="contact_icon" />
+                                    <p className="contact_text">{displayEmail}</p>
+                                </div>
+
+                                {displayPhone && (phoneVisible || currentUser) && (
+                                    <div className="user_basic_info_contact">
+                                        <FontAwesomeIcon icon={faPhone} className="contact_icon" />
+                                        <p className="contact_text">{displayPhone}</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             <PopupSendMessage

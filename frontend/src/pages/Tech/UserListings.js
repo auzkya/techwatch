@@ -143,14 +143,10 @@ const UserListings = () => {
     return (
         <>
             <Path
-                mode={isOwner ? "direct" : location.state?.fromMode || "tech"}
-                category={
-                    isOwner
-                        ? null
-                        : location.state?.fromCategory || activeSubcategory
-                }
+                mode={isOwner ? null : "tech"} // Majitel nepotřebuje vidět "Technika" v cestě
+                userId={id}
                 userName={isOwner ? null : ownerName}
-                customLabel={isOwner ? "Moje nabídky" : "TECHNIKA"}
+                customLabel={isOwner ? "Moje nabídky" : null}
             />
 
             <h1 className="list_title">
@@ -203,8 +199,8 @@ const UserListings = () => {
                                 {s === "all"
                                     ? "Vše"
                                     : s === "active"
-                                      ? "Aktivní"
-                                      : "Neaktivní"}
+                                        ? "Aktivní"
+                                        : "Neaktivní"}
                             </span>
                         </label>
                     ))}
@@ -224,6 +220,7 @@ const UserListings = () => {
                                     id={item.id}
                                     profile_picture={getFirstImage(item.images)}
                                     name={item.title}
+                                    rating={item.review_value}
                                     price={item.price}
                                     purpose={item.purpose}
                                     quantity={item.quantity}
@@ -254,8 +251,6 @@ const UserListings = () => {
                                                     ? null
                                                     : ownerName,
                                                 userId: id,
-                                                fromCategory: activeSubcategory,
-                                                ...location.state,
                                             },
                                         })
                                     }

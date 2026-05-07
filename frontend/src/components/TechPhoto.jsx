@@ -1,34 +1,37 @@
-import React from "react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../src/api/axiosInstance.js";
 import { ROUTES, buildRoute } from "../routes/RouteNames";
-import QuickPinchZoom, { make3dTransformValue } from "react-quick-pinch-zoom";
 
 import {
-    faHeart as faHeartSolid,
-    faChevronLeft,
-    faChevronRight,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-    faHeart,
+    faEye,
+    faEyeSlash,
     faFlag,
-    faShareFromSquare,
+    faHeart,
     faPenToSquare,
+    faShareFromSquare,
     faTrashCan,
 } from "@fortawesome/free-regular-svg-icons";
+import {
+    faChevronLeft,
+    faChevronRight,
+    faHeart as faHeartSolid,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import "./TechPhoto.css";
 import { useAlert } from "../context/AlertContext";
 import { useFavourites } from "../hooks/useFavourites";
 import PopupReport from "./PopupReport";
+import "./TechPhoto.css";
 
 const TechPhoto = ({
     images = [],
     isLoggedUser,
     itemId,
     isFavouriteInitially,
+    isActiveInitially,
+    onStatusChange,
     onDeleteClick,
 }) => {
     const { showAlert } = useAlert();
@@ -87,9 +90,10 @@ const TechPhoto = ({
         }
     }, []);
 
-    const { toggleFavourite } = useFavourites();
     const [isFav, setIsFav] = useState(isFavouriteInitially);
+    const [isActive, setIsActive] = useState(isActiveInitially);
 
+    const { toggleFavourite } = useFavourites();
     const handleToggleFav = async () => {
         const previous = isFav;
         setIsFav(!previous); // Optimistický update
@@ -99,6 +103,31 @@ const TechPhoto = ({
         } catch (err) {
             setIsFav(previous); // Rollback při chybě
             showAlert("error", "Nepodařilo se uložit do oblíbených.");
+        }
+    };
+
+    useEffect(() => {
+        setIsActive(isActiveInitially);
+    }, [isActiveInitially]);
+
+    const handleToggleActive = async () => {
+        const previous = isActive;
+        const nextStatus = !previous;
+        const statusForBe = nextStatus ? 1 : 0;
+        setIsActive(!previous); // Optimistický update (hned přepneme oko)
+
+        try {
+            await axiosInstance.patch(`/api/items/${itemId}/status`, {
+                active_item: statusForBe,
+            });
+            if (onStatusChange) {
+                onStatusChange(nextStatus);
+            }
+        } catch (error) {
+            console.error("Chyba při změně statusu:", error);
+            setIsActive(previous); // Rollback při chybě
+            if (onStatusChange) onStatusChange(previous); // Rollback při chybě pro parenta
+            showAlert("error", "Nepodařilo se změnit stav nabídky.");
         }
     };
 
@@ -137,12 +166,7 @@ const TechPhoto = ({
             await axiosInstance.delete(`/api/tech/${deleteItemId}`);
 
             showAlert("success", "Nabídka byla úspěšně smazána.");
-
-            // Přesměrování na listings uživatele (předpokládám, že máš v AuthContextu ID)
-            // Pokud nemáš přístup k ID uživatele zde, můžeš přesměrovat na obecný dashboard
-            // nebo si ID poslat jako prop
-            navigate(-1); // Jednoduchý návrat zpět, nebo:
-            // navigate(buildRoute(ROUTES.USER_LISTINGS, { id: currentUserId }));
+            navigate(-1); // Jednoduchý návrat zpět
         } catch (err) {
             console.error(err);
             showAlert("error", "Nabídku se nepodařilo smazat.");
@@ -248,6 +272,19 @@ const TechPhoto = ({
                                     </p>
                                 </>
                             </Link>
+                        </span>
+                        <br></br>
+                        <span
+                            className={`options_span clickable`}
+                            onClick={handleToggleActive}
+                        >
+                            <FontAwesomeIcon
+                                icon={isActive ? faEyeSlash : faEye}
+                                className="options_icon"
+                            />
+                            <p className="options_text">
+                                {isActive ? "Skrýt nabídku" : "Zveřejnit nabídku"}
+                            </p>
                         </span>
                         <br></br>
                         <span

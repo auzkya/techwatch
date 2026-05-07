@@ -3,7 +3,7 @@ export const categoryMap = {
     workers: "Pracovníci",
     users: "Uživatelé",
     tech: "Technika",
-    favourites: "Oblíbené nabídky",
+    favourites: "Uložené nabídky",
 
     light_technician: "Osvětlovač",
     sound_technician: "Zvukař",

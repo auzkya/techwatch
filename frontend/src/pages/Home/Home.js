@@ -45,7 +45,7 @@ const Home = () => {
             </div>
             <p className="website_info">
                 Aplikace je aktuálně ve fázi vývoje. Pokud byste chtěli nahlásit
-                chybu nebo navrhnout novou funkci, kontaktujte nás na{" "}
+                chybu nebo navrhnout novou funkci, neváhejte nás kontaktovat na{" "}
                 <a href="mailto:info@techwatch.app">info@techwatch.app</a>.
             </p>
         </>

@@ -55,7 +55,7 @@ class NotificationController extends Controller
                 if ($currentNotification && ! $currentNotification->is_read) {
                     Mail::to($recipient->email)->send(new NewMessageMail($currentNotification));
                 }
-            }); // ->delay(now()->addMinutes(1));
+            });
         }
 
         return response()->json(['success' => true]);

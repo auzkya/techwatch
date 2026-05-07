@@ -21,6 +21,15 @@ class ReviewUser extends Model
         'review_value' => 'float',
     ];
 
+    protected static function booted()
+    {
+        static::addGlobalScope('hide_deleted_reviewers', function ($builder) {
+            $builder->whereHas('reviewer', function ($query) {
+                $query->whereNull('deleted_at');
+            });
+        });
+    }
+
     // Autor recenze
     public function reviewer()
     {

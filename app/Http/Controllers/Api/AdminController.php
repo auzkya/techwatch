@@ -104,9 +104,23 @@ class AdminController extends Controller
             'value' => $s->users_count,
         ]);
 
-        $itemCategories = Item::select('category as name', DB::raw('count(*) as value'))
+        $categoryTranslations = [
+            'light' => 'Světla',
+            'sound' => 'Zvuk',
+            'video' => 'Video',
+            'rigging_stage' => 'Rigging & stage',
+            'scenography' => 'Scénografie',
+        ];
+
+        $itemCategories = Item::select('category', DB::raw('count(*) as value'))
             ->groupBy('category')
-            ->get();
+            ->get()
+            ->map(function ($item) use ($categoryTranslations) {
+                return [
+                    'name' => $categoryTranslations[$item->category] ?? ucfirst($item->category),
+                    'value' => $item->value
+                ];
+            });
 
         $workersVsItems = [
             ['name' => 'Aktivní pracovníci', 'value' => User::where('active_worker_till', '>', now())->count()],
@@ -182,13 +196,13 @@ class AdminController extends Controller
             $target = $report->target_type::withTrashed()->find($report->target_id);
         }
 
-        if (! $target && $request->input('action') !== 'dismiss') {
+        if (!$target && $request->input('action') !== 'dismiss') {
             return response()->json(['message' => 'Cíl nahlášení již neexistuje a nelze nad ním provést akci.'], 422);
         }
 
         $action = $request->input('action');
         $adminNote = $request->input('adminNote') ?: null;
-        $reporterNote = $request->input('reporterNote') ?: 'Bez důvodu nahlášení';
+        $reporterNote = $request->input('reporterNote') ?: null;
 
         $isUser = $target instanceof User;
 
@@ -247,6 +261,9 @@ class AdminController extends Controller
 
             // Provedení akce
             switch ($action) {
+                case 'warn_user':
+                    // U napomenutí nic neměníme, pouze pokračujeme k odeslání notifikace níže
+                    break;
                 case 'strike_user':
                     // STRIKE: Funguje pro uživatele přímo, i pro majitele obsahu
                     $owner = $isUser ? $target : $target->user ?? $target->reviewer;
@@ -285,6 +302,12 @@ class AdminController extends Controller
                     }
                     break;
 
+                case 'hide_content':
+                    if ($target instanceof Item) {
+                        $target->update(['active_item' => 0]); 
+                    }
+                    break;
+
                 case 'delete_content':
                     // Bezpečné zpracování akce delete_content i pro uživatelský typ cíle
                     if ($isUser) {
@@ -314,6 +337,10 @@ class AdminController extends Controller
                 if ($action === 'ban_user') {
                     $notifTitle = 'Tým TechWatch: Zablokování účtu';
                 }
+                if ($action === 'hide_content') {
+                    $notifTitle = 'Tým TechWatch: Skrytí inzerátu';
+                }
+
 
                 // Volba tvaru zájmena podle rodu cílového typu obsahu
                 $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
@@ -334,7 +361,17 @@ class AdminController extends Controller
                     }
                 } elseif ($action === 'ban_user') {
                     $fullDescription = "Dobrý den, $pronoun $targetType $targetName byl důvodem pro okamžité **zablokování Vašeho účtu**.";
-                } else {
+                } elseif ($action === 'hide_content'){
+                    $verb = ($suffix === 'a') ? 'byla skryta' : (($suffix === '') ? 'byl skryt' : 'bylo skryto');
+                    $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb. ".
+                                    "Inzerát můžete po opravě zpětovně aktivovat.";
+                } elseif ($action === 'warn_user') {
+                    $notifTitle = 'Tým TechWatch';
+                    $fullDescription = $adminNote;           
+                    // Vynulujeme adminNote pro tento case, aby se text dole nedubloval
+                    $adminNote = null; 
+                }
+                else {
                     $verb = ($suffix === 'a') ? 'byla odstraněna' : (($suffix === '') ? 'byl odstraněn' : 'bylo odstraněno');
                     $fullDescription = "Dobrý den, $pronoun $targetType $targetName $verb z důvodu porušení pravidel.";
                 }
@@ -345,7 +382,6 @@ class AdminController extends Controller
 
                 // Sanitizace a formátování textu před odesláním e-mailu/notifikace
                 $fullDescription = strip_tags($fullDescription);
-                $fullDescription = nl2br($fullDescription);
                 $fullDescription = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $fullDescription);
 
                 $notifOwner = Notification::create([
@@ -419,14 +455,19 @@ class AdminController extends Controller
     {
         $report = Report::findOrFail($id);
         $shouldNotify = $request->input('notify', false);
+        $revertNote = trim($request->input('revert_note', ''));
 
-        DB::transaction(function () use ($report, $shouldNotify) {
+        $originalAction = $report->resolution_action;
+
+        DB::transaction(function () use ($report, $shouldNotify, $originalAction, $revertNote) {
             $modelClass = $report->target_type;
             $target = $modelClass::withTrashed()->find($report->target_id);
 
             // Obnova cíle
-            if ($target && method_exists($target, 'restore') && $target->trashed()) {
-                $target->restore();
+            if (in_array($originalAction, ['delete_content', 'strike_user', 'ban_user'])) {
+                if ($target && method_exists($target, 'restore') && $target->trashed()) {
+                    $target->restore();
+                }
             }
 
             // Textace (přesunuto nad notifikaci)
@@ -501,44 +542,57 @@ class AdminController extends Controller
                     $wasUnbanned = true;
                 }
 
+                // Logika notifikace
+                $isSoftAction = in_array($originalAction, ['hide_content', 'warn_user']);
+
                 // Notifikace - Vše musí být uvnitř této podmínky
                 if ($shouldNotify && $report->status === 'resolved') {
-                    $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
-                    $verb = ($suffix === 'a') ? 'obnovena' : 'obnoven';
-
                     $title = 'Tým TechWatch';
-                    $msg = "Dobrý den, po dodatečném přezkoumání byl $pronoun $targetType $targetName $verb.";
+                    $msg = '';
 
-                    if ($strikeWasRemoved) {
-                        $currentStrikes = $owner->strikes_count;
-                        $msg .= " Na základě toho Vám byl **odmazán jeden Strike**. Aktuálně máte **$currentStrikes ze 3**.";
+                    if ($isSoftAction) { 
+                        $msg = $revertNote; // U napomenutí/skrytí posíláme jen to, co napsal admin pokud něco napsal
+                    }
+                    else{
+                        $pronoun = ($suffix === 'a') ? 'Vaše' : 'Váš';
+                        $verb = ($suffix === 'a') ? 'obnovena' : 'obnoven';
+
+                        $msg = "Dobrý den, po dodatečném přezkoumání byl $pronoun $targetType $targetName $verb.";
+
+                        if ($strikeWasRemoved) {
+                            $currentStrikes = $owner->strikes_count;
+                            $msg .= " Na základě toho Vám byl **odmazán jeden Strike**. Aktuálně máte **$currentStrikes ze 3**.";
+                        }
+
+                        if ($wasUnbanned) {
+                            $msg .= ' Zároveň byl Váš účet **plně odblokován** a přístup k němu **obnoven**.';
+                        }
+                    }
+                    if (!empty(trim(strip_tags($msg)))) {
+
+                        // Očistit od nebezpečných tagů
+                        $msg = strip_tags($msg);
+                        // Převést konce řádků na <br> (klíčové pro Outlook)
+                        $msg = nl2br($msg);
+                        // Nahradit Markdown za strong
+                        $msg = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $msg);
+
+                        $notif = Notification::create([
+                            'user_id' => $owner->id,
+                            'sender_id' => auth()->id(),
+                            'type' => 'moderation_action',
+                            'title' => $title,
+                            'description' => $msg,
+                            'data' => ['action' => 'revert'],
+                        ]);
+
+                        broadcast(new NotificationSent($notif))->toOthers();
+
+                        if ($hadStrikeOrBan && $owner->email) {
+                            Mail::to($owner->email)->send(new ModerationActionMail($notif, 'revert'));
+                        }
                     }
 
-                    if ($wasUnbanned) {
-                        $msg .= ' Zárove byl Váš účet **plně odblokován** a přístup k němu **obnoven**.';
-                    }
-
-                    // Očistit od nebezpečných tagů
-                    $msg = strip_tags($msg);
-                    // Převést konce řádků na <br> (klíčové pro Outlook)
-                    $msg = nl2br($msg);
-                    // Nahradit Markdown za strong
-                    $msg = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $msg);
-
-                    $notif = Notification::create([
-                        'user_id' => $owner->id,
-                        'sender_id' => auth()->id(),
-                        'type' => 'moderation_action',
-                        'title' => $title,
-                        'description' => $msg,
-                        'data' => ['action' => 'revert'],
-                    ]);
-
-                    broadcast(new NotificationSent($notif))->toOthers();
-
-                    if ($hadStrikeOrBan && $owner->email) {
-                        Mail::to($owner->email)->send(new ModerationActionMail($notif, 'revert'));
-                    }
                 }
             }
 
@@ -547,6 +601,7 @@ class AdminController extends Controller
                 'status' => 'pending',
                 'resolved_at' => null,
                 'resolved_by' => null,
+                'resolution_action' => null,
                 'admin_note' => null,
                 'reporter_note' => null,
             ]);

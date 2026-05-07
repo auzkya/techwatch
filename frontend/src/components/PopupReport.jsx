@@ -64,7 +64,7 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
             showAlert("error", "Vyplňte doplňující informace.");
             return;
         }
-        if (reason.length > 500) {
+        if (reason.length > 400) {
             showAlert("error", "Popis je příliš dlouhý.");
             return;
         }
@@ -151,7 +151,8 @@ const PopupReport = ({ isOpen, onClose, targetId, type }) => {
                             onChange={(e) => setReason(e.target.value)}
                             placeholder="Popište nám prosím podrobněji, co je v nepořádku..."
                             rows="7"
-                            maxLength="500"
+                            maxLength="400"
+                            required={true}
                         />
                     </div>
 

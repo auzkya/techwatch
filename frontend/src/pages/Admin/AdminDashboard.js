@@ -43,16 +43,14 @@ const AdminDashboard = () => {
         async (range = "6months") => {
             setLoading(true);
             try {
-                // Načtení základních statistik a pending reportů
-                const response = await axiosInstance.get(
-                    `/api/dashboard-stats?range=${range}`,
-                );
-                setStats(response.data);
+                // Spustí oba requesty paralelně
+                const [statsRes, historyRes] = await Promise.all([
+                    axiosInstance.get(`/api/dashboard-stats?range=${range}`),
+                    axiosInstance.get("/api/admin/resolved-reports")
+                ]);
 
-                // Načtení historie (vyřízených reportů)
-                const historyRes = await axiosInstance.get(
-                    "/api/admin/resolved-reports",
-                );
+                // Updatujeme stavy najednou
+                setStats(statsRes.data);
                 setResolvedReports(historyRes.data);
             } catch (error) {
                 console.error("Chyba při načítání dat dashboardu:", error);
@@ -61,14 +59,14 @@ const AdminDashboard = () => {
                 setLoading(false);
             }
         },
-        [setLoading, showAlert],
+        [setLoading, showAlert]
     );
 
     useEffect(() => {
         if (canViewStats) {
             fetchStats();
         }
-    }, [canViewStats, fetchStats]);
+    }, [canViewStats]);
 
     const handleLogout = async () => {
         try {
@@ -93,7 +91,12 @@ const AdminDashboard = () => {
                 return `${report.target.first_name} ${report.target.last_name}`;
             case "ReviewUser":
             case "ReviewItem":
-                return `Recenze od ${report.target.reviewer?.first_name || "uživatele"}`;
+                const reviewer = report.target.reviewer;
+                const fullName = reviewer
+                    ? `${reviewer.first_name || ""} ${reviewer.last_name || ""}`.trim()
+                    : "uživatele";
+
+                return `Recenze od ${fullName}`;
             default:
                 return model;
         }
@@ -279,7 +282,7 @@ const AdminDashboard = () => {
             {selectedReport && (
                 <PopupResolveReport
                     report={selectedReport}
-                    targetName={getTargetDisplayName(dismissReport)}
+                    targetName={getTargetDisplayName(selectedReport)}
                     onClose={() => setSelectedReport(null)}
                     onConfirm={handleActionConfirm}
                 />
@@ -299,7 +302,7 @@ const AdminDashboard = () => {
             {revertReport && (
                 <PopupRevertReport
                     report={revertReport}
-                    targetName={getTargetDisplayName(dismissReport)}
+                    targetName={getTargetDisplayName(revertReport)}
                     onClose={() => setRevertReport(null)}
                     onConfirm={handleRevertConfirm}
                 />

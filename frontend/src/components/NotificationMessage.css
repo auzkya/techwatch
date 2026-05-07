@@ -3,7 +3,7 @@
     gap: 15px;
     background-color: transparent;
     color: var(--text);
-    padding: 10px 15px 10px 10px;
+    padding: 10px 14px 10px 14px;
     border-radius: 16px;
     margin: 10px auto;
     border: none;
@@ -37,6 +37,7 @@
     align-content: center;
     background-color: var(--text);
     color: var(--background);
+    margin-top: 3.5px;
 }
 
 .button-notification_message .left .image_wrapper {
@@ -48,6 +49,15 @@
 
     background-size: cover;
     background-position: center;
+}
+
+
+.notif-icon-make_smaller{
+    font-size: 20px;
+}
+
+.notif-icon-make_smaller_more{
+    font-size: 18px;
 }
 
 .button-notification_message .right {
@@ -62,8 +72,9 @@
 .button-notification_message .right .middot {
     float: left;
     margin-right: 5px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--primary2);
+    margin-top: 3px;
 }
 
 .button-notification_message .right .name {
@@ -94,6 +105,8 @@
 
     width: 100%;
     text-align: left;
+
+    white-space: pre-line;
 }
 
 .notification_clamp {

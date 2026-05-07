@@ -46,45 +46,76 @@ const TechDetail = () => {
 
     // Zámek scrollování
     useScrollLock(
-        loading ||
-            actionLoading ||
-            isReviewPopupOpen ||
-            showDeletePopup ||
-            showReviewDeletePopup,
+        (loading && !item) ||
+        actionLoading ||
+        isReviewPopupOpen ||
+        showDeletePopup ||
+        showReviewDeletePopup,
     );
 
-    const isOwner =
-        currentUser && String(currentUser.id) === String(item?.user_id);
+    const isOwner = currentUser && String(currentUser.id) === String(item?.user_id);
+
     const canWriteReview = currentUser && !isOwner;
+
     const existingReview = reviews.find(
         (r) => String(r.reviewer_id) === String(currentUser?.id),
     );
 
     // --- Načítání Dat ---
-    const fetchTech = useCallback(async () => {
+    const fetchTech = useCallback(async (isSilent = false) => {
         try {
-            setLoading(true);
+            if (!isSilent) setLoading(true);
             const res = await axiosInstance.get(`/api/tech/${id}`);
             setItem(res.data.item);
         } catch (err) {
             console.error("Chyba při načítání:", err);
-            setItem(null);
+            if (!isSilent) setItem(null);
         } finally {
             setLoading(false);
         }
     }, [id]);
 
-    const fetchReviews = useCallback(async () => {
+    const fetchReviews = useCallback(async (isSilent = false) => {
         try {
-            setLoadingReviews(true);
+            if (isSilent) setLoadingReviews(true);
             const res = await axiosInstance.get(`/api/item/${id}/reviews`);
-            setReviews(res.data);
+
+            // Pokud je to silent update, dáme DOMu čas na animaci
+            if (isSilent) {
+                setTimeout(() => {
+                    setReviews(res.data);
+                    setLoadingReviews(false);
+                }, 150);
+            } else {
+                setReviews(res.data);
+                setLoadingReviews(false);
+            }
         } catch (err) {
             console.error("Chyba při načítání recenzí:", err);
-        } finally {
             setLoadingReviews(false);
         }
     }, [id]);
+
+    // Relatime Reviews pomocí Echo
+    useEffect(() => {
+        if (!id || !window.Echo) return;
+
+        const channel = window.Echo.channel(`item.${id}`);
+
+        console.log(`📡 Poslouchám změny na kanálu: item.${id}`);
+
+        channel.listen(".ReviewUpdated", (e) => {
+            console.log("⚡ Realtime update: Nová recenze detekována", e);
+
+            // Silent update, aby stránka nezmizela
+            fetchReviews(true);
+            fetchTech(true);
+        });
+
+        return () => {
+            window.Echo.leaveChannel(`item.${id}`);
+        };
+    }, [id, fetchReviews, fetchTech]);
 
     useEffect(() => {
         fetchTech();
@@ -106,6 +137,14 @@ const TechDetail = () => {
         }
     };
 
+    // Funkce pro aktualizaci stavu aktivity z potomka
+    const handleStatusToggle = (newActiveStatus) => {
+        setItem(prev => ({
+            ...prev,
+            active_item: newActiveStatus
+        }));
+    };
+
     // --- Handlery pro Recenze ---
     const handleReviewSubmit = async (reviewData) => {
         setActionLoading(true);
@@ -121,7 +160,7 @@ const TechDetail = () => {
                 showAlert("success", "Recenze techniky přidána");
             }
             // Načíst znovu recenze I inzerát
-            await Promise.all([fetchReviews(), fetchTech()]);
+            await Promise.all([fetchReviews(true), fetchTech(true)]);
         } catch (err) {
             showAlert("error", "Chyba při ukládání recenze.");
         } finally {
@@ -142,7 +181,6 @@ const TechDetail = () => {
                         behavior: "smooth",
                         block: "center",
                     });
-                    element.classList.add("highlight-flash"); // Volitelný efekt bliknutí
                 }
             }, 500); // Timeout je nutný, pokud se data teprve stahují
         }
@@ -170,7 +208,7 @@ const TechDetail = () => {
 
     useScrollToHash([reviews]); // Spustí se i po načtení recenzí - důležité pro scroll na recenzi z notifikace
 
-    if (loading)
+    if (loading && !item)
         return (
             <div className="loader_container">
                 <div className="loader"></div>
@@ -216,17 +254,9 @@ const TechDetail = () => {
 
             {/* Path */}
             <Path
-                mode={location.state?.fromMode || "tech"}
-                category={location.state?.fromCategory}
-                customLabel={location.state?.customLabel}
+                mode="tech"
+                category={item.category}
                 name={item.title}
-                userId={item.user?.id || item.user_id}
-                // Pokud je userName ve state explicitně null, necháme ho null
-                userName={
-                    location.state?.hasOwnProperty("userName")
-                        ? location.state.userName
-                        : `${item.user?.first_name} ${item.user?.last_name}`
-                }
             />
 
             {/* Varovné pruhy */}
@@ -255,11 +285,11 @@ const TechDetail = () => {
                 initialData={
                     existingReview
                         ? {
-                              rating: existingReview.review_value,
-                              pros: existingReview.pros || [""],
-                              cons: existingReview.cons || [""],
-                              text: existingReview.review,
-                          }
+                            rating: existingReview.review_value,
+                            pros: existingReview.pros || [""],
+                            cons: existingReview.cons || [""],
+                            text: existingReview.review,
+                        }
                         : null
                 }
             />
@@ -348,6 +378,8 @@ const TechDetail = () => {
                             : [ASSETS.default_item]
                     }
                     isLoggedUser={isOwner}
+                    isActiveInitially={item.active_item}
+                    onStatusChange={handleStatusToggle}
                     isFavouriteInitially={item.is_favourite}
                     onDeleteClick={() => setShowDeletePopup(true)}
                 />
@@ -370,6 +402,8 @@ const TechDetail = () => {
                     firstName={item.user?.first_name}
                     lastName={item.user?.last_name}
                     profileImage={item.user?.profile_image_url}
+                    obs_email={item.user?.obs_email}
+                    obs_phone={item.user?.obs_phone}
                     email={item.user?.email}
                     phone={item.user?.phone}
                     phoneVisible={item.user?.phone_visible}
@@ -408,8 +442,8 @@ const TechDetail = () => {
                         </p>
                     </button>
                 )}
-                <div className="all-reviews">
-                    {loadingReviews ? (
+                <div className={`all-reviews ${loadingReviews && reviews.length > 0 ? 'refreshing-opacity' : ''}`}>
+                    {loadingReviews && reviews.length === 0 ? (
                         <div className="loader"></div>
                     ) : reviews.length > 0 ? (
                         reviews.map((rev) => (

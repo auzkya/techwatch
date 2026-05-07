@@ -51,7 +51,7 @@ class User extends Authenticatable
         'last_login' => 'datetime',
     ];
 
-    protected $appends = ['profile_image_url', 'reviews_count'];
+    protected $appends = ['profile_image_url', 'reviews_count', 'obs_email', 'obs_phone'];
 
     // Vztahy
     public function specs()
@@ -69,10 +69,18 @@ class User extends Authenticatable
         return $this->hasMany(UserRider::class, 'user_id');
     }
 
-    // Vztah k recenzím, které uživatel DOSTAL
+    // Vztah k recenzím, které uživatel DOSTAL (bez deleted_at uživatele)
     public function reviewsReceived()
     {
-        return $this->hasMany(ReviewUser::class, 'reviewed_user_id');
+        return $this->hasMany(ReviewUser::class, 'reviewed_user_id')
+            ->whereHas('reviewer', function ($query) {
+                $query->whereNull('deleted_at');
+            });
+    }
+    public function getReviewValueAttribute()
+    {
+        $avg = $this->reviewsReceived()->avg('review_value') ?: 0;
+        return (float) number_format((float) $avg, 1, '.', '');
     }
 
     // Accessor pro počet recenzí
@@ -117,5 +125,16 @@ class User extends Authenticatable
     {
         // Vrací true, pokud je is_banned v DB true NEBO pokud je záznam v koši (Soft Deleted)
         return (bool) $value || $this->trashed();
+    }
+
+    // prázdné accessory aby technika zjistila zašifrovaný email a telefon
+    public function getObsEmailAttribute()
+    {
+        return $this->attributes['obs_email'] ?? null;
+    }
+
+    public function getObsPhoneAttribute()
+    {
+        return $this->attributes['obs_phone'] ?? null;
     }
 }

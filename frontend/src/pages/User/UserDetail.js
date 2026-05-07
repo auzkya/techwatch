@@ -237,8 +237,9 @@ const UserDetail = () => {
             )}
 
             <Path
-                mode={fromMode}
-                category={fromCategory}
+                mode={profileData.specs.length>0 ? "workers" : null} // Zobrazit "Pracovníci" pouze pokud uživatel má specifikace
+                category={location.state?.fromCategory}
+                userId={profileData.id}
                 userName={`${profileData.first_name} ${profileData.last_name}`}
             />
 
@@ -259,12 +260,12 @@ const UserDetail = () => {
                 initialData={
                     existingReview
                         ? {
-                              // Mapování polí z databáze na vstupní strukturu popupu
-                              rating: existingReview.review_value,
-                              pros: existingReview.pros || [""],
-                              cons: existingReview.cons || [""],
-                              text: existingReview.review,
-                          }
+                            // Mapování polí z databáze na vstupní strukturu popupu
+                            rating: existingReview.review_value,
+                            pros: existingReview.pros || [""],
+                            cons: existingReview.cons || [""],
+                            text: existingReview.review,
+                        }
                         : null
                 }
             />
@@ -308,6 +309,8 @@ const UserDetail = () => {
                     currentUser={isLoggedUser}
                     profileImage={profileData.profile_image_url}
                     isActive={isActive}
+                    obs_email={profileData.obs_email}
+                    obs_phone={profileData.obs_phone}
                     email={profileData.email}
                     phone={profileData.phone}
                     phoneVisible={profileData.phone_visible}

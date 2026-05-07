@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import TextArea from "./TextArea";
-import { useScrollLock } from "../hooks/useScrollLock";
+import { useState } from "react";
 import axiosInstance from "../api/axiosInstance";
 import { useAlert } from "../context/AlertContext";
+import { useScrollLock } from "../hooks/useScrollLock";
+import TextArea from "./TextArea";
 
 const PopupSendMessage = ({
     isOpen,
@@ -24,7 +24,7 @@ const PopupSendMessage = ({
             return;
         }
 
-        if (text.length > 500) {
+        if (text.length > 800) {
             showAlert("error", "Zpráva je příliš dlouhá. Zkraťte ji prosím.");
             return;
         }
@@ -76,7 +76,7 @@ const PopupSendMessage = ({
                             onChange={(e) => setText(e.target.value)}
                             placeholder="Napište Vaši zprávu"
                             rows="7"
-                            maxLength="500"
+                            maxLength="800"
                         />
                     </div>
 

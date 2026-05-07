@@ -76,13 +76,14 @@ class FavouriteController extends Controller
         }
 
         $searchTerm = $request->query('search');
+        $now = now();
 
         // Načtení oblíbených pracovníků aktuálního uživatele
         $workersQuery = User::with(['specs'])
             ->whereHas('favouritedBy', function ($q) use ($currentUser) {
                 $q->where('user_id', $currentUser->id);
             })
-            ->where('active_worker_till', '>', now());
+            ->orderByRaw('active_worker_till > ? DESC', [$now]);
 
         if ($request->filled('search')) {
             $workersQuery->where(function ($q) use ($searchTerm) {
@@ -91,10 +92,12 @@ class FavouriteController extends Controller
             });
         }
 
-        $workers = $workersQuery->get()->map(function ($user) {
+        $workers = $workersQuery->get()->map(function ($user) use ($now) {
             $user->append('profile_image_url');
             $user->formatted_specs = $user->specs->pluck('name')->implode(' | ');
             $user->is_favourite = true;
+
+            $user->isActiveWorker = $user->active_worker_till && $user->active_worker_till > $now;
 
             return $user;
         });
@@ -103,7 +106,7 @@ class FavouriteController extends Controller
         $techQuery = Item::whereHas('favouritedBy', function ($q) use ($currentUser) {
             $q->where('user_id', $currentUser->id);
         })
-            ->where('active_item', true);
+            ->orderByDesc('active_item');
 
         if ($request->filled('search')) {
             $techQuery->where('title', 'LIKE', "%{$searchTerm}%");
@@ -111,6 +114,8 @@ class FavouriteController extends Controller
 
         $tech = $techQuery->get()->map(function ($item) {
             $item->is_favourite = true;
+
+            $item->activeItem = (bool)$item->active_item;
 
             // Sjednocení hlavního obrázku položky pro výstup API
             if ($item->images) {

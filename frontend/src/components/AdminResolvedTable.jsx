@@ -4,9 +4,10 @@ import {
     faCircleExclamation,
     faEyeSlash,
     faGears,
+    faMessage,
     faPeopleGroup,
     faStar,
-    faTrash,
+    faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./AdminReportTable.css";
@@ -26,15 +27,25 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
             icon: faTrash,
             class: "action-delete",
         },
+        hide_content: {
+            label: "Skryto",
+            icon: faEyeSlash,
+            class: "action-hide",
+        },
+        warn_user: {
+            label: "Napomenuto",
+            icon: faMessage,
+            class: "action-warn",
+        },
         strike_user: {
             label: "Strike",
             icon: faCircleExclamation,
-            class: "action-warning",
+            class: "action-strike",
         },
         ban_user: {
             label: "Ban uživatele",
             icon: faBan,
-            class: "action-critical",
+            class: "action-ban",
         },
         dismissed: {
             label: "Ignorováno",
@@ -98,7 +109,7 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                         <th>Důvod nahlášení</th>
                         <th>Nahlásil</th>
                         <th>Rozhodnutí</th>
-                        <th>Poznámka admina</th>
+                        <th>Odůvodnění admina</th>
                         <th>Akce</th>
                     </tr>
                 </thead>
@@ -126,8 +137,8 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                                         <span className="date-main">
                                             {report.resolved_at
                                                 ? new Date(
-                                                      report.resolved_at,
-                                                  ).toLocaleDateString("cs-CZ")
+                                                    report.resolved_at,
+                                                ).toLocaleDateString("cs-CZ")
                                                 : "---"}
                                         </span>
                                         <small className="resolved-by">
@@ -143,8 +154,8 @@ const AdminResolvedTable = ({ reports, onRevert }) => {
                                                 model === "User"
                                                     ? faPeopleGroup
                                                     : model === "Item"
-                                                      ? faGears
-                                                      : faStar
+                                                        ? faGears
+                                                        : faStar
                                             }
                                         />
                                         <span>

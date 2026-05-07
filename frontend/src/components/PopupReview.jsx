@@ -94,7 +94,7 @@ const PopupReview = ({
             );
             return;
         }
-        if (text.length > 500) {
+        if (text.length > 700) {
             showAlert(
                 "error",
                 "Slovní recenze je příliš dlouhá. Zkraťte ji prosím.",
@@ -205,7 +205,7 @@ const PopupReview = ({
                             onChange={(e) => setText(e.target.value)}
                             placeholder="Napište Vaši recenzi zde..."
                             rows="5"
-                            maxLength="500"
+                            maxLength="700"
                         />
                     </div>
 

@@ -61,6 +61,7 @@ const ItemBase = forwardRef((props, ref) => {
         rating,
         role,
         onClick,
+        isActiveWorker,
         isFavouriteInitially,
         price,
         purpose,
@@ -114,7 +115,7 @@ const ItemBase = forwardRef((props, ref) => {
 
     return (
         <div
-            className={`item ${!activeItem && isOwner ? "item-inactive" : ""}`}
+            className={`item ${!activeItem && isOwner ? "item-inactive" : ""} ${(isActiveWorker === false || activeItem === false) ? "item-offline" : ""} ${(activeItem === false) ? "item-unclickable" : ""}`}
             onClick={onClick}
             ref={ref}
         >
@@ -125,11 +126,14 @@ const ItemBase = forwardRef((props, ref) => {
                     src={profile_picture}
                     loading="lazy"
                 />
-                {!activeItem && isOwner && (
-                    <div className="item_hidden_overlay">
-                        <FontAwesomeIcon icon={faEyeSlash} />
-                    </div>
+
+                {isActiveWorker === false && (
+                    <div className="status-badge-offline">Nehledá práci</div>
                 )}
+                {((activeItem === false) || (!activeItem && isOwner)) && (
+                    <div className="status-badge-offline">Neaktivní nabídka</div>
+                )}
+
             </div>
 
             <div className="item_specs">
@@ -169,7 +173,7 @@ const ItemBase = forwardRef((props, ref) => {
                 {isOwner && (
                     <div className="item-edit-menu">
                         {/* Tooltip: Skrýt/Zobrazit */}
-                        <div className="tooltip-wrapper has-tooltip">
+                        <div className="tooltip-wrapper tooltip-wrapper-auto-width has-tooltip">
                             <FontAwesomeIcon
                                 icon={activeItem ? faEyeSlash : faEye}
                                 className="icon"
@@ -186,7 +190,7 @@ const ItemBase = forwardRef((props, ref) => {
                         </div>
 
                         {/* Tooltip: Upravit */}
-                        <div className="tooltip-wrapper has-tooltip">
+                        <div className="tooltip-wrapper tooltip-wrapper-auto-width has-tooltip">
                             <FontAwesomeIcon
                                 icon={faPenToSquare}
                                 className="icon"
@@ -201,7 +205,7 @@ const ItemBase = forwardRef((props, ref) => {
                         </div>
 
                         {/* Tooltip: Sdílet */}
-                        <div className="tooltip-wrapper has-tooltip">
+                        <div className="tooltip-wrapper tooltip-wrapper-auto-width has-tooltip">
                             <FontAwesomeIcon
                                 icon={faShareFromSquare}
                                 className="icon"
@@ -214,7 +218,7 @@ const ItemBase = forwardRef((props, ref) => {
                         </div>
 
                         {/* Tooltip: Smazat */}
-                        <div className="tooltip-wrapper has-tooltip">
+                        <div className="tooltip-wrapper tooltip-wrapper-auto-width has-tooltip">
                             <FontAwesomeIcon
                                 icon={faTrashCan}
                                 className="icon delete-icon"
@@ -238,6 +242,7 @@ export default memo(ItemBase, (prev, next) => {
         prev.id === next.id &&
         prev.isFavouriteInitially === next.isFavouriteInitially &&
         prev.activeItem === next.activeItem &&
-        prev.rating === next.rating
+        prev.rating === next.rating &&
+        prev.isActiveWorker === next.isActiveWorker
     );
 });

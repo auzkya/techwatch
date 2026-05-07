@@ -21,6 +21,15 @@ class ReviewItem extends Model
         'review_value' => 'float',
     ];
 
+    protected static function booted()
+    {
+        static::addGlobalScope('hide_deleted_reviewers', function ($builder) {
+            $builder->whereHas('reviewer', function ($query) {
+                $query->whereNull('deleted_at');
+            });
+        });
+    }
+
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewer_id');

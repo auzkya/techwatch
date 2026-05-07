@@ -487,9 +487,12 @@ input:active {
 }
 
 .popup_big p {
-    display: block;
-    width: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
     margin: 0 auto;
+    width: 80%;
 }
 
 .popup_big .cropped {
@@ -560,6 +563,16 @@ input:active {
     width: 100%; /* Aby tlačítko vyplnilo sidebar */
 }
 
+.tooltip-wrapper-auto-width{
+    width: auto;
+}
+
+.tooltip-wrapper-header_button{
+    display: inline-block;
+    position: relative;
+    margin: 0 35px 0 15px;
+}
+
 /* Styl pro bublinu */
 .tooltip-bubble {
     visibility: hidden;
@@ -587,6 +600,10 @@ input:active {
     pointer-events: none;
 }
 
+.tooltip-wrapper-header_button .tooltip-bubble {
+    bottom: -130%;
+}
+
 /* Šipka tooltipu */
 .tooltip-bubble::after {
     content: "";
@@ -596,14 +613,21 @@ input:active {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #1a1a1b transparent transparent transparent;
+    border-color: var(--background3) transparent transparent transparent;
+}
+
+.tooltip-wrapper-header_button .tooltip-bubble::after {
+    top: -10px;
+    border-color: transparent transparent var(--background3) transparent;
 }
 
 /* Zobrazení při hoveru */
-.tooltip-wrapper.has-tooltip:hover .tooltip-bubble {
+.tooltip-wrapper.has-tooltip:hover .tooltip-bubble,
+.tooltip-wrapper-header_button.has-tooltip:hover .tooltip-bubble {
     visibility: visible;
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+    transition-delay: 0.5s;
 }
 
 /* Zajištění, aby p uvnitř tlačítka neblokovalo hover */

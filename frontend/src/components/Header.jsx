@@ -23,12 +23,14 @@ import {
     faCircleExclamation,
     faCircleUser,
     faClipboardList,
+    faEyeSlash,
+    faHandPeace,
     faHeadset,
     faHeart,
     faMessage as faMessageSolid,
     faRightFromBracket,
     faStar,
-    faTrash,
+    faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./Header.css";
@@ -405,36 +407,50 @@ const Header = () => {
                                 if (notif.data?.action === "revert")
                                     return (
                                         <FontAwesomeIcon
-                                            icon={faHeadset}
-                                            className="notif-icon-info"
+                                            icon={faHandPeace}
+                                            className="notif-icon-notchange"
                                         />
                                     );
                                 if (notif.data?.action === "ban_user")
                                     return (
                                         <FontAwesomeIcon
                                             icon={faBan}
-                                            className="notif-icon-critical"
+                                            className="notif-icon-notchange"
+                                        />
+                                    );
+                                if (notif.data?.action === "hide_content")
+                                    return (
+                                        <FontAwesomeIcon
+                                            icon={faEyeSlash}
+                                            className="notif-icon-make_smaller_more"
                                         />
                                     );
                                 if (notif.data?.action === "strike_user")
                                     return (
                                         <FontAwesomeIcon
                                             icon={faCircleExclamation}
-                                            className="notif-icon-warning"
+                                            className="notif-icon-notchange"
+                                        />
+                                    );
+                                if (notif.data?.action === "warn_user")
+                                    return (
+                                        <FontAwesomeIcon
+                                            icon={faHeadset}
+                                            className="notif-icon-make_smaller"
                                         />
                                     );
                                 return (
                                     <FontAwesomeIcon
                                         icon={faTrash}
-                                        className="notif-icon-warning"
+                                        className="notif-icon-make_smaller"
                                     />
                                 );
                             }
                             if (notif.type === "report_feedback")
                                 return (
                                     <FontAwesomeIcon
-                                        icon={faHeadset}
-                                        className="notif-icon-info"
+                                        icon={faHandPeace}
+                                        className="notif-icon-notchange"
                                     />
                                 );
 
@@ -443,7 +459,7 @@ const Header = () => {
                                 <FontAwesomeIcon
                                     icon={
                                         notif.type === "review_item" ||
-                                        notif.type === "review_user"
+                                            notif.type === "review_user"
                                             ? faStar
                                             : faBellSolid
                                     }
@@ -497,24 +513,31 @@ const Header = () => {
                         className="button-add_item"
                         onClick={() => navigate(buildRoute(ROUTES.ADD_TECH))}
                     >
-                        <span>PIDAT NABÍDKU</span>
+                        <span>PŘIDAT NABÍDKU</span>
                     </button>
 
-                    <button
-                        type="button"
-                        className="button-search_job"
-                        onClick={searchButtonHandler}
-                    >
-                        <label className="switch">
-                            <input
-                                type="checkbox"
-                                checked={isLookingForJob}
-                                readOnly
-                            />
-                            <span className="slider round"></span>
-                        </label>
-                        Hledám práci
-                    </button>
+                    <div className="tooltip-wrapper-header_button has-tooltip">
+                        <button
+                            type="button"
+                            className="button-search_job"
+                            onClick={searchButtonHandler}
+                        >
+                            <label className="switch">
+                                <input
+                                    type="checkbox"
+                                    checked={isLookingForJob}
+                                    readOnly
+                                />
+                                <span className="slider round"></span>
+                            </label>
+                            Hledám práci
+                        </button>
+                        <span className="tooltip-bubble">
+                            {isLookingForJob
+                                ? "Nebudete vidět mezi pracovníky hledající práci"
+                                : "Budete vidět mezi pracovníky hledající práci"}
+                        </span>
+                    </div>
 
                     <button
                         ref={messagesRef}

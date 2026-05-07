@@ -54,7 +54,7 @@ const FormEditProfile = ({ setLoading }) => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeský kraj" },
+        { value: "plzensky", label: "Plzeňský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -382,7 +382,7 @@ const FormEditProfile = ({ setLoading }) => {
                 console.log(`  ${key}:`, value);
             }
 
-            if (bio.length > 700) {
+            if (bio.length > 800) {
                 setLoading(false);
                 showAlert("error", "Bio je příliš dlouhé. Zkraťte jej prosím.");
                 return; // Zastaví odesílání
@@ -550,7 +550,7 @@ const FormEditProfile = ({ setLoading }) => {
                         placeholder="např. Pracoval jsem 2 roky jako bedák..."
                         value={bio || ""}
                         rows="7"
-                        maxLength="700"
+                        maxLength="800"
                         onChange={(e) => setBio(e.target.value)}
                     />
                 </div>

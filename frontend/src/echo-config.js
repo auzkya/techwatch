@@ -22,7 +22,7 @@ window.Echo = new Echo({
             authorize: (socketId, callback) => {
                 const token = getAccessToken();
 
-                // Použijeme fetch nebo axios pro autorizaci
+                // Použijeme fetch pro autorizaci
                 fetch(`${apiUrl}/api/broadcasting/auth`, {
                     method: "POST",
                     headers: {

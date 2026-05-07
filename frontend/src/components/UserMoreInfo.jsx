@@ -75,14 +75,25 @@ const UserMoreInfo = ({
 
     const ImageWithSkeleton = ({ url, isPdf, onClick }) => {
         const [loaded, setLoaded] = useState(false);
+        const imgRef = useRef(null);
 
         useEffect(() => {
             if (isPdf) {
                 setLoaded(true);
-            } else {
-                setLoaded(false);
+            }
+
+            // Reset stavu při změně URL
+            setLoaded(false);
+
+            // Kontrola, že už není načteno v cache
+            if (imgRef.current && imgRef.current.complete) {
+                setLoaded(true);
             }
         }, [url, isPdf]);
+
+        const handleLoad = () => {
+            setLoaded(true);
+        };
 
         return (
             <div
@@ -96,16 +107,18 @@ const UserMoreInfo = ({
                         <embed
                             src={url}
                             type="application/pdf"
-                            onLoad={() => setLoaded(true)}
+                            onLoad={handleLoad}
                         />
                         <div className="pdf_overlay_clicker"></div>
                     </div>
                 ) : (
                     <img
+                        ref={imgRef}
                         src={url}
                         className={`img_item ${loaded ? "visible" : "hidden-abs"}`}
                         alt="rider"
-                        onLoad={() => setLoaded(true)}
+                        onLoad={handleLoad}
+                        onError={handleLoad}
                     />
                 )}
                 {!loaded && <div className="skeleton_shimmer" />}
@@ -253,10 +266,10 @@ const UserMoreInfo = ({
     // Formátování data registrace (pokud ho posíláš z Laravelu)
     const formattedDate = createdAt
         ? new Date(createdAt).toLocaleDateString("cs-CZ", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-          })
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        })
         : "---";
 
     const locationMap = {

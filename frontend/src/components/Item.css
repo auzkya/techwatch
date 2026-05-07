@@ -1,8 +1,6 @@
 .item {
-    width: 240px;
     height: auto;
-    margin: 5px;
-    display: inline-block;
+    margin: 0px;
     cursor: pointer;
     border-radius: 12px;
     padding: 10px;
@@ -69,6 +67,11 @@
     color: var(--primary2);
     font-size: 16px;
     margin-top: 4px;
+    transition: 0.1s ease-in-out;
+}
+
+.heart:hover {
+    transform: scale(1.15);
 }
 
 .role {
@@ -121,7 +124,7 @@
 
 /* skrytý filtr pro obrázek */
 .item-inactive .item_profile_img {
-    filter: grayscale(1) brightness(0.5);
+    filter: grayscale(0.5) brightness(.3);
 }
 
 .item_image_container {
@@ -137,4 +140,37 @@
     font-size: 2.5rem;
     pointer-events: none;
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Styl pro neaktivní pracovníky */
+.item-offline .item_profile_img {
+    filter: grayscale(0.5) brightness(.3);
+}
+
+.item-offline .rating_row,
+.item-offline .name,
+.item-offline .role,
+.item-offline .role2 {
+    filter: grayscale(0.5) brightness(.5);
+    pointer-events: none;
+}
+
+.status-badge-offline {
+    font-weight: 700;
+    position: absolute;
+    text-transform: uppercase;
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+}
+
+.item-unclickable{
+    pointer-events: none !important;
+}
+
+.item-unclickable:hover{
+    background-color: transparent !important;
 }

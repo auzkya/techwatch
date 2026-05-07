@@ -28,6 +28,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
     const [purpose, setPurpose] = useState("");
     const [quantity, setQuantity] = useState(1);
     const [images, setImages] = useState([]);
+    const [dataLoaded, setDataLoaded] = useState(false);
 
     // Konfigurační data pro výběrová pole
     const categoryOptions = [
@@ -46,7 +47,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeský kraj" },
+        { value: "plzensky", label: "Plzeňský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -108,7 +109,8 @@ const FormAddTech = ({ setLoading, isEdit }) => {
 
     // Načtení dat inzerátu při editaci
     useEffect(() => {
-        if (isEdit && id && id !== "undefined") {
+        // Spustit pouze pokud je to editace, máme ID a DATA JEŠTĚ NEBYLA NAČTENA
+        if (isEdit && id && id !== "undefined" && !dataLoaded) {
             const fetchItem = async () => {
                 setLoading(true);
                 try {
@@ -134,6 +136,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                     if (item.image_urls) {
                         setImages(item.image_urls);
                     }
+                    setDataLoaded(true);
                 } catch (err) {
                     // Zpracování chyb mimo globální 403 redirect v axios interceptoru
                     if (err.response?.status === 404) {
@@ -146,14 +149,14 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             };
             fetchItem();
         }
-    }, [isEdit, id, setLoading, showAlert]);
+    }, [isEdit, id, setLoading, showAlert, dataLoaded]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Ruční validace hodnot vlastních selectů
         if (!category) {
-            showAlert("error", "Prosím vyplte kategorii.");
+            showAlert("error", "Prosím vyplňte kategorii.");
             return;
         }
         if (!location) {
@@ -180,7 +183,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
             return;
         }
 
-        if (description.length > 700) {
+        if (description.length > 1500) {
             showAlert("error", "Popisek je příliš dlouhý. Zkraťte jej prosím.");
             return; // Zastaví odesílání
         }
@@ -279,6 +282,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                     images={images}
                     setImages={setImages}
                     className="form_images"
+                    isLoggedUser={true}
                 />
             </div>
             <div className="div3">
@@ -291,7 +295,7 @@ const FormAddTech = ({ setLoading, isEdit }) => {
                     value={description || ""}
                     required
                     rows="7"
-                    maxLength="700"
+                    maxLength="1500"
                     onChange={(e) => setDescription(e.target.value)}
                 />
             </div>

@@ -226,7 +226,7 @@ const Tech = () => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeský kraj" },
+        { value: "plzensky", label: "Plzeňský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -373,7 +373,7 @@ const Tech = () => {
                         <div className="location" ref={selectRef3}>
                             <div className="custom-select-wrapper">
                                 <label className="body_base label-move">
-                                    adit dle
+                                    Řadit dle
                                 </label>
                                 <div
                                     className={`custom-select-down ${isOpen3 ? "open" : ""}`}

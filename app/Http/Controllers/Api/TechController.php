@@ -193,6 +193,12 @@ class TechController extends Controller
         return response()->json(['message' => 'Upraveno']);
     }
 
+    private function obfuscate($string) {
+        if (!$string) return null;
+        // Base64 + otočení stringu + tajný prefix
+        return "v1_" . strrev(base64_encode($string));
+    }
+
     public function show($id)
     {
         $user = auth('sanctum')->user();
@@ -209,6 +215,28 @@ class TechController extends Controller
 
         if (! $item) {
             return response()->json(['message' => 'Nenalezeno'], 404);
+        }
+
+        // Ochrana kontaktů uživatele
+        if ($item->user) {
+            $currentUserId = auth('sanctum')->id();
+            // Přísnější kontrola: Majitel je ten, jehož ID se shoduje
+            $isOwner = $currentUserId && (int)$currentUserId === (int)$item->user->id;
+            
+            if (!$isOwner && !$isAdmin) {
+                $obsEmail = $this->obfuscate($item->user->email);
+                $obsPhone = $item->user->phone_visible ? $this->obfuscate($item->user->phone) : null;
+
+                // Nastavení hodnot, které teď díky $appends projdou do JSONu
+                $item->user->setAttribute('obs_email', $obsEmail);
+                $item->user->setAttribute('obs_phone', $obsPhone);
+                
+                // Důležité: Skryjeme citlivá pole
+                $item->user->makeHidden(['email', 'phone', 'google_id', 'facebook_id']);
+            } else {
+                // Majitel nebo admin uvidí vše
+                $item->user->makeVisible(['email', 'phone']);
+            }
         }
 
         // Skrytí soft-deleted položek před běžnými uživateli
@@ -363,8 +391,17 @@ class TechController extends Controller
         $items = $query->orderBy('created_at', 'desc')->get();
         $owner = User::find($userId);
 
-        $items->transform(function ($item) {
+        $favouriteItemIds = [];
+        if ($currentUserId) {
+            $favouriteItemIds = \DB::table('favourites_items')
+                ->where('user_id', $currentUserId)
+                ->pluck('item_id')
+                ->toArray();
+        }
+
+        $items->transform(function ($item) use ($favouriteItemIds) {
             $item->images = $this->transformImages($item);
+            $item->is_favourite = in_array($item->id, $favouriteItemIds);
 
             return $item;
         });

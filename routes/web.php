@@ -130,7 +130,8 @@ Route::get('/auth/{provider}/callback', function (Request $request, $provider) {
             'Lax'
         );
 });
-// SPA catch-all route
-Route::get('/{any}', function () {
-    return file_get_contents(public_path('react/index.html'));
-})->where('any', '^(?!api).*$');
+
+// Pokud někdo přijde na api.techwatch.app/ přímo
+Route::get('/', function () {
+    abort(404);
+});

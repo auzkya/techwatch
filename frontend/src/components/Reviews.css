@@ -9,6 +9,7 @@
 .reviews_container h2 {
     text-align: center;
     margin-top: 0px;
+    margin-bottom: 42px;
 }
 
 .reviews_container h2 span {
@@ -16,13 +17,38 @@
 }
 
 .all-reviews {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
     position: relative;
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out, filter 0.2s ease-out;
+    will-change: opacity, transform;
+}
+
+.all-reviews.refreshing-opacity {
+    opacity: 0;
+    transform: scale(0.98) translateY(10px);
+    /* Menší skok, méně rušivé */
+    filter: blur(2px);
+    /* Jen lehké rozostření, aby bylo jasné, že se data mění */
+    pointer-events: none;
+}
+
+.all-reviews>* {
+    transition: transform 0.2s ease;
 }
 
 .review_component {
+    margin: 0 auto;
     position: relative;
-    margin: 40px auto;
+    box-shadow: 0 0 0px #1f1f1f, 0 1px 0px #1f1f1f, 0 16px 16px -16px #1f1f1f;
+    padding: 0px 30px 16px 30px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    align-items: start;
 }
 
 .review_component_profile {
@@ -33,34 +59,27 @@
 
 .review_component_avatar {
     border-radius: 100%;
-    height: 70px;
+    height: 74px;
     aspect-ratio: 1/1;
     margin-right: 15px;
 }
 
-.review_component_profile .right h3 {
+.review_component_main .profile_header h3 {
     margin: 0 auto;
 }
 
-.review_component_profile .right p {
+.review_component_main .profile_header p {
     margin: 4px 0 0 0;
 }
 
 .review_component_corner {
     display: block;
-    position: absolute;
-    right: 0;
-    top: 0;
-}
-
-.review_component_main {
-    width: 85%;
-    margin: 0 auto;
 }
 
 .review_component_corner .date {
     color: var(--text2);
     margin-bottom: 4px;
+    margin-top: 0px;
 }
 
 .review_component_corner .stars_container {
@@ -68,12 +87,12 @@
 }
 
 .review_component_plus-minus {
-    width: 97%;
+    align-items: start;
     display: flex;
     flex-direction: row;
-    align-items: start;
     justify-content: space-between;
-    margin: -6px auto 6px auto;
+    margin: 10px 0 2px;
+    width: 97%;
 }
 
 .review_component_plus-container,
@@ -108,22 +127,30 @@
     color: var(--primary2);
 }
 
+.review_component_main {
+    width: 70%;
+}
+
 .review_component_main .description {
     white-space: pre-line;
-    line-height: 1.6;
-    margin: 0 auto 8px auto;
+    line-height: 1.3;
+    margin: 8px auto 8px auto;
+}
+
+.review_component_main .review_options {
+    margin-top: 28px;
 }
 
 .review_component_main .options_icon {
     display: inline-block;
     vertical-align: middle;
     color: var(--primary);
-    font-size: 17px;
+    font-size: 13px;
 }
 
 .review_component_main .options_text {
     display: inline-block;
-    margin: 4px 0 4px 4px;
+    margin: 6px 0 4px 4px;
     vertical-align: middle;
     font-weight: 500;
     color: var(--text);

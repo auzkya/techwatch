@@ -201,7 +201,7 @@ const Workers = () => {
         { value: "ostrava", label: "Ostrava" },
         { value: "stredocesky", label: "Středočeský kraj" },
         { value: "jihocesky", label: "Jihočeský kraj" },
-        { value: "plzensky", label: "Plzeský kraj" },
+        { value: "plzensky", label: "Plzeňský kraj" },
         { value: "karlovarsky", label: "Karlovarský kraj" },
         { value: "ustecky", label: "Ústecký kraj" },
         { value: "liberecky", label: "Liberecký kraj" },
@@ -408,6 +408,7 @@ const Workers = () => {
                                     : null
                             } // Ref přímo do Itemu
                             isFavouriteInitially={worker.is_favourite}
+                            isActiveWorker={worker.is_active_worker}
                             profile_picture={
                                 worker.profile_image_url ||
                                 ASSETS.default_avatar

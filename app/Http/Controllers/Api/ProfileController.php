@@ -202,6 +202,12 @@ class ProfileController extends Controller
         return redirect(config('app.frontend_url').'/app/?extended=1');
     }
 
+    private function obfuscate($string) {
+        if (!$string) return null;
+        // Base64 + otočení stringu + tajný prefix
+        return "v1_" . strrev(base64_encode($string));
+    }
+
     public function show($id)
     {
         // Zkusíme najít podle slugu, pokud selže, zkusíme ID (pro jistotu)
@@ -210,12 +216,20 @@ class ProfileController extends Controller
             ->where('id', $id)
             ->first();
 
-        if (! $user) {
+        if (!$user) {
             return response()->json(['message' => 'Uživatel nenalezen'], 404);
         }
 
         $visitor = auth('sanctum')->user();
         $isPrivileged = $visitor && ($visitor->isAdmin() || $visitor->isModerator());
+
+        // Pokud nejsem majitel nebo admin, schovám email a telefon z hlavního objektu
+        $isOwner = $visitor && $visitor->id === $user->id;
+        if (!$isOwner) {
+            $user->setAttribute('obs_email', $this->obfuscate($user->email));
+            $user->setAttribute('obs_phone', $user->phone_visible ? $this->obfuscate($user->phone) : null);
+            $user->makeHidden(['email', 'phone']); 
+        }
 
         // Pokud je smazaný a nejsem privilegovaný, skryju citlivá data, ale pošlu zbytek
         if ($user->trashed() && ! $isPrivileged) {
@@ -309,12 +323,14 @@ class ProfileController extends Controller
     public function index(Request $request)
     {
         $currentUserId = auth('sanctum')->id(); // Získá ID přihlášeného uživatele
+        $now = now();
 
         $query = User::with(['specs'])
-            ->where('active_worker_till', '>', now())
-            ->where('id', '!=', $currentUserId);
+            ->where('id', '!=', $currentUserId)
+            ->has('specs') //má alespoň jednu specializaci
+            ->where('is_banned', false);
 
-        // Přidáme informaci o oblíbených přímo do hlavního dotazu (Join/Subquery)
+        // Informaci o oblíbených přímo do hlavního dotazu (Join/Subquery)
         if ($currentUserId) {
             $query->leftJoin('favourites_users', function ($join) use ($currentUserId) {
                 $join->on('users.id', '=', 'favourites_users.favourite_user_id')
@@ -348,10 +364,16 @@ class ProfileController extends Controller
             $query->where('location', $request->location);
         }
 
-        $workers = $query->orderBy('review_value', 'desc')->paginate(20);
+        $workers = $query // Nejprve aktivní, pak podle hodnocení a nakonec podle posledního přihlášení
+            ->orderByRaw('active_worker_till > ? DESC', [$now]) 
+            ->orderBy('review_value', 'desc')
+            ->orderBy('last_login', 'desc')
+            ->paginate(20);
+
 
         // Transformace dat pro frontend
-        $workers->getCollection()->transform(function ($user) {
+        $workers->getCollection()->transform(function ($user) use ($now) {
+            $user->is_active_worker = $user->active_worker_till && $user->active_worker_till->isFuture();
             $user->append('profile_image_url');
             $user->formatted_specs = $user->specs->pluck('name')->implode(' | ');
 

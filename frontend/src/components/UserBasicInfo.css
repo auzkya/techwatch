@@ -63,6 +63,10 @@
 
 .user_basic_info_contact {
     margin: 8px auto;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    width: fit-content;
 }
 
 .user_basic_info_contact .contact_icon {
@@ -105,4 +109,51 @@
 /* Odsazení detailů v tech módu pokud je avatar menší */
 .user_basic_info.tech_mode {
     align-items: flex-start;
+}
+
+/*OCHRANNÝ KLIK*/
+.contact_section_wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.contact_section_wrapper .options_icon {
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--primary);
+    font-size: 17px;
+}
+
+.contact_section_wrapper .options_text {
+    display: inline-block;
+    margin: 4px 0 4px 4px;
+    vertical-align: middle;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.contact_error_msg {
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.contacts_visible_fadein {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

@@ -13,16 +13,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Neindexování https://api.techwatch.app/
+        $middleware->api(append: [
+            \App\Http\Middleware\EnsureApiIsNotIndexed::class,
+        ]);
+        // Autorizace admina
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
         $middleware->statefulApi();
-        // 3. CSRF výjimky
+        // CSRF výjimky
         $middleware->validateCsrfTokens(except: [
             'api/broadcasting/auth',
             'api/refresh', // Přidej i refresh, pokud s ním máš potíže
         ]);
-        // 4. Cookies
+        // Cookies
         $middleware->encryptCookies(except: [
             'refresh_token',
         ]);
