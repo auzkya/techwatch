@@ -72,7 +72,7 @@ Route::post('/oauth-registration', [OAuthController::class, 'oauthRegistration']
 // REST poznámka:
 Route::middleware('auth:sanctum')->put('/user', [ProfileController::class, 'update']);
 Route::get('/user/{id}/profile-check', [ProfileController::class, 'profileCheck']);
-Route::post('/user/{id}/looking-for-job-toggle', [ProfileController::class, 'lookingForJobToggle']);
+Route::middleware('auth:sanctum')->post('/user/{id}/looking-for-job-toggle', [ProfileController::class, 'lookingForJobToggle']);
 
 Route::get('/user/{id}', [ProfileController::class, 'show']);
 
